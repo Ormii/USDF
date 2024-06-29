@@ -7,6 +7,8 @@ public class USDF : ModuleRules
 	public USDF(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+
+        PublicIncludePaths.AddRange(new string[] { "USDF" });
 	
 		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput" });
 
