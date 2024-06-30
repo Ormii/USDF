@@ -31,13 +31,25 @@ protected:
 	FVector Velocity;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
+	FVector PreVelocity;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
+	float Direction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
+	float PreDirection;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
+	FVector2D AddVelocityScale;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
 	float GroundSpeed;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
-	uint8	bIsIdle : 1;
+	float PreGroundSpeed;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
-	float MovingThreshould;
+	uint8	bIsIdle : 1;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
 	uint8 bIsFalling : 1;
@@ -46,5 +58,18 @@ protected:
 	uint8 bIsJumping : 1;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
-	float JumpingThreshould;
+	uint8 bIsWalk : 1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
+	uint8 bIsRun : 1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
+	uint8 bIsTurn : 1;
+
+
+
+// Character Animation Data Section
+protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = AnimationData)
+	TObjectPtr<class UUSDFCharacterAnimData> CharacterAnimData;
 };

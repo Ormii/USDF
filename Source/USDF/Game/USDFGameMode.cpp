@@ -5,7 +5,7 @@
 
 AUSDFGameMode::AUSDFGameMode()
 {
-	static ConstructorHelpers::FClassFinder<APawn> CharacterPlayerRef(TEXT("/Game/Blueprint/BP_USDFCharacterPlayer.BP_USDFCharacterPlayer_C"));
+	static ConstructorHelpers::FClassFinder<APawn> CharacterPlayerRef(TEXT("/Game/Blueprint/BP_USDFCharacterPlayerWarrior.BP_USDFCharacterPlayerWarrior_C"));
 	if (CharacterPlayerRef.Class)
 	{
 		DefaultPawnClass = CharacterPlayerRef.Class;

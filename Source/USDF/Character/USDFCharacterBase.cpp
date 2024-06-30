@@ -3,11 +3,18 @@
 
 #include "Character/USDFCharacterBase.h"
 #include "Components/CapsuleComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "Character/USDFCharacterControlData.h"
 
 // Sets default values
 AUSDFCharacterBase::AUSDFCharacterBase()
 {
 	RootComponent = GetCapsuleComponent();
+
+	// Pawn
+	bUseControllerRotationPitch = false;
+	bUseControllerRotationYaw = false;
+	bUseControllerRotationRoll = false;
 
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> CharacterMeshRef(TEXT("/Game/ReferenceAsset/Mannequins/Meshes/SKM_Manny.SKM_Manny"));
 	if (CharacterMeshRef.Succeeded())
@@ -23,18 +30,13 @@ AUSDFCharacterBase::AUSDFCharacterBase()
 
 }
 
-// Called when the game starts or when spawned
-void AUSDFCharacterBase::BeginPlay()
+void AUSDFCharacterBase::SetCharacterControlData(const UUSDFCharacterControlData* NewCharacterControlData)
 {
-	Super::BeginPlay();
-	
+	//Pawn
+	bUseControllerRotationYaw = NewCharacterControlData->bUseControllerRotationYaw;
+
+	// Movement
+	GetCharacterMovement()->bOrientRotationToMovement = NewCharacterControlData->bOrientRotationToMovement;
+	GetCharacterMovement()->RotationRate = NewCharacterControlData->RotationRate;
+	GetCharacterMovement()->bUseControllerDesiredRotation = NewCharacterControlData->bUseControllerDesiredRotation;
 }
-
-
-// Called to bind functionality to input
-void AUSDFCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
-}
-

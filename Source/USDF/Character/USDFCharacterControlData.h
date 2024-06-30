@@ -52,4 +52,10 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = SpringArm)
 	uint32 bDoCollisionTest : 1;
+
+	UPROPERTY(EditAnywhere, Category = CharacterAcceleration)
+	float MaxAcceleration;
+
+	UPROPERTY(EditAnywhere, Category = CharacterAcceleration)
+	float AccelerationRate;
 };

@@ -5,19 +5,21 @@
 #include "CoreMinimal.h"
 #include "Character/USDFCharacterBase.h"
 #include "InputActionValue.h"
+#include "Interface/USDFCharacterPlayerAnimInterface.h"
 #include "USDFCharacterPlayer.generated.h"
 
 UENUM()
 enum class ECharacterPlayerControlType : uint8
 {
-	Shoulder
+	Shoulder,
+	Preview,
 };
 
 /**
  * 
  */
 UCLASS()
-class USDF_API AUSDFCharacterPlayer : public AUSDFCharacterBase
+class USDF_API AUSDFCharacterPlayer : public AUSDFCharacterBase, public IUSDFCharacterPlayerAnimInterface
 {
 	GENERATED_BODY()
 public:
@@ -27,8 +29,9 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)override;
+	virtual void Tick(float DeltaSeconds) override;
 
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)override;
 private:
 	UPROPERTY(VisibleAnywhere, Category = Camera, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class USpringArmComponent> SpringArm;
@@ -39,25 +42,70 @@ private:
 // CharacterControl Section
 protected:
 	void SetCharacterControl(ECharacterPlayerControlType NewCharacterControlType);
-	virtual void SetCharacterControlData(const class UUSDFCharacterControlData* NewCharacterControlData);
+	virtual void SetCharacterControlData(const class UUSDFCharacterControlData* NewCharacterControlData) override;
 
 	UPROPERTY(EditAnywhere, Category = CharacterControl, Meta = (AllowPrivateAccess = "true"))
 	TMap<ECharacterPlayerControlType, class UUSDFCharacterControlData*> CharacterControlManager;
 
+	FRotator SpringArmRativeRotation;
+
 // Input Section
 protected:
 	UPROPERTY(VisibleAnywhere, Category = Input, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class UInputAction> ShoulderMoveAction;
+	TObjectPtr<class UInputAction> MoveAction;
 
 	UPROPERTY(VisibleAnywhere, Category = Input, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class UInputAction> ShoulderLookAction;
+	TObjectPtr<class UInputAction> LookAction;
 
 	UPROPERTY(VisibleAnywhere, Category = Input, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UInputAction> JumpAction;
 
+	UPROPERTY(VisibleAnywhere, Category = Input, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UInputAction> SprintAction;
+
+	UPROPERTY(VisibleAnywhere, Category = Input, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UInputAction> ViewChangeAction;
+
+	UPROPERTY(VisibleAnywhere, Category = Input, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UInputAction> AttackAction;
+
 	ECharacterPlayerControlType CurrentControlType;
 
-	void ShoulderMove(const FInputActionValue& Value);
-	void ShoulderLook(const FInputActionValue& Value);
+	void Move(const FInputActionValue& Value);
+	void ReleaseMove(const FInputActionValue& value);
+	void Look(const FInputActionValue& Value);
+	void PressViewChange();
+	void ReleaseViweChange();
+	void Sprint();
+	void StopSprint();
+	virtual void Attack();
+
+// Character Movement Section
+protected:
+	UPROPERTY(Transient, VisibleAnywhere, Category = Animation, Meta = (AllowPrivateAccess = "true"))
+	uint8 bSprintKeyPress : 1;
+	float Acceleration;
+	float MaxAcceleration;
+	float AccelerationRate;
+
+	float PreGroundSpeed;
+	FVector PreVelocity;
+	FVector2D AddVelocityScale;
+
+// Animation Section
+public:
+	virtual bool IsSprintState() override;
+	virtual bool IsCombatState() override;
+	virtual float GetPreGroundSpeed() override;
+	virtual FVector GetPreVelocity() override;
+	virtual FVector2D GetAddVelocityScale() override;
+
+// Combat Section
+protected:
+	virtual void SetCombatState(bool NewCombatState) override;
+
+	UPROPERTY(Transient ,VisibleAnywhere, Category = Combat, Meta = (AllowPrivateAccess = "true"))
+	uint8 bCombatState : 1;
+
 
 };
