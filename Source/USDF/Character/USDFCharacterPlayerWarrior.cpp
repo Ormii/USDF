@@ -6,6 +6,8 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputMappingContext.h"
+#include "Animation/USDFPlayerWarriorAnimInstance.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 AUSDFCharacterPlayerWarrior::AUSDFCharacterPlayerWarrior()
 {
@@ -17,7 +19,7 @@ AUSDFCharacterPlayerWarrior::AUSDFCharacterPlayerWarrior()
 		GetMesh()->SetSkeletalMesh(CharacterMeshRef.Object);
 	}
 
-	static ConstructorHelpers::FClassFinder<UAnimInstance> AnimInstanceRef(TEXT("/Game/Animation/Player/ABP_USDFPlayerWarrior.ABP_USDFPlayerWarrior_C"));
+	static ConstructorHelpers::FClassFinder<UAnimInstance> AnimInstanceRef(TEXT("/Game/Animation/Player/ABP_USDF_PlayerWarrior_RM.ABP_USDF_PlayerWarrior_RM_C"));
 	if (AnimInstanceRef.Succeeded())
 	{
 		GetMesh()->SetAnimInstanceClass(AnimInstanceRef.Class);
@@ -39,6 +41,7 @@ AUSDFCharacterPlayerWarrior::AUSDFCharacterPlayerWarrior()
 void AUSDFCharacterPlayerWarrior::BeginPlay()
 {
 	Super::BeginPlay();
+	LandedDelegate.AddDynamic(this,&AUSDFCharacterPlayerWarrior::OnWarriorLanded);
 }
 
 void AUSDFCharacterPlayerWarrior::Tick(float DeltaSeconds)
@@ -66,6 +69,8 @@ void AUSDFCharacterPlayerWarrior::SetupPlayerInputComponent(UInputComponent* Pla
 	UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent);
 
 	EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &AUSDFCharacterPlayerWarrior::Attack);
+	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AUSDFCharacterPlayerWarrior::WarriorJump);
+	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AUSDFCharacterPlayerWarrior::WarriorStopJumping);
 }
 
 void AUSDFCharacterPlayerWarrior::Attack()
@@ -75,6 +80,24 @@ void AUSDFCharacterPlayerWarrior::Attack()
 	UE_LOG(LogTemp, Display, TEXT("AttackStart"));
 	
 	PossessCombatStartMontage();
+}
+
+void AUSDFCharacterPlayerWarrior::WarriorJump()
+{
+	Jump();
+
+	UUSDFPlayerWarriorAnimInstance* WarriorAnimInstance = Cast<UUSDFPlayerWarriorAnimInstance>(GetMesh()->GetAnimInstance());
+	if (WarriorAnimInstance)
+	{
+		WarriorAnimInstance->K2_OnJump();
+
+		WarriorAnimInstance->SetRootMotionMode(ERootMotionMode::IgnoreRootMotion);
+	}
+}
+
+void AUSDFCharacterPlayerWarrior::WarriorStopJumping()
+{
+	StopJumping();
 }
 
 void AUSDFCharacterPlayerWarrior::PossessCombatStartMontage()
@@ -118,6 +141,16 @@ void AUSDFCharacterPlayerWarrior::CombatStartMontageEnded(UAnimMontage* TargetMo
 void AUSDFCharacterPlayerWarrior::CombatEndMontageEnded(UAnimMontage* TargetMontage, bool IsProperlyEnded)
 {
 	SetCombatState(false);
+}
+
+void AUSDFCharacterPlayerWarrior::OnWarriorLanded(const FHitResult& Hit)
+{
+	UE_LOG(LogTemp, Display, TEXT("Landed succeed"));
+	UUSDFPlayerWarriorAnimInstance* WarriorAnimInstance = Cast<UUSDFPlayerWarriorAnimInstance>(GetMesh()->GetAnimInstance());
+	if (WarriorAnimInstance)
+	{
+		WarriorAnimInstance->SetRootMotionMode(ERootMotionMode::RootMotionFromEverything);
+	}
 }
 
 void AUSDFCharacterPlayerWarrior::SetCombatState(bool NewCombatState)

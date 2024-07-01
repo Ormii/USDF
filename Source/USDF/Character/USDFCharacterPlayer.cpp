@@ -32,7 +32,7 @@ AUSDFCharacterPlayer::AUSDFCharacterPlayer()
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f);
 	GetCharacterMovement()->JumpZVelocity = 700.0f;
 	GetCharacterMovement()->AirControl = 0.35f;
-	GetCharacterMovement()->MaxWalkSpeed = 340.0f;
+	GetCharacterMovement()->MaxWalkSpeed = 600.0f;
 	GetCharacterMovement()->MinAnalogWalkSpeed = 20.0f;
 	GetCharacterMovement()->BrakingDecelerationWalking = 2000.0f;
 
@@ -102,11 +102,6 @@ void AUSDFCharacterPlayer::BeginPlay()
 void AUSDFCharacterPlayer::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-	
-	if (bSprintKeyPress)
-		Acceleration = FMath::Clamp(Acceleration + AccelerationRate * DeltaSeconds, 0, MaxAcceleration);
-	else
-		Acceleration = 0;
 }
 
 void AUSDFCharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -117,8 +112,6 @@ void AUSDFCharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AUSDFCharacterPlayer::Move);
 	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Completed, this, &AUSDFCharacterPlayer::ReleaseMove);
 	EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AUSDFCharacterPlayer::Look);
-	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AUSDFCharacterPlayer::Jump);
-	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AUSDFCharacterPlayer::StopJumping);
 	EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Started, this, &AUSDFCharacterPlayer::Sprint);
 	EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &AUSDFCharacterPlayer::StopSprint);
 	EnhancedInputComponent->BindAction(ViewChangeAction, ETriggerEvent::Started, this, &AUSDFCharacterPlayer::PressViewChange);
@@ -143,6 +136,8 @@ void AUSDFCharacterPlayer::SetCharacterControlData(const UUSDFCharacterControlDa
 {
 	Super::SetCharacterControlData(NewCharacterControlData);
 
+	GetCharacterMovement()->bOrientRotationToMovement = NewCharacterControlData->bOrientRotationToMovement;
+
 	SpringArm->TargetArmLength = NewCharacterControlData->TargetArmLength;
 	SpringArm->bUsePawnControlRotation = NewCharacterControlData->bUsePawnControlRotation;
 	SpringArm->bInheritPitch = NewCharacterControlData->bInheritPitch;
@@ -150,8 +145,6 @@ void AUSDFCharacterPlayer::SetCharacterControlData(const UUSDFCharacterControlDa
 	SpringArm->bInheritRoll = NewCharacterControlData->bInheritRoll;
 	SpringArm->bDoCollisionTest = NewCharacterControlData->bDoCollisionTest;
 	SpringArm->SetRelativeRotation(NewCharacterControlData->RelativeRotation);
-	MaxAcceleration = NewCharacterControlData->MaxAcceleration;
-	AccelerationRate = NewCharacterControlData->AccelerationRate;
 }
 
 void AUSDFCharacterPlayer::Move(const FInputActionValue& Value)
@@ -160,30 +153,20 @@ void AUSDFCharacterPlayer::Move(const FInputActionValue& Value)
 	const FRotator Rotation = GetControlRotation();
 	const FRotator YawRotation = FRotator(0.0f, Rotation.Yaw, 0.0f);
 
-	const FVector ForwardVector = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-	const FVector RightVector = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-
-	AddVelocityScale = MovementVector;
-	PreVelocity = GetCharacterMovement()->Velocity;
-	PreGroundSpeed = GetCharacterMovement()->Velocity.Size2D();
-
-	AddMovementInput(ForwardVector, MovementVector.X * (1 + Acceleration));
-	AddMovementInput(RightVector, MovementVector.Y * (1 + Acceleration));
+	MovementInputValue = MovementVector;
 }
 
 void AUSDFCharacterPlayer::ReleaseMove(const FInputActionValue& value)
 {
-	AddVelocityScale = FVector2D::ZeroVector;
-	PreVelocity = FVector::ZeroVector;
-	PreGroundSpeed = 0.0f;
+	MovementInputValue = FVector2D::ZeroVector;
 }
 
 void AUSDFCharacterPlayer::Look(const FInputActionValue& Value)
 {
 	FVector2D LookAxisVector = Value.Get<FVector2D>();
 
-	AddControllerYawInput(LookAxisVector.X);
-	AddControllerPitchInput(-LookAxisVector.Y);
+	AddControllerYawInput(LookAxisVector.X * 90 * GetWorld()->GetDeltaSeconds());
+	AddControllerPitchInput(-LookAxisVector.Y * 90 *GetWorld()->GetDeltaSeconds());
 }
 
 void AUSDFCharacterPlayer::PressViewChange()
@@ -199,13 +182,11 @@ void AUSDFCharacterPlayer::ReleaseViweChange()
 void AUSDFCharacterPlayer::Sprint()
 {
 	bSprintKeyPress = true;
-	GetCharacterMovement()->MaxWalkSpeed = 600.0f;
 }
 
 void AUSDFCharacterPlayer::StopSprint()
 {
 	bSprintKeyPress = false;
-	GetCharacterMovement()->MaxWalkSpeed = 170.0f;
 }
 
 void AUSDFCharacterPlayer::Attack()
@@ -223,19 +204,9 @@ bool AUSDFCharacterPlayer::IsCombatState()
 	return bCombatState;
 }
 
-float AUSDFCharacterPlayer::GetPreGroundSpeed()
+FVector2D AUSDFCharacterPlayer::GetMovementInputValue()
 {
-	return PreGroundSpeed;
-}
-
-FVector AUSDFCharacterPlayer::GetPreVelocity()
-{
-	return PreVelocity;
-}
-
-FVector2D AUSDFCharacterPlayer::GetAddVelocityScale()
-{
-	return AddVelocityScale;
+	return MovementInputValue;
 }
 
 void AUSDFCharacterPlayer::SetCombatState(bool NewCombatState)

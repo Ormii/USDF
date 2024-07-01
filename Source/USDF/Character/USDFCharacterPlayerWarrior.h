@@ -35,6 +35,9 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)override;
 	virtual void Attack()override;
 
+	void WarriorJump();
+	void WarriorStopJumping();
+
 // Animation Section
 private:
 	UPROPERTY(VisibleAnywhere, Category = Animation, Meta = (AllowPrivateAccess = "true"))
@@ -48,4 +51,7 @@ private:
 
 	void CombatStartMontageEnded(UAnimMontage* TargetMontage, bool IsProperlyEnded);
 	void CombatEndMontageEnded(UAnimMontage* TargetMontage, bool IsProperlyEnded);
+
+	UFUNCTION()
+	void OnWarriorLanded(const FHitResult& Hit);
 };

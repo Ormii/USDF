@@ -84,21 +84,14 @@ protected:
 protected:
 	UPROPERTY(Transient, VisibleAnywhere, Category = Animation, Meta = (AllowPrivateAccess = "true"))
 	uint8 bSprintKeyPress : 1;
-	float Acceleration;
-	float MaxAcceleration;
-	float AccelerationRate;
 
-	float PreGroundSpeed;
-	FVector PreVelocity;
-	FVector2D AddVelocityScale;
+	FVector2D MovementInputValue;
 
 // Animation Section
 public:
 	virtual bool IsSprintState() override;
 	virtual bool IsCombatState() override;
-	virtual float GetPreGroundSpeed() override;
-	virtual FVector GetPreVelocity() override;
-	virtual FVector2D GetAddVelocityScale() override;
+	virtual FVector2D GetMovementInputValue() override;
 
 // Combat Section
 protected:

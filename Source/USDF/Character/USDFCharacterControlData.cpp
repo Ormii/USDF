@@ -6,6 +6,4 @@
 UUSDFCharacterControlData::UUSDFCharacterControlData()
 {
 	TargetArmLength = 500;
-	MaxAcceleration = 0.5;
-	AccelerationRate = 0.5;
 }

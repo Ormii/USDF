@@ -26,7 +26,5 @@ public:
 
 	virtual bool IsSprintState() = 0;
 	virtual bool IsCombatState() = 0;
-	virtual float GetPreGroundSpeed() = 0;
-	virtual FVector GetPreVelocity() = 0;
-	virtual FVector2D GetAddVelocityScale() = 0;
+	virtual FVector2D GetMovementInputValue() = 0;
 };
