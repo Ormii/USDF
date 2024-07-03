@@ -93,12 +93,24 @@ public:
 	virtual bool IsCombatState() override;
 	virtual FVector2D GetMovementInputValue() override;
 
+	virtual void EquipWeapon() override;
+	virtual void UnEquipWeapon() override;
+	virtual bool IsAttackState() override;
+protected:
+	UPROPERTY(Transient, VisibleAnywhere, Category = Animation, Meta = (AllowPrivateAccess = "true"))
+	uint8 bAttackState : 1;
+
 // Combat Section
 protected:
-	virtual void SetCombatState(bool NewCombatState) override;
-
+	
 	UPROPERTY(Transient ,VisibleAnywhere, Category = Combat, Meta = (AllowPrivateAccess = "true"))
 	uint8 bCombatState : 1;
 
+	bool IgnoreComboCommand;
+	bool HasNextComboCommand;
+
+	virtual void SetCombatState(bool NewCombatState) override;
+
+	virtual bool CheckCombo() override;
 
 };

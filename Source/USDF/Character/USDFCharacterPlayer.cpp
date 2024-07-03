@@ -11,6 +11,8 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputMappingContext.h"
+#include "Physics/USDFCollision.h"
+#include "Kismet/GameplayStatics.h"
 
 AUSDFCharacterPlayer::AUSDFCharacterPlayer()
 {
@@ -26,6 +28,7 @@ AUSDFCharacterPlayer::AUSDFCharacterPlayer()
 
 	// Capsule
 	GetCapsuleComponent()->InitCapsuleSize(36.0f, 85.0f);
+	GetCapsuleComponent()->SetCollisionProfileName(CPROFILE_USDFCAPSULE);
 
 	// Movement
 	GetCharacterMovement()->bOrientRotationToMovement = true;
@@ -39,7 +42,7 @@ AUSDFCharacterPlayer::AUSDFCharacterPlayer()
 	// Mesh
 	GetMesh()->SetRelativeLocationAndRotation(FVector(0.0f, 0.0f, -85.0f), FRotator(0.0f, -90.0f, 0.0f));
 	GetMesh()->SetAnimationMode(EAnimationMode::AnimationBlueprint);
-	//GetMesh()->SetCollisionProfileName(TEXT("NoCollision"));
+	GetMesh()->SetCollisionProfileName(CPROFILE_USDFCHARACTERMESH);
 
 	static ConstructorHelpers::FObjectFinder<UUSDFCharacterControlData> ShoulderDataAssetRef(TEXT("/Game/CharacterControl/CDA_Shoulder.CDA_Shoulder"));
 	if(ShoulderDataAssetRef.Object)
@@ -89,7 +92,7 @@ AUSDFCharacterPlayer::AUSDFCharacterPlayer()
 		AttackAction = AttackActionRef.Object;
 	}
 
-	CurrentControlType = ECharacterPlayerControlType::Shoulder;
+	CurrentControlType = ECharacterPlayerControlType::Preview;
 }
 
 void AUSDFCharacterPlayer::BeginPlay()
@@ -145,6 +148,14 @@ void AUSDFCharacterPlayer::SetCharacterControlData(const UUSDFCharacterControlDa
 	SpringArm->bInheritRoll = NewCharacterControlData->bInheritRoll;
 	SpringArm->bDoCollisionTest = NewCharacterControlData->bDoCollisionTest;
 	SpringArm->SetRelativeRotation(NewCharacterControlData->RelativeRotation);
+
+	APlayerController* PlayerController = Cast<APlayerController>(Controller);
+
+	if (PlayerController)
+	{
+		PlayerController->PlayerCameraManager->ViewPitchMax = NewCharacterControlData->ViewPitchMax;
+		PlayerController->PlayerCameraManager->ViewPitchMin = NewCharacterControlData->ViewPitchMin;
+	}
 }
 
 void AUSDFCharacterPlayer::Move(const FInputActionValue& Value)
@@ -165,8 +176,8 @@ void AUSDFCharacterPlayer::Look(const FInputActionValue& Value)
 {
 	FVector2D LookAxisVector = Value.Get<FVector2D>();
 
-	AddControllerYawInput(LookAxisVector.X * 90 * GetWorld()->GetDeltaSeconds());
-	AddControllerPitchInput(-LookAxisVector.Y * 90 *GetWorld()->GetDeltaSeconds());
+	AddControllerYawInput(LookAxisVector.X * 45 * GetWorld()->GetDeltaSeconds());
+	AddControllerPitchInput(-LookAxisVector.Y * 45 *GetWorld()->GetDeltaSeconds());
 }
 
 void AUSDFCharacterPlayer::PressViewChange()
@@ -209,7 +220,25 @@ FVector2D AUSDFCharacterPlayer::GetMovementInputValue()
 	return MovementInputValue;
 }
 
+void AUSDFCharacterPlayer::EquipWeapon()
+{
+}
+
+void AUSDFCharacterPlayer::UnEquipWeapon()
+{
+}
+
+bool AUSDFCharacterPlayer::IsAttackState()
+{
+	return bAttackState;
+}
+
 void AUSDFCharacterPlayer::SetCombatState(bool NewCombatState)
 {
 	bCombatState = NewCombatState;
+}
+
+bool AUSDFCharacterPlayer::CheckCombo()
+{
+	return false;
 }

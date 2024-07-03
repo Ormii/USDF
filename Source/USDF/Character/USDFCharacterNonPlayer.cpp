@@ -3,3 +3,7 @@
 
 #include "Character/USDFCharacterNonPlayer.h"
 
+AUSDFCharacterNonPlayer::AUSDFCharacterNonPlayer()
+{
+
+}

@@ -31,15 +31,6 @@ protected:
 	FVector Velocity;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
-	FVector DesiredVelocity;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
-	float SlideInput;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
-	float ForwardInput;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
 	float GroundSpeed;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
@@ -50,23 +41,6 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
 	uint8 bIsJumping : 1;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
-	uint8 bIsWalk : 1;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
-	uint8 bIsRun : 1;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
-	float TurnDotProductValue;
-
-
-	FVector2D MovementInputValue;
-
-protected:
-	FVector CalculateDesiredVelocity();
-	float CalculateTurnDotProductValue();
-
 
 // Character Animation Data Section
 protected:

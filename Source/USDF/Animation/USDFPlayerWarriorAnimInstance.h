@@ -3,14 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Animation/USDFAnimInstance.h"
+#include "Animation/USDFPlayerAnimInstance.h"
 #include "USDFPlayerWarriorAnimInstance.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class USDF_API UUSDFPlayerWarriorAnimInstance : public UUSDFAnimInstance
+class USDF_API UUSDFPlayerWarriorAnimInstance : public UUSDFPlayerAnimInstance
 {
 	GENERATED_BODY()
 	

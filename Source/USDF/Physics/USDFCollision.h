@@ -1,0 +1,6 @@
+#pragma once
+
+#define CPROFILE_USDFCAPSULE TEXT("USDFCapsule")
+#define CPROFILE_USDFCHARACTERMESH TEXT("USDFCharacterMesh")
+#define CPROFILE_USDFTRIGGER TEXT("USDFTrigger")
+#define CCHANNEL_USDFACTION ECC_GameTraceChannel1

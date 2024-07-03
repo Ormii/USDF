@@ -52,4 +52,19 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = SpringArm)
 	uint32 bDoCollisionTest : 1;
+
+	UPROPERTY(EditAnywhere, Category = PlayerController)
+	float ViewPitchMin;
+	UPROPERTY(EditAnywhere, Category = PlayerController)
+	float ViewPitchMax;
+
+	UPROPERTY(EditAnywhere, Category = PlayerController)
+	float ViewYawMin;
+	UPROPERTY(EditAnywhere, Category = PlayerController)
+	float ViewYawMax;
+
+	UPROPERTY(EditAnywhere, Category = PlayerController)
+	float ViewRollMin;
+	UPROPERTY(EditAnywhere, Category = PlayerController)
+	float ViewRollMax;
 };

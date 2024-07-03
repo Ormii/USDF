@@ -6,6 +6,28 @@
 #include "Character/USDFCharacterPlayer.h"
 #include "USDFCharacterPlayerWarrior.generated.h"
 
+class UUSDFComboActionData;
+
+UENUM()
+enum class EPlayerWarriorComboType
+{
+	Default
+};
+
+DECLARE_DELEGATE_OneParam(FComboAttackDelegate, int /*NextCombo*/);
+
+USTRUCT()
+struct FComboAttackDelegateWrapper
+{
+	GENERATED_BODY();
+
+	FComboAttackDelegateWrapper() {};
+	FComboAttackDelegateWrapper(const FComboAttackDelegate& InComboAttackDelegate) 
+		: OnComboAttackDelegate(InComboAttackDelegate){}
+
+	FComboAttackDelegate OnComboAttackDelegate;
+};
+
 /**
  * 
  */
@@ -19,9 +41,14 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void PostInitializeComponents()override;
 
 public:
 	virtual void Tick(float DeltaSeconds) override;
+
+protected:
+	UPROPERTY(VisibleAnywhere, Category = Weapon, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UStaticMeshComponent> WeaponStaticMesh;
 
 // Combat Section
 protected:
@@ -52,6 +79,30 @@ private:
 	void CombatStartMontageEnded(UAnimMontage* TargetMontage, bool IsProperlyEnded);
 	void CombatEndMontageEnded(UAnimMontage* TargetMontage, bool IsProperlyEnded);
 
+	virtual void EquipWeapon() override;
+	virtual void UnEquipWeapon() override;
+
+	virtual void AttackHitCheck() override;
 	UFUNCTION()
 	void OnWarriorLanded(const FHitResult& Hit);
+
+// Combat Section
+protected:
+	virtual bool CheckCombo() override;
+	void DefaultComboAttack(int32 NextCombo);
+	void ComboActionEnded(UAnimMontage* TargetMontage, bool IsProperlyEnded);
+
+	UPROPERTY()
+	TMap<EPlayerWarriorComboType, FComboAttackDelegateWrapper> ComboAttackDelegateManager;
+	
+	UPROPERTY()
+	TMap<EPlayerWarriorComboType, class UUSDFComboActionData*> ComboAttackDataManager;
+
+	EPlayerWarriorComboType CurrentComboAttackType;
+	int32					CurrentComboCount;
+
+// Attack Hit Section
+protected:
+	UPROPERTY(EditAnywhere, Category = AttackHit, Meta = (AllowPrivateAccess = "true"))
+	TArray<TObjectPtr<class UNiagaraSystem>> AttackHitEffects;
 };

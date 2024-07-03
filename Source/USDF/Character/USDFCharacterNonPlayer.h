@@ -4,14 +4,17 @@
 
 #include "CoreMinimal.h"
 #include "Character/USDFCharacterBase.h"
+#include "Interface/USDFCharacterAIInterface.h"
 #include "USDFCharacterNonPlayer.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class USDF_API AUSDFCharacterNonPlayer : public AUSDFCharacterBase
+class USDF_API AUSDFCharacterNonPlayer : public AUSDFCharacterBase, public IUSDFCharacterAIInterface
 {
 	GENERATED_BODY()
 	
+public:
+	AUSDFCharacterNonPlayer();
 };
