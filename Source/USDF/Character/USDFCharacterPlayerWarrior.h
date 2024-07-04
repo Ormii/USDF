@@ -76,7 +76,10 @@ private:
 	void PossessCombatStartMontage();
 	void PossessCombatEndMontage();
 
+	UFUNCTION()
 	void CombatStartMontageEnded(UAnimMontage* TargetMontage, bool IsProperlyEnded);
+	
+	UFUNCTION()
 	void CombatEndMontageEnded(UAnimMontage* TargetMontage, bool IsProperlyEnded);
 
 	virtual void EquipWeapon() override;
@@ -96,7 +99,7 @@ protected:
 	TMap<EPlayerWarriorComboType, FComboAttackDelegateWrapper> ComboAttackDelegateManager;
 	
 	UPROPERTY()
-	TMap<EPlayerWarriorComboType, class UUSDFComboActionData*> ComboAttackDataManager;
+	TMap<EPlayerWarriorComboType, TObjectPtr<UUSDFComboActionData>> ComboAttackDataManager;
 
 	EPlayerWarriorComboType CurrentComboAttackType;
 	int32					CurrentComboCount;

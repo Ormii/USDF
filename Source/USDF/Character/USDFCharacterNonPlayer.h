@@ -17,4 +17,12 @@ class USDF_API AUSDFCharacterNonPlayer : public AUSDFCharacterBase, public IUSDF
 	
 public:
 	AUSDFCharacterNonPlayer();
+
+	// AI Section
+protected:
+	virtual void SetAIAttackDelegate(const FAICharacterAttackFinished& InOnAttackFinished)override;
+
+	FAICharacterAttackFinished OnAttackFinished;
+	virtual void AttackFinished();
+
 };

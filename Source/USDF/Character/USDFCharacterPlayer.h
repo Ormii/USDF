@@ -6,6 +6,7 @@
 #include "Character/USDFCharacterBase.h"
 #include "InputActionValue.h"
 #include "Interface/USDFCharacterPlayerAnimInterface.h"
+#include "Interface/USDFCharacterPlayerHUDInterface.h"
 #include "USDFCharacterPlayer.generated.h"
 
 UENUM()
@@ -20,6 +21,7 @@ enum class ECharacterPlayerControlType : uint8
  */
 UCLASS()
 class USDF_API AUSDFCharacterPlayer : public AUSDFCharacterBase, public IUSDFCharacterPlayerAnimInterface
+	,public IUSDFCharacterPlayerHUDInterface
 {
 	GENERATED_BODY()
 public:
@@ -112,5 +114,9 @@ protected:
 	virtual void SetCombatState(bool NewCombatState) override;
 
 	virtual bool CheckCombo() override;
+
+// HUD Section
+public:
+	virtual void SetupPlayerHpBarHUDWidget(class UUSDFPlayerHpBarWidget* HpBar) override;
 
 };

@@ -7,9 +7,12 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "AI/USDFAICommon.h"
 #include "Kismet/GameplayStatics.h"
+#include "Interface/USDFCharacterHitReactInterface.h"
 
 AUSDFAIController::AUSDFAIController()
 {
+	PrimaryActorTick.bCanEverTick = true;
+
 	static ConstructorHelpers::FObjectFinder<UBlackboardData> BBAssetRef(TEXT("/Game/AI/BB_USDF_MeleeMonster.BB_USDF_MeleeMonster"));
 	if (BBAssetRef.Object)
 	{
@@ -22,6 +25,11 @@ AUSDFAIController::AUSDFAIController()
 	{
 		BTAsset = BTAssetRef.Object;
 	}
+}
+
+void AUSDFAIController::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
 }
 
 void AUSDFAIController::OnPossess(APawn* InPawn)

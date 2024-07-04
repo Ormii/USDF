@@ -26,7 +26,6 @@ EBTNodeResult::Type UUSDFBTTask_FindPatrolPos::ExecuteTask(UBehaviorTreeComponen
 		return EBTNodeResult::Failed;
 	}
 
-	
 	IUSDFCharacterAIInterface* AIPawn = Cast<IUSDFCharacterAIInterface>(ControllingPawn);
 	if (AIPawn == nullptr)
 	{
@@ -41,7 +40,6 @@ EBTNodeResult::Type UUSDFBTTask_FindPatrolPos::ExecuteTask(UBehaviorTreeComponen
 		OwnerComp.GetBlackboardComponent()->SetValueAsVector(BBKEY_PATROLPOS, NextPatrolPos);
 		return EBTNodeResult::Succeeded;
 	}
-	
 	
 	return EBTNodeResult::Failed;
 }

@@ -13,6 +13,7 @@
 #include "InputMappingContext.h"
 #include "Physics/USDFCollision.h"
 #include "Kismet/GameplayStatics.h"
+#include "UI/USDFPlayerHpBarWidget.h"
 
 AUSDFCharacterPlayer::AUSDFCharacterPlayer()
 {
@@ -28,7 +29,7 @@ AUSDFCharacterPlayer::AUSDFCharacterPlayer()
 
 	// Capsule
 	GetCapsuleComponent()->InitCapsuleSize(36.0f, 85.0f);
-	GetCapsuleComponent()->SetCollisionProfileName(CPROFILE_USDFCAPSULE);
+	GetCapsuleComponent()->SetCollisionProfileName(CPROFILE_USDF_PlAYER_CAPSULE);
 
 	// Movement
 	GetCharacterMovement()->bOrientRotationToMovement = true;
@@ -42,7 +43,7 @@ AUSDFCharacterPlayer::AUSDFCharacterPlayer()
 	// Mesh
 	GetMesh()->SetRelativeLocationAndRotation(FVector(0.0f, 0.0f, -85.0f), FRotator(0.0f, -90.0f, 0.0f));
 	GetMesh()->SetAnimationMode(EAnimationMode::AnimationBlueprint);
-	GetMesh()->SetCollisionProfileName(CPROFILE_USDFCHARACTERMESH);
+	GetMesh()->SetCollisionProfileName(CPROFILE_USDF_PlAYER_CHARACTERMESH);
 
 	static ConstructorHelpers::FObjectFinder<UUSDFCharacterControlData> ShoulderDataAssetRef(TEXT("/Game/CharacterControl/CDA_Shoulder.CDA_Shoulder"));
 	if(ShoulderDataAssetRef.Object)
@@ -241,4 +242,14 @@ void AUSDFCharacterPlayer::SetCombatState(bool NewCombatState)
 bool AUSDFCharacterPlayer::CheckCombo()
 {
 	return false;
+}
+
+void AUSDFCharacterPlayer::SetupPlayerHpBarHUDWidget(UUSDFPlayerHpBarWidget* HpBar)
+{
+	if (HpBar)
+	{
+		Stat->OnHpChangedDelegate.AddUObject(HpBar, &UUSDFPlayerHpBarWidget::UpdateHpBar);
+		HpBar->SetMaxHp(Stat->GetMaxHp());
+		HpBar->UpdateHpBar(Stat->GetCurrentHp());
+	}
 }

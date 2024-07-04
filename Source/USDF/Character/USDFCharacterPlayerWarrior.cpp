@@ -13,6 +13,7 @@
 #include "Engine/DamageEvents.h"
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraComponent.h"
+#include "Interface/USDFCharacterHitReactInterface.h"
 
 AUSDFCharacterPlayerWarrior::AUSDFCharacterPlayerWarrior()
 {
@@ -235,11 +236,11 @@ void AUSDFCharacterPlayerWarrior::AttackHitCheck()
 
 	TArray<FHitResult> OutHitResults;
 	FCollisionQueryParams Params(SCENE_QUERY_STAT(Attack), false, this);
-	bool HitDetected = GetWorld()->SweepMultiByChannel(OutHitResults, AttackBase, AttackTip, FQuat::Identity, CCHANNEL_USDFACTION, FCollisionShape::MakeSphere(5.0f), Params);
+	bool HitDetected = GetWorld()->SweepMultiByChannel(OutHitResults, AttackBase, AttackTip, FQuat::Identity, CCHANNEL_USDF_PLAYERACTION, FCollisionShape::MakeSphere(25.0f), Params);
 
 	if (HitDetected)
 	{
-		for (auto HitResult : OutHitResults)
+		for (auto& HitResult : OutHitResults)
 		{
 
 			bool bIsExist = false;
@@ -259,7 +260,7 @@ void AUSDFCharacterPlayerWarrior::AttackHitCheck()
 
 			if (HitCharacter && bIsExist == false)
 			{
-				float DamageAmount = 40;
+				float DamageAmount = 35;
 				FDamageEvent DamageEvent;
 
 				HitCharacter->TakeDamage(DamageAmount, DamageEvent, GetController(), this);
@@ -273,6 +274,12 @@ void AUSDFCharacterPlayerWarrior::AttackHitCheck()
 						pNiagaraCompo->Activate();
 					}
 				}
+
+				IUSDFCharacterHitReactInterface* HitReactableCharacter = Cast<IUSDFCharacterHitReactInterface>(HitCharacter);
+				if (HitReactableCharacter)
+				{
+					HitReactableCharacter->HitReact(HitResult, DamageAmount, this);
+				}
 			}
 		}
 	}
@@ -282,7 +289,7 @@ void AUSDFCharacterPlayerWarrior::AttackHitCheck()
 	float CapsuleHalfHeight = (AttackTip - AttackBase).Length() * 0.5f;
 	FColor DrawColor = HitDetected ? FColor::Green : FColor::Red;
 
-	//DrawDebugCapsule(GetWorld(), CapsuleOrigin, CapsuleHalfHeight, 5.0f, FRotationMatrix::MakeFromZ(AttackTip - AttackBase).ToQuat(), DrawColor, false, 5.0f);
+	DrawDebugCapsule(GetWorld(), CapsuleOrigin, CapsuleHalfHeight, 25.0f, FRotationMatrix::MakeFromZ(AttackTip - AttackBase).ToQuat(), DrawColor, false, 5.0f);
 #endif
 }
 

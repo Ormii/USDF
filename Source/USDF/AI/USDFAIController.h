@@ -18,8 +18,11 @@ public:
 	AUSDFAIController();
 
 protected:
+	virtual void Tick(float DeltaTime) override;
+
 	virtual void OnPossess(APawn* InPawn) override;
 
+public:
 	void RunAI();
 	void StopAI();
 protected:
@@ -28,4 +31,5 @@ protected:
 
 	UPROPERTY()
 	TObjectPtr<class UBehaviorTree> BTAsset;
+
 };
