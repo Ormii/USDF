@@ -14,6 +14,9 @@
 #include "Physics/USDFCollision.h"
 #include "Kismet/GameplayStatics.h"
 #include "UI/USDFPlayerHpBarWidget.h"
+#include "Player/USDFPlayerController.h"
+#include "Game/USDFGameMode.h"
+#include "Interface/USDFGameModeInterface.h"
 
 AUSDFCharacterPlayer::AUSDFCharacterPlayer()
 {
@@ -122,8 +125,25 @@ void AUSDFCharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 	EnhancedInputComponent->BindAction(ViewChangeAction, ETriggerEvent::Completed, this, &AUSDFCharacterPlayer::ReleaseViweChange);
 }
 
-void AUSDFCharacterPlayer::SetCharacterControl(ECharacterPlayerControlType NewCharacterControlType)
+void AUSDFCharacterPlayer::SetDead()
 {
+	Super::SetDead();
+
+	APlayerController* PlayerController = Cast<APlayerController>(GetController());
+	if (PlayerController)
+	{
+		DisableInput(PlayerController);
+	
+		IUSDFGameModeInterface* GameModeInterface = Cast<IUSDFGameModeInterface>(GetWorld()->GetAuthGameMode());
+		if (GameModeInterface)
+		{
+			GameModeInterface->OnPlayerDead();
+		}
+	}
+}
+
+void AUSDFCharacterPlayer::SetCharacterControl(ECharacterPlayerControlType NewCharacterControlType)
+{	
 	UUSDFCharacterControlData* CharacterControlData = CharacterControlManager[NewCharacterControlType];
 	SetCharacterControlData(CharacterControlData);
 
@@ -232,6 +252,11 @@ void AUSDFCharacterPlayer::UnEquipWeapon()
 bool AUSDFCharacterPlayer::IsAttackState()
 {
 	return bAttackState;
+}
+
+bool AUSDFCharacterPlayer::IsDeadState()
+{
+	return Stat->GetCurrentHp() <= 0.0f;
 }
 
 void AUSDFCharacterPlayer::SetCombatState(bool NewCombatState)

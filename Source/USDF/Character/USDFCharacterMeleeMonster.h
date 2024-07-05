@@ -17,17 +17,6 @@ enum class EMeleeMonsterAttackType : uint8
 	StrongAttack
 };
 
-USTRUCT()
-struct FMeleeMonsterAttackCheckDelegateWrapper
-{
-	GENERATED_BODY()
-
-	FMeleeMonsterAttackCheckDelegateWrapper() {}
-	FMeleeMonsterAttackCheckDelegateWrapper(FOnMeleeMonsterAttackCheckDelegate& InOnAttackCheck) : OnAttackCheck(InOnAttackCheck) {}
-
-	FOnMeleeMonsterAttackCheckDelegate OnAttackCheck;
-};
-
 /**
  * 
  */
@@ -73,9 +62,6 @@ private:
 protected:
 	UPROPERTY(VisibleAnywhere, Category = Combat, Meta = (AllowPrivateAccess= "true"))
 	EMeleeMonsterAttackType CurrentAttackType;
-
-	UPROPERTY(VisibleAnywhere, Category = Combat, Meta = (AllowPrivateAccess = "true"))
-	TMap<EMeleeMonsterAttackType, FMeleeMonsterAttackCheckDelegateWrapper> AttackCheckManager;
 
 	void WeakAttackHitCheck();
 	void StrongAttackHitCheck();

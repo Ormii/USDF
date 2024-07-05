@@ -84,14 +84,6 @@ AUSDFCharacterMeleeMonster::AUSDFCharacterMeleeMonster()
 	}
 
 
-	FMeleeMonsterAttackCheckDelegateWrapper WeakAttackCheckWrapper;
-	WeakAttackCheckWrapper.OnAttackCheck.BindUObject(this, &AUSDFCharacterMeleeMonster::WeakAttackHitCheck);
-	AttackCheckManager.Add(EMeleeMonsterAttackType::WeakAttack, WeakAttackCheckWrapper);
-
-	FMeleeMonsterAttackCheckDelegateWrapper StrongAttackCheckWrapper;
-	StrongAttackCheckWrapper.OnAttackCheck.BindUObject(this, &AUSDFCharacterMeleeMonster::StrongAttackHitCheck);
-	AttackCheckManager.Add(EMeleeMonsterAttackType::StrongAttack, StrongAttackCheckWrapper);
-
 	for (int i = 0; i < 3; ++i)
 	{
 		static ConstructorHelpers::FObjectFinder<UNiagaraSystem> AttackHitEffectRef(*FString::Printf(TEXT("/Game/ReferenceAsset/RealisticBlood/Slash/Niagara/NS_Slash_%d.NS_Slash_%d"), i, i));
@@ -156,7 +148,6 @@ void AUSDFCharacterMeleeMonster::AttackFinished()
 
 void AUSDFCharacterMeleeMonster::HitReact(const FHitResult& HitResult, const float DamageAmount, const AActor* HitCauser)
 {
-	Super::HitReact(HitResult, DamageAmount, HitCauser);
 	CurrentAttackType = EMeleeMonsterAttackType::None;
 	HitCharaters.Empty();
 }
@@ -173,15 +164,6 @@ void AUSDFCharacterMeleeMonster::AttackHitCheck()
 			break;
 	}
 
-	/*
-		if (AttackCheckManager.Find(CurrentAttackType) != nullptr)
-	{
-		if (AttackCheckManager[CurrentAttackType].OnAttackCheck.ExecuteIfBound())
-		{
-
-		}
-	}
-	*/
 }
 
 void AUSDFCharacterMeleeMonster::AttackMontageEnded(UAnimMontage* TargetMontage, bool IsProperlyEnded)
@@ -225,7 +207,7 @@ void AUSDFCharacterMeleeMonster::WeakAttackHitCheck()
 
 			if (HitCharacter && bIsExist == false)
 			{
-				float DamageAmount = 2;
+				float DamageAmount = 200;
 				FDamageEvent DamageEvent;
 
 				HitCharacter->TakeDamage(DamageAmount, DamageEvent, GetController(), this);
@@ -294,7 +276,7 @@ void AUSDFCharacterMeleeMonster::StrongAttackHitCheck()
 
 			if (HitCharacter && bIsExist == false)
 			{
-				float DamageAmount = 2;
+				float DamageAmount = 200;
 				FDamageEvent DamageEvent;
 
 				HitCharacter->TakeDamage(DamageAmount, DamageEvent, GetController(), this);

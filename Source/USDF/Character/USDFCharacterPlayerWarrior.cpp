@@ -371,6 +371,16 @@ void AUSDFCharacterPlayerWarrior::ComboActionEnded(UAnimMontage* TargetMontage, 
 	HitCharaters.Empty();
 }
 
+void AUSDFCharacterPlayerWarrior::HitReact(const FHitResult& HitResult, const float DamageAmount, const AActor* HitCauser)
+{
+	
+}
+
+bool AUSDFCharacterPlayerWarrior::GetHitReactState()
+{
+	return bHitReactState;
+}
+
 void AUSDFCharacterPlayerWarrior::SetCombatState(bool NewCombatState)
 {
 	Super::SetCombatState(NewCombatState);

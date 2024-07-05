@@ -19,6 +19,7 @@ void UUSDFPlayerHpBarWidget::NativeConstruct()
 
 void UUSDFPlayerHpBarWidget::UpdateHpBar(float NewCurrentHp)
 {
+	UE_LOG(LogTemp, Display, TEXT("Update Player HpBar"));
 	ensure(MaxHp > 0);
 	CurrentHp = FMath::Clamp(NewCurrentHp, 0, MaxHp);
 	HpBar->SetPercent(CurrentHp / MaxHp);

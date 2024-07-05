@@ -2,6 +2,8 @@
 
 
 #include "Game/USDFGameMode.h"
+#include "Player/USDFPlayerController.h"
+#include "Kismet/GameplayStatics.h"
 
 AUSDFGameMode::AUSDFGameMode()
 {
@@ -16,4 +18,20 @@ AUSDFGameMode::AUSDFGameMode()
 	{
 		PlayerControllerClass = PlayerControllerRef.Class;
 	}
+}
+
+void AUSDFGameMode::OnPlayerDead()
+{
+	AUSDFPlayerController* PlayerController = Cast<AUSDFPlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
+	if (PlayerController)
+	{
+		PlayerController->K2_OnGameOver();
+	}
+}
+
+void AUSDFGameMode::OnGameRetry()
+{
+	UWorld* World = GetWorld();
+	FName CurrentLevelName = *UGameplayStatics::GetCurrentLevelName(GetWorld());
+	UGameplayStatics::OpenLevel(World, CurrentLevelName);
 }

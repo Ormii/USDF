@@ -33,6 +33,7 @@ void UUSDFPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 			bAttackState = PlayerAnimInterface->IsAttackState();
 			bIsWalk = (PlayerAnimInterface->IsSprintState() == false && !bIsIdle);
 			bIsRun = (PlayerAnimInterface->IsSprintState() == true && !bIsIdle);
+			bIsDead = PlayerAnimInterface->IsDeadState();
 
 			DesiredVelocity = CalculateDesiredVelocity();
 			TurnDotProductValue = CalculateTurnDotProductValue();

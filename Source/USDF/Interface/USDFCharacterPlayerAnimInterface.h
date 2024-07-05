@@ -27,6 +27,7 @@ public:
 	virtual bool IsSprintState() = 0;
 	virtual bool IsCombatState() = 0;
 	virtual bool IsAttackState() = 0;
+	virtual bool IsDeadState() = 0;
 	virtual FVector2D GetMovementInputValue() = 0;
 
 	virtual void EquipWeapon() = 0;

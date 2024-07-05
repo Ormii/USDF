@@ -43,6 +43,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
 	uint8 bAttackState : 1;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
+	uint8 bIsDead : 1;
+
 	FVector2D MovementInputValue;
 protected:
 	FVector CalculateDesiredVelocity();

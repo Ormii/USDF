@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Character/USDFCharacterPlayer.h"
+#include "Interface/USDFCharacterHitReactInterface.h"
 #include "USDFCharacterPlayerWarrior.generated.h"
 
 class UUSDFComboActionData;
@@ -32,7 +33,7 @@ struct FComboAttackDelegateWrapper
  * 
  */
 UCLASS()
-class USDF_API AUSDFCharacterPlayerWarrior : public AUSDFCharacterPlayer
+class USDF_API AUSDFCharacterPlayerWarrior : public AUSDFCharacterPlayer, public IUSDFCharacterHitReactInterface
 {
 	GENERATED_BODY()
 	
@@ -108,4 +109,11 @@ protected:
 protected:
 	UPROPERTY(EditAnywhere, Category = AttackHit, Meta = (AllowPrivateAccess = "true"))
 	TArray<TObjectPtr<class UNiagaraSystem>> AttackHitEffects;
+
+// Hit React Section
+protected:
+	bool bHitReactState;
+
+	virtual void HitReact(const FHitResult& HitResult, const float DamageAmount, const AActor* HitCauser) override;
+	virtual bool GetHitReactState() override;
 };

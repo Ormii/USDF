@@ -3,6 +3,7 @@
 
 #include "UI/USDFPlayerHUDWidget.h"
 #include "UI/USDFPlayerHpBarWidget.h"
+#include "Interface/USDFCharacterPlayerHUDInterface.h"
 
 UUSDFPlayerHUDWidget::UUSDFPlayerHUDWidget(const FObjectInitializer& ObjectInitializer)
 	:Super(ObjectInitializer)
@@ -21,5 +22,9 @@ void UUSDFPlayerHUDWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	
+	IUSDFCharacterPlayerHUDInterface* HUDWidgetInterface = Cast<IUSDFCharacterPlayerHUDInterface>(GetOwningPlayerPawn());
+	if (HUDWidgetInterface)
+	{
+		HUDWidgetInterface->SetupPlayerHpBarHUDWidget(PlayerHpBar);
+	}
 }

@@ -41,6 +41,10 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = Camera, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UCameraComponent> Camera;
 
+	// Dead Section
+protected:
+	virtual void SetDead() override;
+
 // CharacterControl Section
 protected:
 	void SetCharacterControl(ECharacterPlayerControlType NewCharacterControlType);
@@ -98,6 +102,8 @@ public:
 	virtual void EquipWeapon() override;
 	virtual void UnEquipWeapon() override;
 	virtual bool IsAttackState() override;
+	virtual bool IsDeadState() override;
+
 protected:
 	UPROPERTY(Transient, VisibleAnywhere, Category = Animation, Meta = (AllowPrivateAccess = "true"))
 	uint8 bAttackState : 1;
