@@ -6,6 +6,7 @@
 #include "Character/USDFCharacterNonPlayer.h"
 #include "Interface/USDFCharacterWidgetInterface.h"
 #include "Interface/USDFCharacterHitReactInterface.h"
+#include "Interface/USDFCharacterAnimInterface.h"
 #include "USDFCharacterNormalMonster.generated.h"
 
 UENUM()
@@ -22,7 +23,7 @@ enum class EHitReactDirection : uint8
  */
 UCLASS()
 class USDF_API AUSDFCharacterNormalMonster : public AUSDFCharacterNonPlayer, public IUSDFCharacterWidgetInterface, 
-	public IUSDFCharacterHitReactInterface
+	public IUSDFCharacterHitReactInterface, public IUSDFCharacterAnimInterface
 {
 	GENERATED_BODY()
 
@@ -79,4 +80,9 @@ protected:
 public:
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 
+// Animation Section
+public:
+	virtual float GetMaxWalkSpeed() override;
+	virtual float GetMaxRunSpeed() override;
+	virtual void SetLocomotionState(ELocomotionState NewLocomotionState) override;
 };

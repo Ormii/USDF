@@ -12,10 +12,11 @@ class UUSDFComboActionData;
 UENUM()
 enum class EPlayerWarriorComboType
 {
-	Default
+	Default,
+	UpperCut,
 };
 
-DECLARE_DELEGATE_OneParam(FComboAttackDelegate, int /*NextCombo*/);
+DECLARE_DELEGATE(FComboAttackDelegate);
 
 USTRUCT()
 struct FComboAttackDelegateWrapper
@@ -55,6 +56,7 @@ protected:
 public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)override;
 	virtual void Attack()override;
+	virtual void ReleaseAttack()override;
 
 	void WarriorJump();
 	void WarriorStopJumping();
@@ -67,8 +69,10 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = Animation, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UAnimMontage> CombatEndMontage;
 
-	void PossessCombatStartMontage();
+	bool PossessCombatStartMontage();
 	void PossessCombatEndMontage();
+
+	void PossessAttackMontage();
 
 	UFUNCTION()
 	void CombatStartMontageEnded(UAnimMontage* TargetMontage, bool IsProperlyEnded);
@@ -102,9 +106,14 @@ protected:
 
 	virtual bool IsCombatState() override;
 	virtual void CheckCombo()override;
-	void DefaultComboAttack(int32 NextCombo);
 	void ComboActionEnded(UAnimMontage* TargetMontage, bool IsProperlyEnded);
 	void SetCombatState(bool NewCombatState);
+
+	void DefaultComboAttack();
+	void UpperAttack();
+	
+	void DefaultAttackHitCheck();
+	void UpperAttackHitCheck();
 
 // Attack Hit Section
 protected:

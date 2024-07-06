@@ -66,7 +66,7 @@ void AUSDFCharacterNormalMonster::Tick(float DeltaSeconds)
 
 float AUSDFCharacterNormalMonster::GetAIPatrolRadius()
 {
-	return Stat->GetNormalMonsterStat().PatrolRadius; 
+	return Stat->GetNormalMonsterStat().PatrolRadius;  
 }
 
 float AUSDFCharacterNormalMonster::GetAIDetectRadius()
@@ -186,4 +186,32 @@ float AUSDFCharacterNormalMonster::TakeDamage(float DamageAmount, FDamageEvent c
 	Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 	Stat->ApplyDamage(DamageAmount);
 	return 0.0f;
+}
+
+float AUSDFCharacterNormalMonster::GetMaxWalkSpeed()
+{
+	return Stat->GetNormalMonsterStat().WalkSpeed;
+}
+
+float AUSDFCharacterNormalMonster::GetMaxRunSpeed()
+{
+	return Stat->GetNormalMonsterStat().RunSpeed;
+}
+
+void AUSDFCharacterNormalMonster::SetLocomotionState(ELocomotionState NewLocomotionState)
+{
+	Super::SetLocomotionState(NewLocomotionState);
+
+	switch (NewLocomotionState)
+	{
+		case ELocomotionState::Idle:
+		case ELocomotionState::Walk:
+			GetCharacterMovement()->MaxWalkSpeed = Stat->GetNormalMonsterStat().WalkSpeed;
+			break;
+		case ELocomotionState::Run:
+			GetCharacterMovement()->MaxWalkSpeed = Stat->GetNormalMonsterStat().RunSpeed;
+			break;
+		default:
+			break;
+	}
 }

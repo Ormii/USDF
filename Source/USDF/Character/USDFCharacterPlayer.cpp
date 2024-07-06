@@ -117,6 +117,11 @@ void AUSDFCharacterPlayer::PostInitializeComponents()
 void AUSDFCharacterPlayer::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
+
+	if (bAttackKeyPress)
+	{
+		AttackKeyPressTime += DeltaSeconds;
+	}
 }
 
 void AUSDFCharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -231,7 +236,13 @@ void AUSDFCharacterPlayer::StopSprint()
 
 void AUSDFCharacterPlayer::Attack()
 {
+	bAttackKeyPress = true;
+	AttackKeyPressTime = 0.0f;
+}
 
+void AUSDFCharacterPlayer::ReleaseAttack()
+{
+	bAttackKeyPress = false;
 }
 
 bool AUSDFCharacterPlayer::IsSprintState()

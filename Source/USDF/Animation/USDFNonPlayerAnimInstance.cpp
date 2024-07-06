@@ -16,4 +16,5 @@ void UUSDFNonPlayerAnimInstance::NativeInitializeAnimation()
 void UUSDFNonPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
 	Super::NativeUpdateAnimation(DeltaSeconds);
+	GroundSpeed = Velocity.Size2D();
 }

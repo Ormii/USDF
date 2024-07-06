@@ -47,7 +47,10 @@ protected:
 	uint8 bIsDead : 1;
 
 	FVector2D MovementInputValue;
+
 protected:
 	FVector CalculateDesiredVelocity();
 	float CalculateTurnDotProductValue();
+
+	void FindLocomotionState();
 };

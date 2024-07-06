@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
+#include "USDFLocomotionState.h"
 #include "USDFAnimInstance.generated.h"
 
 /**
@@ -31,6 +32,9 @@ protected:
 	FVector Velocity;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
+	FVector Acceleration;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
 	float GroundSpeed;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
@@ -41,6 +45,10 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
 	uint8 bIsJumping : 1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
+	ELocomotionState LocomotionState;
+
 
 // Character Animation Data Section
 protected:

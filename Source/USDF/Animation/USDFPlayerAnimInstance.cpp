@@ -31,17 +31,17 @@ void UUSDFPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		{
 			MovementInputValue = PlayerAnimInterface->GetMovementInputValue();
 			bAttackState = PlayerAnimInterface->IsAttackState();
-			bIsWalk = (PlayerAnimInterface->IsSprintState() == false && !bIsIdle);
-			bIsRun = (PlayerAnimInterface->IsSprintState() == true && !bIsIdle);
 			bIsDead = PlayerAnimInterface->IsDeadState();
 
 			DesiredVelocity = CalculateDesiredVelocity();
 			TurnDotProductValue = CalculateTurnDotProductValue();
 			
-			ForwardInput = FMath::Lerp(ForwardInput, DesiredVelocity.Dot(Owner->GetActorForwardVector()) * (bIsRun ? 2 : 1), 0.1f);
-			SlideInput = FMath::Lerp(SlideInput, DesiredVelocity.Dot(Owner->GetActorRightVector()) * (bIsRun ? 2 : 1), 0.1f);
+			FindLocomotionState();
 
-			if (!bIsIdle)
+			ForwardInput = FMath::Lerp(ForwardInput, DesiredVelocity.Dot(Owner->GetActorForwardVector()) * (LocomotionState == ELocomotionState::Run ? 2 : 1), 0.1f);
+			SlideInput = FMath::Lerp(SlideInput, DesiredVelocity.Dot(Owner->GetActorRightVector()) * (LocomotionState == ELocomotionState::Run ? 2 : 1), 0.1f);
+
+			if (LocomotionState != ELocomotionState::Idle)
 			{
 				FRotator OwnerRotation = Owner->GetActorRotation();
 				FRotator OwnerControlRotation = Owner->GetControlRotation();
@@ -91,4 +91,27 @@ float UUSDFPlayerAnimInstance::CalculateTurnDotProductValue()
 		}
 	}
 	return 0.0f;
+}
+
+void UUSDFPlayerAnimInstance::FindLocomotionState()
+{
+	IUSDFCharacterPlayerAnimInterface* PlayerAnimInterface = Cast<IUSDFCharacterPlayerAnimInterface>(Owner);
+	if (PlayerAnimInterface)
+	{
+		if (Movement->IsFalling() && (Velocity.Z > CharacterAnimData->JumpingThreshould))
+			LocomotionState = ELocomotionState::Jumping;
+		else if (Movement->IsFalling())
+			LocomotionState = ELocomotionState::Falling;
+		else if (MovementInputValue.Length() > 0.1f)
+		{
+			if (PlayerAnimInterface->IsSprintState() == false)
+				LocomotionState = ELocomotionState::Walk;
+			else if (PlayerAnimInterface->IsSprintState() == true)
+				LocomotionState = ELocomotionState::Run;
+		}
+		else
+		{
+			LocomotionState = ELocomotionState::Idle;
+		}
+	}
 }

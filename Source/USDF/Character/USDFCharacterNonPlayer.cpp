@@ -4,6 +4,8 @@
 #include "Character/USDFCharacterNonPlayer.h"
 #include "Components/CapsuleComponent.h"
 #include "Physics/USDFCollision.h"
+#include "Animation/USDFNonPlayerAnimInstance.h"
+#include "Animation/USDFLocomotionState.h"
 
 AUSDFCharacterNonPlayer::AUSDFCharacterNonPlayer()
 {
@@ -22,4 +24,11 @@ void AUSDFCharacterNonPlayer::SetAIAttackDelegate(const FAICharacterAttackFinish
 void AUSDFCharacterNonPlayer::AttackFinished()
 {
 	OnAttackFinished.ExecuteIfBound();
+}
+
+void AUSDFCharacterNonPlayer::SetLocomotionState(ELocomotionState NewLocomotionState)
+{
+	UUSDFNonPlayerAnimInstance* NonPlayerAnimInstance = Cast<UUSDFNonPlayerAnimInstance>(GetMesh()->GetAnimInstance());
+	if (NonPlayerAnimInstance)
+		NonPlayerAnimInstance->SetLocomotionState(NewLocomotionState);
 }

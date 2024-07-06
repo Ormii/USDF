@@ -14,4 +14,8 @@ class USDF_API UUSDFMeleeMonsterAnimInstance : public UUSDFNonPlayerAnimInstance
 {
 	GENERATED_BODY()
 	
+
+protected:
+	virtual void NativeInitializeAnimation() override;
+	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 };

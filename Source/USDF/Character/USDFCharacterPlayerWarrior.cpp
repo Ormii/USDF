@@ -66,6 +66,17 @@ AUSDFCharacterPlayerWarrior::AUSDFCharacterPlayerWarrior()
 		ComboAttackDataManager.Add(EPlayerWarriorComboType::Default, DefaultComboAttackDataRef.Object);
 	}
 
+	static ConstructorHelpers::FObjectFinder<UUSDFComboActionData> UpperAttackDataRef(TEXT("/Game/CharacterAction/USDF_UpperAttackData.USDF_UpperAttackData"));
+	if (UpperAttackDataRef.Object)
+	{
+		FComboAttackDelegate NewComboAttackDelegate;
+		NewComboAttackDelegate.BindUObject(this, &AUSDFCharacterPlayerWarrior::UpperAttack);
+
+		FComboAttackDelegateWrapper Wrapper(NewComboAttackDelegate);
+		ComboAttackDelegateManager.Add(EPlayerWarriorComboType::UpperCut, Wrapper);
+		ComboAttackDataManager.Add(EPlayerWarriorComboType::UpperCut, UpperAttackDataRef.Object);
+	}
+
 	for (int i = 0; i < 3; ++i)
 	{
 		static ConstructorHelpers::FObjectFinder<UNiagaraSystem> AttackHitEffectRef(*FString::Printf(TEXT("/Game/ReferenceAsset/RealisticBlood/Slash/Niagara/NS_Slash_%d.NS_Slash_%d"),i,i));
@@ -117,6 +128,7 @@ void AUSDFCharacterPlayerWarrior::SetupPlayerInputComponent(UInputComponent* Pla
 	UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent);
 
 	EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &AUSDFCharacterPlayerWarrior::Attack);
+	EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Completed, this, &AUSDFCharacterPlayerWarrior::ReleaseAttack);
 	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AUSDFCharacterPlayerWarrior::WarriorJump);
 	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AUSDFCharacterPlayerWarrior::WarriorStopJumping);
 }
@@ -124,10 +136,17 @@ void AUSDFCharacterPlayerWarrior::SetupPlayerInputComponent(UInputComponent* Pla
 void AUSDFCharacterPlayerWarrior::Attack()
 {
 	Super::Attack();
+}
 
-	UE_LOG(LogTemp, Display, TEXT("AttackStart"));
-	
-	PossessCombatStartMontage();
+void AUSDFCharacterPlayerWarrior::ReleaseAttack()
+{
+	Super::ReleaseAttack();
+
+	if (PossessCombatStartMontage())
+	{
+		UE_LOG(LogTemp, Display, TEXT("AttackStart"));
+		PossessAttackMontage();
+	}
 }
 
 void AUSDFCharacterPlayerWarrior::WarriorJump()
@@ -136,9 +155,7 @@ void AUSDFCharacterPlayerWarrior::WarriorJump()
 
 	if (WarriorAnimInstance)
 	{
-		const UUSDFComboActionData* DefaultComboActionData = ComboAttackDataManager[EPlayerWarriorComboType::Default];
-
-		if (WarriorAnimInstance->Montage_IsPlaying(DefaultComboActionData->ComboAttackMontage) == true)
+		if (bAttackState)
 			return;
 
 		Jump();
@@ -154,33 +171,57 @@ void AUSDFCharacterPlayerWarrior::WarriorStopJumping()
 	StopJumping();
 }
 
-void AUSDFCharacterPlayerWarrior::PossessCombatStartMontage()
+bool AUSDFCharacterPlayerWarrior::PossessCombatStartMontage()
 {
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 	if (bCombatState == false)
 	{
 		if (AnimInstance->Montage_IsPlaying(CombatStartMontage) == true)
-			return;
+			return false;
 		
 		AnimInstance->Montage_Play(CombatStartMontage, 1.0f);
 	
 		FOnMontageEnded EndDelegate;
 		EndDelegate.BindUObject(this, &AUSDFCharacterPlayerWarrior::CombatStartMontageEnded);
 		AnimInstance->Montage_SetEndDelegate(EndDelegate, CombatStartMontage);
-		return;
+		return false;
 	}
+
+	return true;
+}
+
+void AUSDFCharacterPlayerWarrior::PossessCombatEndMontage()
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	AnimInstance->Montage_Play(CombatEndMontage, 1.0f);
+}
+
+void AUSDFCharacterPlayerWarrior::PossessAttackMontage()
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 
 	if (AnimInstance->Montage_IsPlaying(CombatEndMontage) == true)
 		AnimInstance->Montage_Stop(0.2f, CombatEndMontage);
 
 	if (WeaponStaticMesh->GetAttachSocketName().IsEqual("weapon_socket") == false)
 		WeaponStaticMesh->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, "weapon_equiphand_socket");
-	
+
+	UE_LOG(LogTemp, Display, TEXT("AttackKeyPressTime : %f"), AttackKeyPressTime);
+	if (AttackKeyPressTime <= 0.2f)
+	{
+		CurrentComboAttackType = EPlayerWarriorComboType::Default;
+	}
+	else
+	{
+		CurrentComboAttackType = EPlayerWarriorComboType::UpperCut;
+	}
+
 	const FComboAttackDelegateWrapper& Wrapper = ComboAttackDelegateManager[CurrentComboAttackType];
 	const UUSDFComboActionData* ComboActionData = ComboAttackDataManager[CurrentComboAttackType];
 	if (!AnimInstance->Montage_IsPlaying(ComboActionData->ComboAttackMontage))
 	{
-		Wrapper.OnComboAttackDelegate.Execute(CurrentComboCount);
+		bAttackState = true;
+		Wrapper.OnComboAttackDelegate.ExecuteIfBound();
 	}
 	else
 	{
@@ -188,14 +229,6 @@ void AUSDFCharacterPlayerWarrior::PossessCombatStartMontage()
 	}
 
 	CombatStateTime = 10;
-}
-
-void AUSDFCharacterPlayerWarrior::PossessCombatEndMontage()
-{
-	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-	AnimInstance->Montage_Play(CombatEndMontage, 1.0f);
-
-	bAttackState = true;
 }
 
 void AUSDFCharacterPlayerWarrior::CombatStartMontageEnded(UAnimMontage* TargetMontage, bool IsProperlyEnded)
@@ -219,6 +252,99 @@ void AUSDFCharacterPlayerWarrior::AttackHitCheck()
 {
 	Super::AttackHitCheck();
 
+	switch (CurrentComboAttackType)
+	{
+		case EPlayerWarriorComboType::Default:
+			DefaultAttackHitCheck();
+			break;
+		case EPlayerWarriorComboType::UpperCut:
+			UpperAttackHitCheck();
+			break;
+	}
+}
+
+void AUSDFCharacterPlayerWarrior::OnWarriorLanded(const FHitResult& Hit)
+{
+	UE_LOG(LogTemp, Display, TEXT("Landed succeed"));
+	UUSDFPlayerWarriorAnimInstance* WarriorAnimInstance = Cast<UUSDFPlayerWarriorAnimInstance>(GetMesh()->GetAnimInstance());
+	if (WarriorAnimInstance)
+	{
+		WarriorAnimInstance->SetRootMotionMode(ERootMotionMode::RootMotionFromEverything);
+	}
+}
+
+bool AUSDFCharacterPlayerWarrior::IsCombatState()
+{
+	return bCombatState;
+}
+
+void AUSDFCharacterPlayerWarrior::CheckCombo()
+{
+	if (HasNextComboCommand)
+	{
+		const FComboAttackDelegateWrapper& Wrapper = ComboAttackDelegateManager[CurrentComboAttackType];
+		const UUSDFComboActionData* ComboActionData = ComboAttackDataManager[CurrentComboAttackType];
+
+		if (ComboActionData->MaxComboCount == CurrentComboCount)
+			return;
+
+		HitCharaters.Empty();
+
+		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+		CurrentComboCount = FMath::Clamp(CurrentComboCount + 1, 0, ComboActionData->MaxComboCount - 1);
+
+		FName NextSection = *FString::Printf(TEXT("%s%d"), *ComboActionData->MontageSectionNamePrefix, CurrentComboCount);
+		AnimInstance->Montage_JumpToSection(NextSection, ComboActionData->ComboAttackMontage);
+
+		HasNextComboCommand = false;
+	}
+	else
+	{
+		IgnoreComboCommand = true;
+	}
+}
+
+void AUSDFCharacterPlayerWarrior::DefaultComboAttack()
+{
+	const FComboAttackDelegateWrapper& Wrapper = ComboAttackDelegateManager[EPlayerWarriorComboType::Default];
+	const UUSDFComboActionData* ComboActionData = ComboAttackDataManager[EPlayerWarriorComboType::Default];
+
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+
+	if (CurrentComboCount == 0)
+	{
+		HitCharaters.Empty();
+
+		AnimInstance->Montage_Play(ComboActionData->ComboAttackMontage);
+
+		FOnMontageEnded EndDelegate;
+		EndDelegate.BindUObject(this, &AUSDFCharacterPlayerWarrior::ComboActionEnded);
+
+		AnimInstance->Montage_SetEndDelegate(EndDelegate, ComboActionData->ComboAttackMontage);
+	}
+	else if (IgnoreComboCommand == false)
+	{
+		HasNextComboCommand = true;
+	}
+}
+
+void AUSDFCharacterPlayerWarrior::UpperAttack()
+{
+	const FComboAttackDelegateWrapper& Wrapper = ComboAttackDelegateManager[EPlayerWarriorComboType::UpperCut];
+	const UUSDFComboActionData* ComboActionData = ComboAttackDataManager[EPlayerWarriorComboType::UpperCut];
+
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	HitCharaters.Empty();
+	AnimInstance->Montage_Play(ComboActionData->ComboAttackMontage);
+
+	FOnMontageEnded EndDelegate;
+	EndDelegate.BindUObject(this, &AUSDFCharacterPlayerWarrior::ComboActionEnded);
+
+	AnimInstance->Montage_SetEndDelegate(EndDelegate, ComboActionData->ComboAttackMontage);
+}
+
+void AUSDFCharacterPlayerWarrior::DefaultAttackHitCheck()
+{
 	FVector AttackBase = FVector::ZeroVector;
 	FVector AttackTip = FVector::ZeroVector;
 
@@ -287,77 +413,86 @@ void AUSDFCharacterPlayerWarrior::AttackHitCheck()
 #endif
 }
 
-void AUSDFCharacterPlayerWarrior::OnWarriorLanded(const FHitResult& Hit)
+void AUSDFCharacterPlayerWarrior::UpperAttackHitCheck()
 {
-	UE_LOG(LogTemp, Display, TEXT("Landed succeed"));
-	UUSDFPlayerWarriorAnimInstance* WarriorAnimInstance = Cast<UUSDFPlayerWarriorAnimInstance>(GetMesh()->GetAnimInstance());
-	if (WarriorAnimInstance)
+	FVector AttackBase = FVector::ZeroVector;
+	FVector AttackTip = FVector::ZeroVector;
+
+	if (WeaponStaticMesh)
 	{
-		WarriorAnimInstance->SetRootMotionMode(ERootMotionMode::RootMotionFromEverything);
+		AttackBase = WeaponStaticMesh->GetSocketLocation("attack_base");
+		AttackTip = WeaponStaticMesh->GetSocketLocation("attack_tip");
 	}
-}
 
-bool AUSDFCharacterPlayerWarrior::IsCombatState()
-{
-	return bCombatState;
-}
+	TArray<FHitResult> OutHitResults;
+	FCollisionQueryParams Params(SCENE_QUERY_STAT(Attack), false, this);
+	bool HitDetected = GetWorld()->SweepMultiByChannel(OutHitResults, AttackBase, AttackTip, FQuat::Identity, CCHANNEL_USDF_PLAYERACTION, FCollisionShape::MakeSphere(25.0f), Params);
 
-void AUSDFCharacterPlayerWarrior::CheckCombo()
-{
-	UE_LOG(LogTemp, Display, TEXT("CheckCombo"));
-
-	if (HasNextComboCommand)
+	if (HitDetected)
 	{
-		UE_LOG(LogTemp, Display, TEXT("HaxNextComboCommand"));
-		const FComboAttackDelegateWrapper& Wrapper = ComboAttackDelegateManager[CurrentComboAttackType];
-		const UUSDFComboActionData* ComboActionData = ComboAttackDataManager[CurrentComboAttackType];
+		for (auto& HitResult : OutHitResults)
+		{
 
-		if (ComboActionData->MaxComboCount == CurrentComboCount)
-			return;
+			bool bIsExist = false;
+			for (TWeakObjectPtr<AUSDFCharacterBase>& Obj : HitCharaters)
+			{
+				if (!Obj.IsValid())
+					continue;
 
-		HitCharaters.Empty();
+				if (Obj.Get() == HitResult.GetActor())
+				{
+					bIsExist = true;
+					break;
+				}
+			}
 
-		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-		CurrentComboCount = FMath::Clamp(CurrentComboCount + 1, 0, ComboActionData->MaxComboCount - 1);
+			AUSDFCharacterBase* HitCharacter = Cast<AUSDFCharacterBase>(HitResult.GetActor());
 
-		FName NextSection = *FString::Printf(TEXT("%s%d"), *ComboActionData->MontageSectionNamePrefix, CurrentComboCount);
-		AnimInstance->Montage_JumpToSection(NextSection, ComboActionData->ComboAttackMontage);
+			if (HitCharacter && bIsExist == false)
+			{
+				float DamageAmount = Stat->GetPlayerStat().DefaultAttack;
+				FDamageEvent DamageEvent;
 
-		HasNextComboCommand = false;
+				HitCharacter->TakeDamage(DamageAmount, DamageEvent, GetController(), this);
+				HitCharaters.Add(HitCharacter);
+				int32 AttackHitEffectIndex = FMath::RandRange(0, 2);
+				if (AttackHitEffects[AttackHitEffectIndex] != nullptr)
+				{
+					UNiagaraComponent* pNiagaraCompo = UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), AttackHitEffects[AttackHitEffectIndex], HitResult.Location, FRotationMatrix::MakeFromZ(HitResult.ImpactNormal).Rotator());
+					if (pNiagaraCompo != nullptr)
+					{
+						pNiagaraCompo->Activate();
+					}
+				}
+
+				IUSDFCharacterHitReactInterface* HitReactableCharacter = Cast<IUSDFCharacterHitReactInterface>(HitCharacter);
+				if (HitReactableCharacter)
+				{
+					HitReactableCharacter->HitReact(HitResult, DamageAmount, this);
+				}
+			}
+		}
 	}
-	else
-	{
-		IgnoreComboCommand = true;
-	}
-}
 
-void AUSDFCharacterPlayerWarrior::DefaultComboAttack(int32 NextCombo)
-{
-	const FComboAttackDelegateWrapper& Wrapper = ComboAttackDelegateManager[EPlayerWarriorComboType::Default];
-	const UUSDFComboActionData* ComboActionData = ComboAttackDataManager[EPlayerWarriorComboType::Default];
+#if ENABLE_DRAW_DEBUG
+	FVector CapsuleOrigin = AttackBase + (AttackTip - AttackBase) * 0.5f;
+	float CapsuleHalfHeight = (AttackTip - AttackBase).Length() * 0.5f;
+	FColor DrawColor = HitDetected ? FColor::Green : FColor::Red;
 
-	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-
-	if (CurrentComboCount == 0)
-	{
-		HitCharaters.Empty();
-
-		CurrentComboAttackType = EPlayerWarriorComboType::Default;
-		AnimInstance->Montage_Play(ComboActionData->ComboAttackMontage);
-
-		FOnMontageEnded EndDelegate;
-		EndDelegate.BindUObject(this, &AUSDFCharacterPlayerWarrior::ComboActionEnded);
-
-		AnimInstance->Montage_SetEndDelegate(EndDelegate, ComboActionData->ComboAttackMontage);
-	}
-	else if (IgnoreComboCommand == false)
-	{
-		HasNextComboCommand = true;
-	}
+	DrawDebugCapsule(GetWorld(), CapsuleOrigin, CapsuleHalfHeight, 25.0f, FRotationMatrix::MakeFromZ(AttackTip - AttackBase).ToQuat(), DrawColor, false, 5.0f);
+#endif
 }
 
 void AUSDFCharacterPlayerWarrior::ComboActionEnded(UAnimMontage* TargetMontage, bool IsProperlyEnded)
 {
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance)
+	{
+		UAnimMontage* CurrentMontage = AnimInstance->GetCurrentActiveMontage();
+		if (CurrentMontage != nullptr && CurrentMontage->GetGroupName().IsEqual("AttackGroup"))
+			return;
+	}
+
 	HasNextComboCommand = false;
 	IgnoreComboCommand = false;
 	CurrentComboCount = 0;

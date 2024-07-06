@@ -10,7 +10,7 @@ struct FUSDFNormalMonsterStat : public FTableRowBase
 	GENERATED_BODY()
 
 public:
-	FUSDFNormalMonsterStat() :MaxHp(0.0f), DefaultAttack(0.0f), StrongAttack(0.0f), MovementSpeed(0.0f), PatrolRadius(0.0f), DetectRadius(0.0f), AttackRange(0.0f), TurnRateSpeed(0.0f){}
+	FUSDFNormalMonsterStat() :MaxHp(0.0f), DefaultAttack(0.0f), StrongAttack(0.0f), WalkSpeed(0.0f), RunSpeed(0.0f), PatrolRadius(0.0f), DetectRadius(0.0f), AttackRange(0.0f), TurnRateSpeed(0.0f){}
 
 	UPROPERTY()
 	float MaxHp;
@@ -22,7 +22,10 @@ public:
 	float StrongAttack;
 
 	UPROPERTY()
-	float MovementSpeed;
+	float WalkSpeed;
+
+	UPROPERTY()
+	float RunSpeed;
 
 	UPROPERTY()
 	float PatrolRadius;

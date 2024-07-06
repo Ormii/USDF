@@ -22,4 +22,7 @@ protected:
 	virtual void NativeInitializeAnimation() override;
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 
+public:
+	FORCEINLINE const ELocomotionState& GetLocomotionState() const { return LocomotionState; }
+	FORCEINLINE void SetLocomotionState(ELocomotionState NewLocomotionState) { LocomotionState = NewLocomotionState; }
 };

@@ -6,6 +6,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "USDFCharacterAnimData.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Interface/USDFCharacterAnimInterface.h"
 
 UUSDFAnimInstance::UUSDFAnimInstance()
 {
@@ -33,11 +34,8 @@ void UUSDFAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
 	if (CharacterAnimData && Movement && Owner)
 	{
-		bIsFalling = Movement->IsFalling();
-		bIsJumping = Movement->IsFalling() && (Velocity.Z > CharacterAnimData->JumpingThreshould);
-
 		Velocity = Movement->Velocity;
-		GroundSpeed = Velocity.Size2D();
-		bIsIdle = GroundSpeed < CharacterAnimData->MovingThreshould;
+		Acceleration = Movement->GetCurrentAcceleration();
+		Acceleration = FVector(Acceleration.X, Acceleration.Y, 0.0f);
 	}
 }

@@ -105,8 +105,7 @@ void AUSDFCharacterMeleeMonster::PostInitializeComponents()
 	UUSDFGameSingleton* GameSingleton = Cast<UUSDFGameSingleton>(GEngine->GameSingleton.Get());
 
 	Stat->InitNormalMonsterStat(GameSingleton->GetNormalMonsterStat("MeleeMonster"));
-	
-	GetCharacterMovement()->MaxWalkSpeed = Stat->GetNormalMonsterStat().MovementSpeed;
+	GetCharacterMovement()->MaxWalkSpeed = Stat->GetNormalMonsterStat().RunSpeed;
 }
 
 void AUSDFCharacterMeleeMonster::AttackByAI(EAIAttackType InAIAttackType)

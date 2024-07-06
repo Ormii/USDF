@@ -89,6 +89,10 @@ protected:
 	void Sprint();
 	void StopSprint();
 	virtual void Attack();
+	virtual void ReleaseAttack();
+
+	bool bAttackKeyPress;
+	float AttackKeyPressTime;
 
 // Character Movement Section
 protected:

@@ -24,5 +24,6 @@ protected:
 
 	FAICharacterAttackFinished OnAttackFinished;
 	virtual void AttackFinished();
-
+	virtual void SetLocomotionState(ELocomotionState NewLocomotionState) override;
+	
 };
