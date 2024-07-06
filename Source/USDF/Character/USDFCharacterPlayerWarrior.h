@@ -12,6 +12,7 @@ class UUSDFComboActionData;
 UENUM()
 enum class EPlayerWarriorComboType
 {
+	None,
 	Default,
 	UpperCut,
 };
@@ -100,6 +101,9 @@ protected:
 	bool IgnoreComboCommand;
 	bool HasNextComboCommand;
 	float CombatStateTime;
+	float UpperHitStateTime;
+	bool bUpperHit;
+
 
 	EPlayerWarriorComboType CurrentComboAttackType;
 	int32					CurrentComboCount;
@@ -124,6 +128,6 @@ protected:
 protected:
 	bool bHitReactState;
 
-	virtual void HitReact(const FHitResult& HitResult, const float DamageAmount, const AActor* HitCauser) override;
+	virtual void HitReact(const FHitResult& HitResult, const float DamageAmount, EHitReactType HitReactType, const AActor* HitCauser) override;
 	virtual bool GetHitReactState() override;
 };

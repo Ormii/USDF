@@ -8,6 +8,7 @@
 #include "InputMappingContext.h"
 #include "Animation/USDFPlayerWarriorAnimInstance.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "GameFramework/SpringArmComponent.h"
 #include "Character/USDFComboActionData.h"
 #include "Physics/USDFCollision.h"
 #include "Engine/DamageEvents.h"
@@ -16,6 +17,7 @@
 #include "Interface/USDFCharacterHitReactInterface.h"
 #include "CharacterStat/USDFPlayerStatComponent.h"
 #include "GameData/USDFGameSingleton.h"
+#include "USDFCharacterControlData.h"
 
 AUSDFCharacterPlayerWarrior::AUSDFCharacterPlayerWarrior()
 {
@@ -86,7 +88,7 @@ AUSDFCharacterPlayerWarrior::AUSDFCharacterPlayerWarrior()
 		}
 	}
 
-	CurrentComboAttackType = EPlayerWarriorComboType::Default;
+	CurrentComboAttackType = EPlayerWarriorComboType::None;
 }
 
 void AUSDFCharacterPlayerWarrior::BeginPlay()
@@ -118,6 +120,18 @@ void AUSDFCharacterPlayerWarrior::Tick(float DeltaSeconds)
 			UE_LOG(LogTemp, Display, TEXT("CombateEndMontageStart"));
 			PossessCombatEndMontage();
 		}
+	}
+
+	if (bUpperHit == true)
+	{
+		SpringArm->TargetArmLength = FMath::FInterpTo(SpringArm->TargetArmLength, 1200, DeltaSeconds, 2.0f);
+		UpperHitStateTime -= DeltaSeconds;
+		if (UpperHitStateTime <= 0)
+			bUpperHit = false;
+	}
+	else
+	{
+		SpringArm->TargetArmLength = FMath::FInterpTo(SpringArm->TargetArmLength, CharacterControlManager[CurrentControlType]->TargetArmLength, DeltaSeconds, 2.0f);
 	}
 }
 
@@ -260,6 +274,8 @@ void AUSDFCharacterPlayerWarrior::AttackHitCheck()
 		case EPlayerWarriorComboType::UpperCut:
 			UpperAttackHitCheck();
 			break;
+		default:
+			break;
 	}
 }
 
@@ -280,6 +296,9 @@ bool AUSDFCharacterPlayerWarrior::IsCombatState()
 
 void AUSDFCharacterPlayerWarrior::CheckCombo()
 {
+	if (ComboAttackDelegateManager.Find(CurrentComboAttackType) == nullptr)
+		return;
+
 	if (HasNextComboCommand)
 	{
 		const FComboAttackDelegateWrapper& Wrapper = ComboAttackDelegateManager[CurrentComboAttackType];
@@ -398,7 +417,7 @@ void AUSDFCharacterPlayerWarrior::DefaultAttackHitCheck()
 				IUSDFCharacterHitReactInterface* HitReactableCharacter = Cast<IUSDFCharacterHitReactInterface>(HitCharacter);
 				if (HitReactableCharacter)
 				{
-					HitReactableCharacter->HitReact(HitResult, DamageAmount, this);
+					HitReactableCharacter->HitReact(HitResult, DamageAmount, EHitReactType::Default, this);
 				}
 			}
 		}
@@ -454,6 +473,9 @@ void AUSDFCharacterPlayerWarrior::UpperAttackHitCheck()
 				FDamageEvent DamageEvent;
 
 				HitCharacter->TakeDamage(DamageAmount, DamageEvent, GetController(), this);
+				bUpperHit = true;
+				UpperHitStateTime = 2.0f;
+				UE_LOG(LogTemp, Display, TEXT("Velocity x: %f, y: %f, z:%f"), HitCharacter->GetCharacterMovement()->Velocity.X, HitCharacter->GetCharacterMovement()->Velocity.Y, HitCharacter->GetCharacterMovement()->Velocity.Z);
 				HitCharaters.Add(HitCharacter);
 				int32 AttackHitEffectIndex = FMath::RandRange(0, 2);
 				if (AttackHitEffects[AttackHitEffectIndex] != nullptr)
@@ -468,7 +490,7 @@ void AUSDFCharacterPlayerWarrior::UpperAttackHitCheck()
 				IUSDFCharacterHitReactInterface* HitReactableCharacter = Cast<IUSDFCharacterHitReactInterface>(HitCharacter);
 				if (HitReactableCharacter)
 				{
-					HitReactableCharacter->HitReact(HitResult, DamageAmount, this);
+					HitReactableCharacter->HitReact(HitResult, DamageAmount, EHitReactType::Upper, this);
 				}
 			}
 		}
@@ -496,12 +518,12 @@ void AUSDFCharacterPlayerWarrior::ComboActionEnded(UAnimMontage* TargetMontage, 
 	HasNextComboCommand = false;
 	IgnoreComboCommand = false;
 	CurrentComboCount = 0;
-
+	CurrentComboAttackType = EPlayerWarriorComboType::None;
 	bAttackState = false;
 	HitCharaters.Empty();
 }
 
-void AUSDFCharacterPlayerWarrior::HitReact(const FHitResult& HitResult, const float DamageAmount, const AActor* HitCauser)
+void AUSDFCharacterPlayerWarrior::HitReact(const FHitResult& HitResult, const float DamageAmount, EHitReactType HitReactType, const AActor* HitCauser)
 {
 	
 }

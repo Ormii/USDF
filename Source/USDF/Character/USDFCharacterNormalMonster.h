@@ -50,11 +50,16 @@ protected:
 
 	UPROPERTY()
 	uint8 bHitReactState : 1;
-	float HitReactTime;
 
+	UPROPERTY()
+	EHitReactType CurrentHitReactType;
+
+	float HitReactTime;
+	float UpperHitTime;
+	
 	virtual bool GetHitReactState() override;
 public:
-	virtual void HitReact(const FHitResult& HitResult, const float DamageAmount, const AActor* HitCauser) override;
+	virtual void HitReact(const FHitResult& HitResult, const float DamageAmount, EHitReactType HitReactType, const AActor* HitCauser) override;
 
 	// Dead Section
 protected:

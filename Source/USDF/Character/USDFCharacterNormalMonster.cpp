@@ -34,6 +34,9 @@ AUSDFCharacterNormalMonster::AUSDFCharacterNormalMonster()
 		HpBarWidget->SetDrawSize(FVector2D(200.0f, 15.0f));
 		HpBarWidget->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
+
+	CurrentHitReactType = EHitReactType::None;
+	UpperHitTime = 0;
 }
 
 void AUSDFCharacterNormalMonster::PostInitializeComponents()
@@ -52,7 +55,7 @@ void AUSDFCharacterNormalMonster::Tick(float DeltaSeconds)
 		{
 			bHitReactState = false;
 			HitReactTime = 0;
-
+			CurrentHitReactType = EHitReactType::None;
 			GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_NavWalking);
 			
 			UUSDFNonPlayerAnimInstance* NonPlayerAnimInstance = Cast<UUSDFNonPlayerAnimInstance>(GetMesh()->GetAnimInstance());
@@ -60,6 +63,21 @@ void AUSDFCharacterNormalMonster::Tick(float DeltaSeconds)
 			{
 				NonPlayerAnimInstance->StopAllMontages(0.0f);
 			}
+		}
+
+		switch (CurrentHitReactType)
+		{
+			case EHitReactType::Upper:
+			{
+				if (UpperHitTime > 0)
+				{
+					UpperHitTime -= DeltaSeconds;
+					GetCharacterMovement()->Velocity.Z = FMath::FInterpTo(GetCharacterMovement()->Velocity.Z, 0, 10*DeltaSeconds, 1.0f);
+				}
+			}
+				break;
+			default:
+				break;
 		}
 	}	
 }
@@ -89,7 +107,7 @@ bool AUSDFCharacterNormalMonster::GetHitReactState()
 	return bHitReactState;
 }
 
-void AUSDFCharacterNormalMonster::HitReact(const FHitResult& HitResult, const float DamageAmount, const AActor* HitCauser)
+void AUSDFCharacterNormalMonster::HitReact(const FHitResult& HitResult, const float DamageAmount, EHitReactType HitReactType, const AActor* HitCauser)
 {
 	UUSDFNonPlayerAnimInstance* NonPlayerAnimInstance = Cast<UUSDFNonPlayerAnimInstance>(GetMesh()->GetAnimInstance());
 	if (NonPlayerAnimInstance == nullptr)
@@ -136,9 +154,26 @@ void AUSDFCharacterNormalMonster::HitReact(const FHitResult& HitResult, const fl
 		NonPlayerAnimInstance->Montage_Play(HitReactMontage);
 		bHitReactState = true;
 		HitReactTime = 3.0f;
-		GetCharacterMovement()->DisableMovement();
-		GetCharacterMovement()->StopActiveMovement();
-		GetCharacterMovement()->StopMovementImmediately();
+
+		CurrentHitReactType = HitReactType;
+		switch (HitReactType)
+		{
+			case EHitReactType::Upper:
+			{
+				GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Flying);
+				GetCharacterMovement()->Velocity += FVector(0.0f, 0.0f, 2000.0f);
+				UE_LOG(LogTemp, Display, TEXT("Velocity x:%f y:%f, z:%f"), GetCharacterMovement()->Velocity.X, GetCharacterMovement()->Velocity.Y, GetCharacterMovement()->Velocity.Z);
+				UpperHitTime = 0.1f;
+			}
+				break;
+			default:
+			{
+				GetCharacterMovement()->DisableMovement();
+				GetCharacterMovement()->StopActiveMovement();
+				GetCharacterMovement()->StopMovementImmediately();
+			}
+				break;
+		}
 	}
 }
 

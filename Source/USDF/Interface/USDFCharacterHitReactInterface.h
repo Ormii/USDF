@@ -6,6 +6,15 @@
 #include "UObject/Interface.h"
 #include "USDFCharacterHitReactInterface.generated.h"
 
+UENUM()
+enum class EHitReactType : uint8
+{
+	None,
+	Default,
+	Upper,
+	Air,
+};
+
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)
 class UUSDFCharacterHitReactInterface : public UInterface
@@ -22,6 +31,6 @@ class USDF_API IUSDFCharacterHitReactInterface
 
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
-	virtual void HitReact(const FHitResult& HitResult, const float DamageAmount, const AActor* HitCauser) = 0;
+	virtual void HitReact(const FHitResult& HitResult, const float DamageAmount, EHitReactType HitReactType ,const AActor* HitCauser) = 0;
 	virtual bool GetHitReactState() = 0;
 };

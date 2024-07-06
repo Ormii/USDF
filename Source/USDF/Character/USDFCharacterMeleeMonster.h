@@ -38,7 +38,7 @@ protected:
 
 	// Hit React Section
 public:
-	virtual void HitReact(const FHitResult& HitResult, const float DamageAmount, const AActor* HitCauser) override;
+	virtual void HitReact(const FHitResult& HitResult, const float DamageAmount, EHitReactType HitReactType ,const AActor* HitCauser) override;
 
 	// Animation Section
 public:
