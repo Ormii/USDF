@@ -28,19 +28,12 @@ class USDF_API AUSDFCharacterMeleeMonster : public AUSDFCharacterNormalMonster
 public:
 	AUSDFCharacterMeleeMonster();
 
-	// Dead Section
 protected:
-	virtual void SetDead() override;
+	virtual void PostInitializeComponents() override;
 
 	// AI Section
 protected:
-	virtual float GetAIPatrolRadius() override { return 600.0f; };
-	virtual float GetAIDetectRadius() override { return 600.0f; }
-	virtual float GetAIAttackRange() override { return 200.0f; }
-	virtual float GetAITurnRateSpeed() override { return 2.0f; }
-
 	virtual void AttackByAI(EAIAttackType InAIAttackType) override;
-
 	virtual void AttackFinished();
 
 	// Hit React Section

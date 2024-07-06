@@ -30,10 +30,14 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+protected:
+	virtual void PostInitializeComponents() override;
+
 public:
 	virtual void Tick(float DeltaSeconds) override;
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)override;
+
 private:
 	UPROPERTY(VisibleAnywhere, Category = Camera, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class USpringArmComponent> SpringArm;
@@ -41,7 +45,7 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = Camera, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UCameraComponent> Camera;
 
-	// Dead Section
+// Dead Section
 protected:
 	virtual void SetDead() override;
 
@@ -96,11 +100,8 @@ protected:
 // Animation Section
 public:
 	virtual bool IsSprintState() override;
-	virtual bool IsCombatState() override;
 	virtual FVector2D GetMovementInputValue() override;
 
-	virtual void EquipWeapon() override;
-	virtual void UnEquipWeapon() override;
 	virtual bool IsAttackState() override;
 	virtual bool IsDeadState() override;
 
@@ -108,21 +109,18 @@ protected:
 	UPROPERTY(Transient, VisibleAnywhere, Category = Animation, Meta = (AllowPrivateAccess = "true"))
 	uint8 bAttackState : 1;
 
-// Combat Section
-protected:
-	
-	UPROPERTY(Transient ,VisibleAnywhere, Category = Combat, Meta = (AllowPrivateAccess = "true"))
-	uint8 bCombatState : 1;
-
-	bool IgnoreComboCommand;
-	bool HasNextComboCommand;
-
-	virtual void SetCombatState(bool NewCombatState) override;
-
-	virtual bool CheckCombo() override;
-
 // HUD Section
 public:
 	virtual void SetupPlayerHpBarHUDWidget(class UUSDFPlayerHpBarWidget* HpBar) override;
+
+
+// Stat Section
+protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Stat, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UUSDFPlayerStatComponent> Stat;
+
+// Attack Hit Section
+public:
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 
 };

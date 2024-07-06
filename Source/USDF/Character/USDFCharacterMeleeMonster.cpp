@@ -10,6 +10,8 @@
 #include "Engine/DamageEvents.h"
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraComponent.h"
+#include "CharacterStat/USDFNormalMonsterStatComponent.h"
+#include "GameData/USDFGameSingleton.h"
 
 AUSDFCharacterMeleeMonster::AUSDFCharacterMeleeMonster()
 {
@@ -96,9 +98,15 @@ AUSDFCharacterMeleeMonster::AUSDFCharacterMeleeMonster()
 	CurrentAttackType = EMeleeMonsterAttackType::None;
 }
 
-void AUSDFCharacterMeleeMonster::SetDead()
+void AUSDFCharacterMeleeMonster::PostInitializeComponents()
 {
-	Super::SetDead();
+	Super::PostInitializeComponents();
+
+	UUSDFGameSingleton* GameSingleton = Cast<UUSDFGameSingleton>(GEngine->GameSingleton.Get());
+
+	Stat->InitNormalMonsterStat(GameSingleton->GetNormalMonsterStat("MeleeMonster"));
+	
+	GetCharacterMovement()->MaxWalkSpeed = Stat->GetNormalMonsterStat().MovementSpeed;
 }
 
 void AUSDFCharacterMeleeMonster::AttackByAI(EAIAttackType InAIAttackType)
@@ -148,8 +156,8 @@ void AUSDFCharacterMeleeMonster::AttackFinished()
 
 void AUSDFCharacterMeleeMonster::HitReact(const FHitResult& HitResult, const float DamageAmount, const AActor* HitCauser)
 {
+	Super::HitReact(HitResult, DamageAmount, HitCauser);
 	CurrentAttackType = EMeleeMonsterAttackType::None;
-	HitCharaters.Empty();
 }
 
 void AUSDFCharacterMeleeMonster::AttackHitCheck()
@@ -173,13 +181,9 @@ void AUSDFCharacterMeleeMonster::AttackMontageEnded(UAnimMontage* TargetMontage,
 
 void AUSDFCharacterMeleeMonster::WeakAttackHitCheck()
 {
-	UE_LOG(LogTemp, Display, TEXT("WeakAttackHitCheck Start"));
 
 	FVector AttackBase = GetMesh()->GetSocketLocation("attack_start_hand_r");
 	FVector AttackTip = GetMesh()->GetSocketLocation("attack_end_hand_r");
-
-	UE_LOG(LogTemp, Display, TEXT("attack_start_hand_r x: %f, y: %f, z:%f"), AttackBase.X, AttackBase.Y, AttackBase.Z);
-	UE_LOG(LogTemp, Display, TEXT("attack_end_hand_r x: %f, y: %f, z:%f"), AttackTip.X, AttackTip.Y, AttackTip.Z);
 
 	TArray<FHitResult> OutHitResults;
 	FCollisionQueryParams Params(SCENE_QUERY_STAT(Attack), false, this);
@@ -207,7 +211,7 @@ void AUSDFCharacterMeleeMonster::WeakAttackHitCheck()
 
 			if (HitCharacter && bIsExist == false)
 			{
-				float DamageAmount = 200;
+				float DamageAmount = Stat->GetNormalMonsterStat().DefaultAttack;
 				FDamageEvent DamageEvent;
 
 				HitCharacter->TakeDamage(DamageAmount, DamageEvent, GetController(), this);
@@ -242,13 +246,9 @@ void AUSDFCharacterMeleeMonster::WeakAttackHitCheck()
 
 void AUSDFCharacterMeleeMonster::StrongAttackHitCheck()
 {
-	UE_LOG(LogTemp, Display, TEXT("StrongAttackHitCheck Start"));
 
 	FVector AttackBase = GetMesh()->GetSocketLocation("attack_start_hand_l");
 	FVector AttackTip = GetMesh()->GetSocketLocation("attack_end_hand_l");
-
-	UE_LOG(LogTemp, Display, TEXT("attack_start_hand_l x: %f, y: %f, z:%f"), AttackBase.X, AttackBase.Y, AttackBase.Z);
-	UE_LOG(LogTemp, Display, TEXT("attack_end_hand_l x: %f, y: %f, z:%f"), AttackTip.X, AttackTip.Y, AttackTip.Z);
 
 	TArray<FHitResult> OutHitResults;
 	FCollisionQueryParams Params(SCENE_QUERY_STAT(Attack), false, this);
@@ -276,7 +276,7 @@ void AUSDFCharacterMeleeMonster::StrongAttackHitCheck()
 
 			if (HitCharacter && bIsExist == false)
 			{
-				float DamageAmount = 200;
+				float DamageAmount = Stat->GetNormalMonsterStat().StrongAttack;
 				FDamageEvent DamageEvent;
 
 				HitCharacter->TakeDamage(DamageAmount, DamageEvent, GetController(), this);

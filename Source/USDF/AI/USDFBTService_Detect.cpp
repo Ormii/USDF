@@ -37,12 +37,14 @@ void UUSDFBTService_Detect::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* N
 	if (World == nullptr)
 		return;
 
+	float DetectRadius = AIPawn->GetAIDetectRadius();
+	UE_LOG(LogTemp, Display, TEXT("DetectRadius : %f"), DetectRadius);
 
 	TArray<FOverlapResult> OverlapResults;
 	FCollisionQueryParams Params(SCENE_QUERY_STAT(Target), false, Pawn);
 
 	bool bIsDetected = World->OverlapMultiByChannel(OverlapResults, Pawn->GetActorLocation(), FQuat::Identity, CCHANNEL_USDF_NONPLAYERACTION
-		, FCollisionShape::MakeSphere(AIPawn->GetAIDetectRadius()), Params);
+		, FCollisionShape::MakeSphere(DetectRadius), Params);
 	
 	UBlackboardComponent* BlackBoard = OwnerComp.GetBlackboardComponent();
 
@@ -67,7 +69,7 @@ void UUSDFBTService_Detect::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* N
 		{
 			BlackBoard->SetValueAsObject(BBKEY_TARGET, Cast<APawn>(Target));
 #if ENABLE_DRAW_DEBUG
-			DrawDebugSphere(World, Pawn->GetActorLocation(), AIPawn->GetAIDetectRadius(), 16, FColor::Green, false, 0.2f);
+			DrawDebugSphere(World, Pawn->GetActorLocation(), DetectRadius, 16, FColor::Green, false, 0.2f);
 			DrawDebugPoint(World, Pawn->GetActorLocation(), 10.0f, FColor::Green, false, 0.2f);
 			DrawDebugLine(World, Target->GetActorLocation(), Pawn->GetActorLocation(), FColor::Green, false, 0.27f);
 #endif
@@ -80,7 +82,7 @@ void UUSDFBTService_Detect::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* N
 		BlackBoard->SetValueAsObject(BBKEY_TARGET, nullptr);
 
 #if ENABLE_DRAW_DEBUG
-		DrawDebugSphere(World, Pawn->GetActorLocation(), AIPawn->GetAIDetectRadius(), 16, FColor::Red, false, 0.2f);
+		DrawDebugSphere(World, Pawn->GetActorLocation(), DetectRadius, 16, FColor::Red, false, 0.2f);
 #endif
 	}
 }

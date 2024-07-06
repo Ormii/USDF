@@ -51,13 +51,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = Weapon, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UStaticMeshComponent> WeaponStaticMesh;
 
-// Combat Section
-protected:
-
-	float CombatStateTime;
-
-	virtual void SetCombatState(bool NewCombatState) override;
-
 // Input Section
 public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)override;
@@ -79,31 +72,39 @@ private:
 
 	UFUNCTION()
 	void CombatStartMontageEnded(UAnimMontage* TargetMontage, bool IsProperlyEnded);
-	
-	UFUNCTION()
-	void CombatEndMontageEnded(UAnimMontage* TargetMontage, bool IsProperlyEnded);
 
-	virtual void EquipWeapon() override;
-	virtual void UnEquipWeapon() override;
+	virtual void EquipWeapon();
+	virtual void UnEquipWeapon();
 
 	virtual void AttackHitCheck() override;
 	UFUNCTION()
 	void OnWarriorLanded(const FHitResult& Hit);
 
 // Combat Section
+
 protected:
-	virtual bool CheckCombo() override;
-	void DefaultComboAttack(int32 NextCombo);
-	void ComboActionEnded(UAnimMontage* TargetMontage, bool IsProperlyEnded);
+
+	UPROPERTY(Transient, VisibleAnywhere, Category = Combat, Meta = (AllowPrivateAccess = "true"))
+	uint8 bCombatState : 1;
 
 	UPROPERTY()
 	TMap<EPlayerWarriorComboType, FComboAttackDelegateWrapper> ComboAttackDelegateManager;
-	
+
 	UPROPERTY()
 	TMap<EPlayerWarriorComboType, TObjectPtr<UUSDFComboActionData>> ComboAttackDataManager;
 
+	bool IgnoreComboCommand;
+	bool HasNextComboCommand;
+	float CombatStateTime;
+
 	EPlayerWarriorComboType CurrentComboAttackType;
 	int32					CurrentComboCount;
+
+	virtual bool IsCombatState() override;
+	virtual void CheckCombo()override;
+	void DefaultComboAttack(int32 NextCombo);
+	void ComboActionEnded(UAnimMontage* TargetMontage, bool IsProperlyEnded);
+	void SetCombatState(bool NewCombatState);
 
 // Attack Hit Section
 protected:

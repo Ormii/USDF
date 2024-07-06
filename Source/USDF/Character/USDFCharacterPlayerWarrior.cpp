@@ -14,6 +14,8 @@
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraComponent.h"
 #include "Interface/USDFCharacterHitReactInterface.h"
+#include "CharacterStat/USDFPlayerStatComponent.h"
+#include "GameData/USDFGameSingleton.h"
 
 AUSDFCharacterPlayerWarrior::AUSDFCharacterPlayerWarrior()
 {
@@ -85,7 +87,10 @@ void AUSDFCharacterPlayerWarrior::BeginPlay()
 void AUSDFCharacterPlayerWarrior::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
-	Stat->SetMaxHp(200.0f);
+	
+	UUSDFGameSingleton* GameSingleton = Cast<UUSDFGameSingleton>(GEngine->GameSingleton.Get());
+
+	Stat->InitPlayerStat(GameSingleton->GetPlayerStat("PlayerWarrior"));
 }
 
 void AUSDFCharacterPlayerWarrior::Tick(float DeltaSeconds)
@@ -190,10 +195,6 @@ void AUSDFCharacterPlayerWarrior::PossessCombatEndMontage()
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 	AnimInstance->Montage_Play(CombatEndMontage, 1.0f);
 
-	FOnMontageEnded EndDelegate;
-	EndDelegate.BindUObject(this, &AUSDFCharacterPlayerWarrior::CombatEndMontageEnded);
-	AnimInstance->Montage_SetEndDelegate(EndDelegate, CombatEndMontage);
-
 	bAttackState = true;
 }
 
@@ -203,20 +204,13 @@ void AUSDFCharacterPlayerWarrior::CombatStartMontageEnded(UAnimMontage* TargetMo
 	SetCombatState(true);
 }
 
-void AUSDFCharacterPlayerWarrior::CombatEndMontageEnded(UAnimMontage* TargetMontage, bool IsProperlyEnded)
-{
-
-}
-
 void AUSDFCharacterPlayerWarrior::EquipWeapon()
 {
-	Super::EquipWeapon();
 	WeaponStaticMesh->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, "weapon_equiphand_socket");
 }
 
 void AUSDFCharacterPlayerWarrior::UnEquipWeapon()
 {
-	Super::EquipWeapon();
 	WeaponStaticMesh->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, "weapon_socket");
 	SetCombatState(false);
 }
@@ -260,7 +254,7 @@ void AUSDFCharacterPlayerWarrior::AttackHitCheck()
 
 			if (HitCharacter && bIsExist == false)
 			{
-				float DamageAmount = 35;
+				float DamageAmount = Stat->GetPlayerStat().DefaultAttack;
 				FDamageEvent DamageEvent;
 
 				HitCharacter->TakeDamage(DamageAmount, DamageEvent, GetController(), this);
@@ -303,10 +297,13 @@ void AUSDFCharacterPlayerWarrior::OnWarriorLanded(const FHitResult& Hit)
 	}
 }
 
-bool AUSDFCharacterPlayerWarrior::CheckCombo()
+bool AUSDFCharacterPlayerWarrior::IsCombatState()
 {
-	Super::CheckCombo();
+	return bCombatState;
+}
 
+void AUSDFCharacterPlayerWarrior::CheckCombo()
+{
 	UE_LOG(LogTemp, Display, TEXT("CheckCombo"));
 
 	if (HasNextComboCommand)
@@ -316,7 +313,7 @@ bool AUSDFCharacterPlayerWarrior::CheckCombo()
 		const UUSDFComboActionData* ComboActionData = ComboAttackDataManager[CurrentComboAttackType];
 
 		if (ComboActionData->MaxComboCount == CurrentComboCount)
-			return false;
+			return;
 
 		HitCharaters.Empty();
 
@@ -332,8 +329,6 @@ bool AUSDFCharacterPlayerWarrior::CheckCombo()
 	{
 		IgnoreComboCommand = true;
 	}
-
-	return false;
 }
 
 void AUSDFCharacterPlayerWarrior::DefaultComboAttack(int32 NextCombo)
@@ -383,11 +378,10 @@ bool AUSDFCharacterPlayerWarrior::GetHitReactState()
 
 void AUSDFCharacterPlayerWarrior::SetCombatState(bool NewCombatState)
 {
-	Super::SetCombatState(NewCombatState);
+	bCombatState = NewCombatState;
 	
 	UE_LOG(LogTemp, Display, TEXT("Combat State : %d"), bCombatState);
 
 	if(NewCombatState == true)
 		CombatStateTime = 10;
-
 }

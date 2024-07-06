@@ -9,6 +9,8 @@
 #include "Animation/USDFNonPlayerAnimInstance.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "AI/USDFAIController.h"
+#include "CharacterStat/USDFNormalMonsterStatComponent.h"
+#include "GameData/USDFNormalMonsterStat.h"
 
 AUSDFCharacterNormalMonster::AUSDFCharacterNormalMonster()
 {
@@ -17,6 +19,8 @@ AUSDFCharacterNormalMonster::AUSDFCharacterNormalMonster()
 	HpBarWidget = CreateDefaultSubobject<UUSDFWidgetComponent>(TEXT("HpBarWidget"));
 	HpBarWidget->SetupAttachment(GetMesh());
 	HpBarWidget->SetRelativeLocation(FVector(0.0f, 0.0f, 180.0f));
+
+	Stat = CreateDefaultSubobject<UUSDFNormalMonsterStatComponent>(TEXT("Stat"));
 
 	// Mesh
 	GetMesh()->SetRelativeLocationAndRotation(FVector(0.0f, 0.0f, -85.0f), FRotator(0.0f, -90.0f, 0.0f));
@@ -32,6 +36,12 @@ AUSDFCharacterNormalMonster::AUSDFCharacterNormalMonster()
 	}
 }
 
+void AUSDFCharacterNormalMonster::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+	Stat->OnHpZeroDelegate.AddUObject(this, &AUSDFCharacterNormalMonster::SetDead);
+}
+
 void AUSDFCharacterNormalMonster::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
@@ -42,13 +52,36 @@ void AUSDFCharacterNormalMonster::Tick(float DeltaSeconds)
 		{
 			bHitReactState = false;
 			HitReactTime = 0;
-		}
 
-		GetCharacterMovement()->DisableMovement();
-	}
-	else
-		GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_NavWalking);
-	
+			GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_NavWalking);
+			
+			UUSDFNonPlayerAnimInstance* NonPlayerAnimInstance = Cast<UUSDFNonPlayerAnimInstance>(GetMesh()->GetAnimInstance());
+			if (NonPlayerAnimInstance)
+			{
+				NonPlayerAnimInstance->StopAllMontages(0.0f);
+			}
+		}
+	}	
+}
+
+float AUSDFCharacterNormalMonster::GetAIPatrolRadius()
+{
+	return Stat->GetNormalMonsterStat().PatrolRadius; 
+}
+
+float AUSDFCharacterNormalMonster::GetAIDetectRadius()
+{
+	return Stat->GetNormalMonsterStat().DetectRadius;
+}
+
+float AUSDFCharacterNormalMonster::GetAIAttackRange()
+{
+	return Stat->GetNormalMonsterStat().AttackRange;
+}
+
+float AUSDFCharacterNormalMonster::GetAITurnRateSpeed()
+{
+	return Stat->GetNormalMonsterStat().TurnRateSpeed;
 }
 
 bool AUSDFCharacterNormalMonster::GetHitReactState()
@@ -58,8 +91,8 @@ bool AUSDFCharacterNormalMonster::GetHitReactState()
 
 void AUSDFCharacterNormalMonster::HitReact(const FHitResult& HitResult, const float DamageAmount, const AActor* HitCauser)
 {
-	UUSDFMeleeMonsterAnimInstance* AnimInstance = Cast<UUSDFMeleeMonsterAnimInstance>(GetMesh()->GetAnimInstance());
-	if (AnimInstance == nullptr)
+	UUSDFNonPlayerAnimInstance* NonPlayerAnimInstance = Cast<UUSDFNonPlayerAnimInstance>(GetMesh()->GetAnimInstance());
+	if (NonPlayerAnimInstance == nullptr)
 		return;
 
 	if (HitCauser == nullptr)
@@ -68,7 +101,8 @@ void AUSDFCharacterNormalMonster::HitReact(const FHitResult& HitResult, const fl
 	if (Stat->GetCurrentHp() <= 0.0f)
 		return;
 
-	AnimInstance->StopAllMontages(0.0f);
+	NonPlayerAnimInstance->StopAllMontages(0.0f);
+	HitCharaters.Empty();
 
 	FVector ActorForwardVector = GetActorForwardVector();
 	FVector ActorRightVector = GetActorRightVector();
@@ -97,9 +131,14 @@ void AUSDFCharacterNormalMonster::HitReact(const FHitResult& HitResult, const fl
 
 	if (HitReactMontage)
 	{
-		AnimInstance->Montage_Play(HitReactMontage);
+		UE_LOG(LogTemp, Display, TEXT("Hit React"));
+
+		NonPlayerAnimInstance->Montage_Play(HitReactMontage);
 		bHitReactState = true;
-		HitReactTime = 6.0f;
+		HitReactTime = 3.0f;
+		GetCharacterMovement()->DisableMovement();
+		GetCharacterMovement()->StopActiveMovement();
+		GetCharacterMovement()->StopMovementImmediately();
 	}
 }
 
@@ -140,4 +179,11 @@ void AUSDFCharacterNormalMonster::SetupHpBarWidget(UUSDFUserWidget* InUserWidget
 
 	HpBar->SetMaxHp(Stat->GetMaxHp());
 	HpBar->UpdateHpBar(Stat->GetCurrentHp());
+}
+
+float AUSDFCharacterNormalMonster::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+	Stat->ApplyDamage(DamageAmount);
+	return 0.0f;
 }

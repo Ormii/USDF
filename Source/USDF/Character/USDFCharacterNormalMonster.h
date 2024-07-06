@@ -29,8 +29,18 @@ class USDF_API AUSDFCharacterNormalMonster : public AUSDFCharacterNonPlayer, pub
 public:
 	AUSDFCharacterNormalMonster();
 
+protected:
+	virtual void PostInitializeComponents() override;
+
 public:
 	virtual void Tick(float DeltaSeconds) override;
+
+	// AI Section
+protected:
+	virtual float GetAIPatrolRadius() override;
+	virtual float GetAIDetectRadius() override;
+	virtual float GetAIAttackRange() override;
+	virtual float GetAITurnRateSpeed() override;
 
 	// Hit React Section
 protected:
@@ -59,4 +69,14 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Widget, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UUSDFWidgetComponent> HpBarWidget;
+
+	// Stat Section
+protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Stat, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UUSDFNormalMonsterStatComponent> Stat;
+
+	// Attack Hit Section
+public:
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
+
 };

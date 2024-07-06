@@ -17,6 +17,7 @@
 #include "Player/USDFPlayerController.h"
 #include "Game/USDFGameMode.h"
 #include "Interface/USDFGameModeInterface.h"
+#include "CharacterStat/USDFPlayerStatComponent.h"
 
 AUSDFCharacterPlayer::AUSDFCharacterPlayer()
 {
@@ -29,6 +30,7 @@ AUSDFCharacterPlayer::AUSDFCharacterPlayer()
 	SpringArm->SetupAttachment(RootComponent);
 	Camera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
 
+	Stat = CreateDefaultSubobject<UUSDFPlayerStatComponent>(TEXT("Stat"));
 
 	// Capsule
 	GetCapsuleComponent()->InitCapsuleSize(36.0f, 85.0f);
@@ -104,6 +106,12 @@ void AUSDFCharacterPlayer::BeginPlay()
 	Super::BeginPlay();
 
 	SetCharacterControl(CurrentControlType);
+}
+
+void AUSDFCharacterPlayer::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+	Stat->OnHpZeroDelegate.AddUObject(this, &AUSDFCharacterPlayer::SetDead);
 }
 
 void AUSDFCharacterPlayer::Tick(float DeltaSeconds)
@@ -231,22 +239,9 @@ bool AUSDFCharacterPlayer::IsSprintState()
 	return bSprintKeyPress;
 }
 
-bool AUSDFCharacterPlayer::IsCombatState()
-{
-	return bCombatState;
-}
-
 FVector2D AUSDFCharacterPlayer::GetMovementInputValue()
 {
 	return MovementInputValue;
-}
-
-void AUSDFCharacterPlayer::EquipWeapon()
-{
-}
-
-void AUSDFCharacterPlayer::UnEquipWeapon()
-{
 }
 
 bool AUSDFCharacterPlayer::IsAttackState()
@@ -259,15 +254,6 @@ bool AUSDFCharacterPlayer::IsDeadState()
 	return Stat->GetCurrentHp() <= 0.0f;
 }
 
-void AUSDFCharacterPlayer::SetCombatState(bool NewCombatState)
-{
-	bCombatState = NewCombatState;
-}
-
-bool AUSDFCharacterPlayer::CheckCombo()
-{
-	return false;
-}
 
 void AUSDFCharacterPlayer::SetupPlayerHpBarHUDWidget(UUSDFPlayerHpBarWidget* HpBar)
 {
@@ -277,4 +263,11 @@ void AUSDFCharacterPlayer::SetupPlayerHpBarHUDWidget(UUSDFPlayerHpBarWidget* HpB
 		HpBar->SetMaxHp(Stat->GetMaxHp());
 		HpBar->UpdateHpBar(Stat->GetCurrentHp());
 	}
+}
+
+float AUSDFCharacterPlayer::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+	Stat->ApplyDamage(DamageAmount);
+	return DamageAmount;
 }

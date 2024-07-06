@@ -22,16 +22,14 @@ class USDF_API IUSDFCharacterPlayerAnimInterface
 
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
-	virtual void SetCombatState(bool NewCombatState) = 0;
-
 	virtual bool IsSprintState() = 0;
-	virtual bool IsCombatState() = 0;
+	virtual bool IsCombatState() { return false; };
 	virtual bool IsAttackState() = 0;
 	virtual bool IsDeadState() = 0;
 	virtual FVector2D GetMovementInputValue() = 0;
 
-	virtual void EquipWeapon() = 0;
-	virtual void UnEquipWeapon() = 0;
+	virtual void EquipWeapon() {};
+	virtual void UnEquipWeapon() {};
 
-	virtual bool CheckCombo() = 0;
+	virtual void CheckCombo() {};
 };
