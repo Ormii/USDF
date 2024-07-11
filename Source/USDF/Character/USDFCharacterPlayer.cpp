@@ -4,6 +4,7 @@
 #include "Character/USDFCharacterPlayer.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "Components/SphereComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Character/USDFCharacterControlData.h"
@@ -26,6 +27,7 @@ AUSDFCharacterPlayer::AUSDFCharacterPlayer()
 	// CDO
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
+	DetectSphere = CreateDefaultSubobject<USphereComponent>(TEXT("DetectSphere"));
 
 	SpringArm->SetupAttachment(RootComponent);
 	Camera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
@@ -122,6 +124,10 @@ void AUSDFCharacterPlayer::Tick(float DeltaSeconds)
 	{
 		AttackKeyPressTime += DeltaSeconds;
 	}
+
+#if ENABLE_DRAW_DEBUG
+	DrawDebugSphere(GetWorld(), GetActorLocation(), DetectSphere->GetScaledSphereRadius(), 20, FColor::Green, false, 0.01f);
+#endif
 }
 
 void AUSDFCharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)

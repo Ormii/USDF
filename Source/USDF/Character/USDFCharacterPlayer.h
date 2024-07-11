@@ -45,6 +45,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = Camera, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UCameraComponent> Camera;
 
+	UPROPERTY(VisibleAnywhere, Category = Detect, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class USphereComponent> DetectSphere;
+
 // Dead Section
 protected:
 	virtual void SetDead() override;

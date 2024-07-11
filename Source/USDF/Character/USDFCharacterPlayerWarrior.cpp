@@ -12,12 +12,15 @@
 #include "Character/USDFComboActionData.h"
 #include "Physics/USDFCollision.h"
 #include "Engine/DamageEvents.h"
+#include "Engine/OverlapResult.h"
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraComponent.h"
 #include "Interface/USDFCharacterHitReactInterface.h"
 #include "CharacterStat/USDFPlayerStatComponent.h"
 #include "GameData/USDFGameSingleton.h"
 #include "USDFCharacterControlData.h"
+#include "Components/SphereComponent.h"
+#include "Interface/USDFCharacterAIInterface.h"
 
 AUSDFCharacterPlayerWarrior::AUSDFCharacterPlayerWarrior()
 {
@@ -26,6 +29,8 @@ AUSDFCharacterPlayerWarrior::AUSDFCharacterPlayerWarrior()
 	WeaponStaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WeaponStaticMesh"));
 	WeaponStaticMesh->SetupAttachment(GetMesh(), "weapon_socket");
 	WeaponStaticMesh->SetCollisionProfileName("NoCollision");
+
+	DetectSphere->SetSphereRadius(350.0f);
 
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> CharacterMeshRef(TEXT("/Game/ReferenceAsset/IdaFaber/Meshes/Girl/SK_CALISTA_01.SK_CALISTA_01"));
 	if (CharacterMeshRef.Succeeded())
@@ -150,17 +155,17 @@ void AUSDFCharacterPlayerWarrior::SetupPlayerInputComponent(UInputComponent* Pla
 void AUSDFCharacterPlayerWarrior::Attack()
 {
 	Super::Attack();
-}
-
-void AUSDFCharacterPlayerWarrior::ReleaseAttack()
-{
-	Super::ReleaseAttack();
 
 	if (PossessCombatStartMontage())
 	{
 		UE_LOG(LogTemp, Display, TEXT("AttackStart"));
 		PossessAttackMontage();
 	}
+}
+
+void AUSDFCharacterPlayerWarrior::ReleaseAttack()
+{
+	Super::ReleaseAttack();
 }
 
 void AUSDFCharacterPlayerWarrior::WarriorJump()
@@ -234,6 +239,70 @@ void AUSDFCharacterPlayerWarrior::PossessAttackMontage()
 	const UUSDFComboActionData* ComboActionData = ComboAttackDataManager[CurrentComboAttackType];
 	if (!AnimInstance->Montage_IsPlaying(ComboActionData->ComboAttackMontage))
 	{
+		// 타겟 설정
+		TArray<FOverlapResult> OverlapResults;
+		FCollisionQueryParams OverlapParams(SCENE_QUERY_STAT(FindEnemy), false, this);
+		FVector Center = GetActorLocation();
+		float Radius = DetectSphere->GetScaledSphereRadius();
+
+		bool bOverlapped = GetWorld()->OverlapMultiByChannel(OverlapResults, Center, FQuat::Identity, CCHANNEL_USDF_PLAYERACTION, FCollisionShape::MakeSphere(Radius), OverlapParams);
+		if (bOverlapped)
+		{
+			OverlapResults.Sort([&](const FOverlapResult& LHS, const FOverlapResult& RHS)-> bool{
+				FVector LHSForwardVector = LHS.GetActor()->GetActorLocation() - Center;
+				FVector RHSForwardVector = RHS.GetActor()->GetActorLocation() - Center;
+
+				return LHSForwardVector.Length() < RHSForwardVector.Length();
+			});
+
+			
+#if ENABLE_DRAW_DEBUG
+			for (int32 i = 0; i < OverlapResults.Num(); ++i)
+			{
+				IUSDFCharacterAIInterface* AIPawn = Cast<IUSDFCharacterAIInterface>(OverlapResults[i].GetActor());
+				if (AIPawn == nullptr)
+					continue;
+
+				DrawDebugPoint(GetWorld(), OverlapResults[i].GetActor()->GetActorLocation(), 10.0f, FColor::Red, false, 0.2f);
+				DrawDebugLine(GetWorld(), Center, OverlapResults[i].GetActor()->GetActorLocation(), FColor::Red, false, 0.27f);
+			}
+#endif
+			for (int32 i = 0; i < OverlapResults.Num(); ++i)
+			{
+				IUSDFCharacterAIInterface* AIPawn = Cast<IUSDFCharacterAIInterface>(OverlapResults[i].GetActor());
+				if (AIPawn == nullptr)
+					continue;
+
+				FVector TargetForwardVector = OverlapResults[i].GetActor()->GetActorLocation() - Center;
+				TargetForwardVector = TargetForwardVector.GetSafeNormal();
+
+				FHitResult HitResult;
+				float HitRadius = 45;
+				FCollisionQueryParams HitParams(SCENE_QUERY_STAT(LookDirect), false, this);
+				FVector StartPoint = Center + TargetForwardVector * HitRadius;
+				FVector EndPoint = StartPoint + TargetForwardVector *(Radius - 2 * HitRadius);
+				float HalfLength = (Radius - 2 * HitRadius) * 0.5f;
+
+				bool bHitted = GetWorld()->SweepSingleByChannel(HitResult, StartPoint, EndPoint, FRotationMatrix::MakeFromZ(TargetForwardVector).ToQuat(), ECC_Pawn, FCollisionShape::MakeSphere(HitRadius), HitParams);
+				if (bHitted)
+				{
+					AIPawn = Cast<IUSDFCharacterAIInterface>(HitResult.GetActor());
+					if (AIPawn == nullptr)
+						continue;
+
+					FRotator Rotation = FRotationMatrix::MakeFromX(TargetForwardVector).Rotator();
+					FRotator NewRotation = FRotator(0.0f, Rotation.Yaw, 0.0f);
+					SetActorRotation(NewRotation);
+
+#if ENABLE_DRAW_DEBUG
+					DrawDebugCapsule(GetWorld(), (StartPoint + EndPoint) / 2, HalfLength, HitRadius, FRotationMatrix::MakeFromZ(TargetForwardVector).ToQuat(), FColor::Green, false, 0.27f);
+					DrawDebugLine(GetWorld(), Center, OverlapResults[i].GetActor()->GetActorLocation(), FColor::Green, false, 0.27f);
+#endif
+					break;
+				}
+			}
+		}
+
 		bAttackState = true;
 		Wrapper.OnComboAttackDelegate.ExecuteIfBound();
 	}
