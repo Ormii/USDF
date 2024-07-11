@@ -38,7 +38,6 @@ void UUSDFBTService_Detect::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* N
 		return;
 
 	float DetectRadius = AIPawn->GetAIDetectRadius();
-	UE_LOG(LogTemp, Display, TEXT("DetectRadius : %f"), DetectRadius);
 
 	TArray<FOverlapResult> OverlapResults;
 	FCollisionQueryParams Params(SCENE_QUERY_STAT(Target), false, Pawn);

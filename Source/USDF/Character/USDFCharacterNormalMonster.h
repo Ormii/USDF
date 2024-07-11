@@ -59,7 +59,7 @@ protected:
 	
 	virtual bool GetHitReactState() override;
 public:
-	virtual void HitReact(const FHitResult& HitResult, const float DamageAmount, EHitReactType HitReactType, const AActor* HitCauser) override;
+	virtual void HitReact(const float DamageAmount, EHitReactType HitReactType, const AActor* HitCauser) override;
 
 	// Dead Section
 protected:

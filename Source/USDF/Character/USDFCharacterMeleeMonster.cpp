@@ -153,9 +153,9 @@ void AUSDFCharacterMeleeMonster::AttackFinished()
 	HitCharaters.Empty();
 }
 
-void AUSDFCharacterMeleeMonster::HitReact(const FHitResult& HitResult, const float DamageAmount, EHitReactType HitReactType ,const AActor* HitCauser)
+void AUSDFCharacterMeleeMonster::HitReact(const float DamageAmount, EHitReactType HitReactType ,const AActor* HitCauser)
 {
-	Super::HitReact(HitResult, DamageAmount, HitReactType, HitCauser);
+	Super::HitReact(DamageAmount, HitReactType, HitCauser);
 	CurrentAttackType = EMeleeMonsterAttackType::None;
 }
 
@@ -228,7 +228,7 @@ void AUSDFCharacterMeleeMonster::WeakAttackHitCheck()
 				IUSDFCharacterHitReactInterface* HitReactableCharacter = Cast<IUSDFCharacterHitReactInterface>(HitCharacter);
 				if (HitReactableCharacter)
 				{
-					HitReactableCharacter->HitReact(HitResult, DamageAmount, EHitReactType::Default ,this);
+					HitReactableCharacter->HitReact(DamageAmount, EHitReactType::Default ,this);
 				}
 			}
 		}
@@ -293,7 +293,7 @@ void AUSDFCharacterMeleeMonster::StrongAttackHitCheck()
 				IUSDFCharacterHitReactInterface* HitReactableCharacter = Cast<IUSDFCharacterHitReactInterface>(HitCharacter);
 				if (HitReactableCharacter)
 				{
-					HitReactableCharacter->HitReact(HitResult, DamageAmount, EHitReactType::Default ,this);
+					HitReactableCharacter->HitReact(DamageAmount, EHitReactType::Default ,this);
 				}
 			}
 		}

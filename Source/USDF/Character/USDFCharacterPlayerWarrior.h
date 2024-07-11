@@ -15,6 +15,8 @@ enum class EPlayerWarriorComboType
 	None,
 	Default,
 	UpperCut,
+	Dash,
+	Power,
 };
 
 DECLARE_DELEGATE(FComboAttackDelegate);
@@ -51,13 +53,20 @@ public:
 
 protected:
 	UPROPERTY(VisibleAnywhere, Category = Weapon, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<UStaticMeshComponent> WeaponStaticMesh;
+	TSubclassOf<class AUSDFItemWeapon> WeaponSwordClass;
+
+	UPROPERTY(VisibleAnywhere, Category = Weapon, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class AUSDFItemWeapon> WeaponSword;
 
 // Input Section
 public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)override;
 	virtual void Attack()override;
 	virtual void ReleaseAttack()override;
+
+	virtual void AttackQKey()override;
+	virtual void AttackEKey()override;
+	virtual void AttackRKey()override;
 
 	void WarriorJump();
 	void WarriorStopJumping();
@@ -80,8 +89,14 @@ private:
 
 	virtual void EquipWeapon();
 	virtual void UnEquipWeapon();
+	virtual void CheckApplyDamagePoint()override;
 
 	virtual void AttackHitCheck() override;
+
+	class UParticleSystem* GetTrailParticleSystem() override;
+	FName GetTrailStartSocketName() override;
+	FName GetTrailEndSocketName() override;
+
 	UFUNCTION()
 	void OnWarriorLanded(const FHitResult& Hit);
 
@@ -104,6 +119,8 @@ protected:
 	float UpperHitStateTime;
 	bool bUpperHit;
 
+	FVector PowerAttackAreaLocation;
+
 
 	EPlayerWarriorComboType CurrentComboAttackType;
 	int32					CurrentComboCount;
@@ -115,9 +132,19 @@ protected:
 
 	void DefaultComboAttack();
 	void UpperAttack();
+	void DashAttack();
+	void PowerAttack();
 	
 	void DefaultAttackHitCheck();
 	void UpperAttackHitCheck();
+	void DashAttackHitCheck();
+
+	void ApplyDamagePowerAttack();
+
+	void ExecuteDefaultHitCheck(EHitReactType HitReactType);
+	void ResetCombatStateTime();
+
+	virtual void RotateToTarget(EHitReactType HitReactType) override;
 
 // Attack Hit Section
 protected:
@@ -128,6 +155,6 @@ protected:
 protected:
 	bool bHitReactState;
 
-	virtual void HitReact(const FHitResult& HitResult, const float DamageAmount, EHitReactType HitReactType, const AActor* HitCauser) override;
+	virtual void HitReact(const float DamageAmount, EHitReactType HitReactType, const AActor* HitCauser) override;
 	virtual bool GetHitReactState() override;
 };

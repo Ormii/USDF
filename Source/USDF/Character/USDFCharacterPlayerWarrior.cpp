@@ -20,15 +20,13 @@
 #include "GameData/USDFGameSingleton.h"
 #include "USDFCharacterControlData.h"
 #include "Components/SphereComponent.h"
-#include "Interface/USDFCharacterAIInterface.h"
+#include "Animation/USDFLocomotionState.h"
+#include "Item/USDFItemWeaponDarkSword.h"
+#include "Item/USDFWeaponItemData.h"
 
 AUSDFCharacterPlayerWarrior::AUSDFCharacterPlayerWarrior()
 {
 	PrimaryActorTick.bCanEverTick = true;
-
-	WeaponStaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WeaponStaticMesh"));
-	WeaponStaticMesh->SetupAttachment(GetMesh(), "weapon_socket");
-	WeaponStaticMesh->SetCollisionProfileName("NoCollision");
 
 	DetectSphere->SetSphereRadius(350.0f);
 
@@ -56,10 +54,10 @@ AUSDFCharacterPlayerWarrior::AUSDFCharacterPlayerWarrior()
 		CombatEndMontage = CombatEndMontageRef.Object;
 	}
 
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> WeaponMeshRef(TEXT("/Game/ReferenceAsset/Swords/Models/SM_Sword_4.SM_Sword_4"));
-	if (WeaponMeshRef.Object)
+	static ConstructorHelpers::FClassFinder<AUSDFItemWeapon> WeaponSwordClassRef(TEXT("/Game/Item/BP_USDFItemWeaponDarkSword.BP_USDFItemWeaponDarkSword_C"));
+	if (WeaponSwordClassRef.Class)
 	{
-		WeaponStaticMesh->SetStaticMesh(WeaponMeshRef.Object);
+		WeaponSwordClass = WeaponSwordClassRef.Class;
 	}
 
 	static ConstructorHelpers::FObjectFinder<UUSDFComboActionData> DefaultComboAttackDataRef(TEXT("/Game/CharacterAction/USDF_ComboAttackData"));
@@ -84,6 +82,28 @@ AUSDFCharacterPlayerWarrior::AUSDFCharacterPlayerWarrior()
 		ComboAttackDataManager.Add(EPlayerWarriorComboType::UpperCut, UpperAttackDataRef.Object);
 	}
 
+	static ConstructorHelpers::FObjectFinder<UUSDFComboActionData> DashAttackDataRef(TEXT("/Game/CharacterAction/USDF_DashAttackData.USDF_DashAttackData"));
+	if (DashAttackDataRef.Object)
+	{
+		FComboAttackDelegate NewComboAttackDelegate;
+		NewComboAttackDelegate.BindUObject(this, &AUSDFCharacterPlayerWarrior::DashAttack);
+
+		FComboAttackDelegateWrapper Wrapper(NewComboAttackDelegate);
+		ComboAttackDelegateManager.Add(EPlayerWarriorComboType::Dash, Wrapper);
+		ComboAttackDataManager.Add(EPlayerWarriorComboType::Dash, DashAttackDataRef.Object);
+	}
+
+	static ConstructorHelpers::FObjectFinder<UUSDFComboActionData> PowerAttackDataRef(TEXT("/Game/CharacterAction/USDF_PowerAttackData.USDF_PowerAttackData"));
+	if (PowerAttackDataRef.Object)
+	{
+		FComboAttackDelegate NewComboAttackDelegate;
+		NewComboAttackDelegate.BindUObject(this, &AUSDFCharacterPlayerWarrior::PowerAttack);
+
+		FComboAttackDelegateWrapper Wrapper(NewComboAttackDelegate);
+		ComboAttackDelegateManager.Add(EPlayerWarriorComboType::Power, Wrapper);
+		ComboAttackDataManager.Add(EPlayerWarriorComboType::Power, PowerAttackDataRef.Object);
+	}
+
 	for (int i = 0; i < 3; ++i)
 	{
 		static ConstructorHelpers::FObjectFinder<UNiagaraSystem> AttackHitEffectRef(*FString::Printf(TEXT("/Game/ReferenceAsset/RealisticBlood/Slash/Niagara/NS_Slash_%d.NS_Slash_%d"),i,i));
@@ -94,18 +114,25 @@ AUSDFCharacterPlayerWarrior::AUSDFCharacterPlayerWarrior()
 	}
 
 	CurrentComboAttackType = EPlayerWarriorComboType::None;
+	ComboAttackDelegateManager.Add(EPlayerWarriorComboType::None, FComboAttackDelegateWrapper());
+	ComboAttackDataManager.Add(EPlayerWarriorComboType::None, nullptr);
 }
 
 void AUSDFCharacterPlayerWarrior::BeginPlay()
 {
 	Super::BeginPlay();
+
+	WeaponSword = GetWorld()->SpawnActor<AUSDFItemWeapon>(WeaponSwordClass, FTransform::Identity);
+	WeaponSword->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, "weapon_socket");
+	WeaponSword->GetMesh()->SetCollisionProfileName("NoCollision");
+
 	LandedDelegate.AddDynamic(this,&AUSDFCharacterPlayerWarrior::OnWarriorLanded);
 }
 
 void AUSDFCharacterPlayerWarrior::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
-	
+
 	UUSDFGameSingleton* GameSingleton = Cast<UUSDFGameSingleton>(GEngine->GameSingleton.Get());
 
 	Stat->InitPlayerStat(GameSingleton->GetPlayerStat("PlayerWarrior"));
@@ -148,6 +175,12 @@ void AUSDFCharacterPlayerWarrior::SetupPlayerInputComponent(UInputComponent* Pla
 
 	EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &AUSDFCharacterPlayerWarrior::Attack);
 	EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Completed, this, &AUSDFCharacterPlayerWarrior::ReleaseAttack);
+	EnhancedInputComponent->BindAction(AttackQKeyAction, ETriggerEvent::Started, this, &AUSDFCharacterPlayerWarrior::AttackQKey);
+	EnhancedInputComponent->BindAction(AttackQKeyAction, ETriggerEvent::Completed, this, &AUSDFCharacterPlayerWarrior::ReleaseAttackQKey);
+	EnhancedInputComponent->BindAction(AttackEKeyAction, ETriggerEvent::Started, this, &AUSDFCharacterPlayerWarrior::AttackEKey);
+	EnhancedInputComponent->BindAction(AttackEKeyAction, ETriggerEvent::Completed, this, &AUSDFCharacterPlayerWarrior::ReleaseAttackEKey);
+	EnhancedInputComponent->BindAction(AttackRKeyAction, ETriggerEvent::Started, this, &AUSDFCharacterPlayerWarrior::AttackRKey);
+	EnhancedInputComponent->BindAction(AttackRKeyAction, ETriggerEvent::Completed, this, &AUSDFCharacterPlayerWarrior::ReleaseAttackRKey);
 	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AUSDFCharacterPlayerWarrior::WarriorJump);
 	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AUSDFCharacterPlayerWarrior::WarriorStopJumping);
 }
@@ -158,7 +191,6 @@ void AUSDFCharacterPlayerWarrior::Attack()
 
 	if (PossessCombatStartMontage())
 	{
-		UE_LOG(LogTemp, Display, TEXT("AttackStart"));
 		PossessAttackMontage();
 	}
 }
@@ -166,6 +198,112 @@ void AUSDFCharacterPlayerWarrior::Attack()
 void AUSDFCharacterPlayerWarrior::ReleaseAttack()
 {
 	Super::ReleaseAttack();
+}
+
+void AUSDFCharacterPlayerWarrior::AttackQKey()
+{
+	Super::AttackQKey();
+
+	if (bCombatState == false)
+		return;
+
+	UUSDFPlayerWarriorAnimInstance* AnimInstance = Cast<UUSDFPlayerWarriorAnimInstance>(GetMesh()->GetAnimInstance());
+	if (AnimInstance)
+	{
+		if (CurrentComboAttackType == EPlayerWarriorComboType::None)
+		{
+			ELocomotionState LocomotionState = AnimInstance->GetLocomotionState();
+			switch (LocomotionState)
+			{
+			case ELocomotionState::Idle:
+			case ELocomotionState::Walk:
+			{
+				CurrentComboAttackType = EPlayerWarriorComboType::UpperCut;
+				const FComboAttackDelegateWrapper& Wrapper = ComboAttackDelegateManager[CurrentComboAttackType];
+				const UUSDFComboActionData* ComboActionData = ComboAttackDataManager[CurrentComboAttackType];
+				if (!AnimInstance->Montage_IsPlaying(ComboActionData->ComboAttackMontage))
+				{
+					RotateToTarget(EHitReactType::Upper);
+
+					bAttackState = true;
+					Wrapper.OnComboAttackDelegate.ExecuteIfBound();
+					ResetCombatStateTime();
+				}
+			}
+			break;
+			case ELocomotionState::Run:
+				break;
+			default:
+				break;
+			}
+		}
+	}
+}
+
+void AUSDFCharacterPlayerWarrior::AttackEKey()
+{
+	Super::AttackEKey();
+
+	if (bCombatState == false)
+		return;
+
+	UUSDFPlayerWarriorAnimInstance* AnimInstance = Cast<UUSDFPlayerWarriorAnimInstance>(GetMesh()->GetAnimInstance());
+	if (AnimInstance)
+	{
+		if (CurrentComboAttackType == EPlayerWarriorComboType::None)
+		{
+			ELocomotionState LocomotionState = AnimInstance->GetLocomotionState();
+			switch (LocomotionState)
+			{
+			case ELocomotionState::Idle:
+			case ELocomotionState::Walk:
+				break;
+			case ELocomotionState::Run:
+				break;
+			default:
+				break;
+			}
+		}
+	}
+}
+
+void AUSDFCharacterPlayerWarrior::AttackRKey()
+{
+	Super::AttackRKey();
+
+	if (bCombatState == false)
+		return;
+
+	UUSDFPlayerWarriorAnimInstance* AnimInstance = Cast<UUSDFPlayerWarriorAnimInstance>(GetMesh()->GetAnimInstance());
+	if (AnimInstance)
+	{
+		if (CurrentComboAttackType == EPlayerWarriorComboType::None)
+		{
+			ELocomotionState LocomotionState = AnimInstance->GetLocomotionState();
+			switch (LocomotionState)
+			{
+			case ELocomotionState::Idle:
+			case ELocomotionState::Walk:
+			{
+				CurrentComboAttackType = EPlayerWarriorComboType::Power;
+				const FComboAttackDelegateWrapper& Wrapper = ComboAttackDelegateManager[CurrentComboAttackType];
+				const UUSDFComboActionData* ComboActionData = ComboAttackDataManager[CurrentComboAttackType];
+				if (!AnimInstance->Montage_IsPlaying(ComboActionData->ComboAttackMontage))
+				{
+					PowerAttackAreaLocation = GetActorLocation() + GetActorForwardVector() * 350.0f;
+					bAttackState = true;
+					Wrapper.OnComboAttackDelegate.ExecuteIfBound();
+					ResetCombatStateTime();
+				}
+			}
+				break;
+			case ELocomotionState::Run:
+				break;
+			default:
+				break;
+			}
+		}
+	}
 }
 
 void AUSDFCharacterPlayerWarrior::WarriorJump()
@@ -217,91 +355,60 @@ void AUSDFCharacterPlayerWarrior::PossessCombatEndMontage()
 
 void AUSDFCharacterPlayerWarrior::PossessAttackMontage()
 {
-	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	UUSDFPlayerWarriorAnimInstance* AnimInstance = Cast<UUSDFPlayerWarriorAnimInstance>(GetMesh()->GetAnimInstance());
 
 	if (AnimInstance->Montage_IsPlaying(CombatEndMontage) == true)
 		AnimInstance->Montage_Stop(0.2f, CombatEndMontage);
 
+	UStaticMeshComponent* WeaponStaticMesh = WeaponSword->GetMesh();
+
 	if (WeaponStaticMesh->GetAttachSocketName().IsEqual("weapon_socket") == false)
 		WeaponStaticMesh->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, "weapon_equiphand_socket");
 
-	UE_LOG(LogTemp, Display, TEXT("AttackKeyPressTime : %f"), AttackKeyPressTime);
-	if (AttackKeyPressTime <= 0.2f)
+	if (CurrentComboAttackType == EPlayerWarriorComboType::None)
 	{
-		CurrentComboAttackType = EPlayerWarriorComboType::Default;
+		ELocomotionState LocomotionState = AnimInstance->GetLocomotionState();
+		switch (LocomotionState)
+		{
+		case ELocomotionState::Idle:
+		case ELocomotionState::Walk:
+			CurrentComboAttackType = EPlayerWarriorComboType::Default;
+			break;
+		case ELocomotionState::Run:
+			CurrentComboAttackType = EPlayerWarriorComboType::Dash;
+			DetectSphere->SetSphereRadius(800.0f);
+			break;
+		case ELocomotionState::Jumping:
+			break;
+		}
 	}
-	else
-	{
-		CurrentComboAttackType = EPlayerWarriorComboType::UpperCut;
-	}
+
+	if (CurrentComboAttackType == EPlayerWarriorComboType::None)
+		return;
 
 	const FComboAttackDelegateWrapper& Wrapper = ComboAttackDelegateManager[CurrentComboAttackType];
 	const UUSDFComboActionData* ComboActionData = ComboAttackDataManager[CurrentComboAttackType];
-	if (!AnimInstance->Montage_IsPlaying(ComboActionData->ComboAttackMontage))
+	if (!bAttackState)
 	{
-		// 타겟 설정
-		TArray<FOverlapResult> OverlapResults;
-		FCollisionQueryParams OverlapParams(SCENE_QUERY_STAT(FindEnemy), false, this);
-		FVector Center = GetActorLocation();
-		float Radius = DetectSphere->GetScaledSphereRadius();
-
-		bool bOverlapped = GetWorld()->OverlapMultiByChannel(OverlapResults, Center, FQuat::Identity, CCHANNEL_USDF_PLAYERACTION, FCollisionShape::MakeSphere(Radius), OverlapParams);
-		if (bOverlapped)
+		EHitReactType HitReactType = EHitReactType::None;
+		switch (CurrentComboAttackType)
 		{
-			OverlapResults.Sort([&](const FOverlapResult& LHS, const FOverlapResult& RHS)-> bool{
-				FVector LHSForwardVector = LHS.GetActor()->GetActorLocation() - Center;
-				FVector RHSForwardVector = RHS.GetActor()->GetActorLocation() - Center;
-
-				return LHSForwardVector.Length() < RHSForwardVector.Length();
-			});
-
-			
-#if ENABLE_DRAW_DEBUG
-			for (int32 i = 0; i < OverlapResults.Num(); ++i)
-			{
-				IUSDFCharacterAIInterface* AIPawn = Cast<IUSDFCharacterAIInterface>(OverlapResults[i].GetActor());
-				if (AIPawn == nullptr)
-					continue;
-
-				DrawDebugPoint(GetWorld(), OverlapResults[i].GetActor()->GetActorLocation(), 10.0f, FColor::Red, false, 0.2f);
-				DrawDebugLine(GetWorld(), Center, OverlapResults[i].GetActor()->GetActorLocation(), FColor::Red, false, 0.27f);
-			}
-#endif
-			for (int32 i = 0; i < OverlapResults.Num(); ++i)
-			{
-				IUSDFCharacterAIInterface* AIPawn = Cast<IUSDFCharacterAIInterface>(OverlapResults[i].GetActor());
-				if (AIPawn == nullptr)
-					continue;
-
-				FVector TargetForwardVector = OverlapResults[i].GetActor()->GetActorLocation() - Center;
-				TargetForwardVector = TargetForwardVector.GetSafeNormal();
-
-				FHitResult HitResult;
-				float HitRadius = 45;
-				FCollisionQueryParams HitParams(SCENE_QUERY_STAT(LookDirect), false, this);
-				FVector StartPoint = Center + TargetForwardVector * HitRadius;
-				FVector EndPoint = StartPoint + TargetForwardVector *(Radius - 2 * HitRadius);
-				float HalfLength = (Radius - 2 * HitRadius) * 0.5f;
-
-				bool bHitted = GetWorld()->SweepSingleByChannel(HitResult, StartPoint, EndPoint, FRotationMatrix::MakeFromZ(TargetForwardVector).ToQuat(), ECC_Pawn, FCollisionShape::MakeSphere(HitRadius), HitParams);
-				if (bHitted)
-				{
-					AIPawn = Cast<IUSDFCharacterAIInterface>(HitResult.GetActor());
-					if (AIPawn == nullptr)
-						continue;
-
-					FRotator Rotation = FRotationMatrix::MakeFromX(TargetForwardVector).Rotator();
-					FRotator NewRotation = FRotator(0.0f, Rotation.Yaw, 0.0f);
-					SetActorRotation(NewRotation);
-
-#if ENABLE_DRAW_DEBUG
-					DrawDebugCapsule(GetWorld(), (StartPoint + EndPoint) / 2, HalfLength, HitRadius, FRotationMatrix::MakeFromZ(TargetForwardVector).ToQuat(), FColor::Green, false, 0.27f);
-					DrawDebugLine(GetWorld(), Center, OverlapResults[i].GetActor()->GetActorLocation(), FColor::Green, false, 0.27f);
-#endif
-					break;
-				}
-			}
+			case  EPlayerWarriorComboType::Default:
+				HitReactType = EHitReactType::Default;
+				break;
+			case EPlayerWarriorComboType::UpperCut:
+				HitReactType = EHitReactType::Upper;
+				break;
+			case EPlayerWarriorComboType::Dash:
+				HitReactType = EHitReactType::Dash;
+				break;
+			case EPlayerWarriorComboType::Power:
+				HitReactType = EHitReactType::PowerAttack;
+				break;
+			default:
+				break;
 		}
+		RotateToTarget(HitReactType);
 
 		bAttackState = true;
 		Wrapper.OnComboAttackDelegate.ExecuteIfBound();
@@ -311,7 +418,7 @@ void AUSDFCharacterPlayerWarrior::PossessAttackMontage()
 		HasNextComboCommand = true;
 	}
 
-	CombatStateTime = 10;
+	ResetCombatStateTime();
 }
 
 void AUSDFCharacterPlayerWarrior::CombatStartMontageEnded(UAnimMontage* TargetMontage, bool IsProperlyEnded)
@@ -322,13 +429,34 @@ void AUSDFCharacterPlayerWarrior::CombatStartMontageEnded(UAnimMontage* TargetMo
 
 void AUSDFCharacterPlayerWarrior::EquipWeapon()
 {
+	UStaticMeshComponent* WeaponStaticMesh = WeaponSword->GetMesh();
+	if (WeaponStaticMesh == nullptr)
+		return;
 	WeaponStaticMesh->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, "weapon_equiphand_socket");
 }
 
 void AUSDFCharacterPlayerWarrior::UnEquipWeapon()
 {
+	UStaticMeshComponent* WeaponStaticMesh = WeaponSword->GetMesh();
+	if (WeaponStaticMesh == nullptr)
+		return;
+
 	WeaponStaticMesh->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, "weapon_socket");
 	SetCombatState(false);
+}
+
+void AUSDFCharacterPlayerWarrior::CheckApplyDamagePoint()
+{
+	Super::CheckApplyDamagePoint();
+	
+	switch (CurrentComboAttackType)
+	{
+		case EPlayerWarriorComboType::Power:
+			ApplyDamagePowerAttack();
+			break;
+		default:
+			break;
+	}
 }
 
 void AUSDFCharacterPlayerWarrior::AttackHitCheck()
@@ -343,9 +471,36 @@ void AUSDFCharacterPlayerWarrior::AttackHitCheck()
 		case EPlayerWarriorComboType::UpperCut:
 			UpperAttackHitCheck();
 			break;
+		case EPlayerWarriorComboType::Dash:
+			DashAttackHitCheck();
+			break;
 		default:
 			break;
 	}
+}
+
+UParticleSystem* AUSDFCharacterPlayerWarrior::GetTrailParticleSystem()
+{
+	if (WeaponSword == nullptr)
+		return nullptr;
+
+	return WeaponSword->GetWeaponItemData()->GetTrailEffect();
+}
+
+FName AUSDFCharacterPlayerWarrior::GetTrailStartSocketName()
+{
+	if (WeaponSword == nullptr)
+		return FName();
+
+	return WeaponSword->GetWeaponItemData()->GetTrailStart();
+}
+
+FName AUSDFCharacterPlayerWarrior::GetTrailEndSocketName()
+{
+	if (WeaponSword == nullptr)
+		return FName();
+
+	return WeaponSword->GetWeaponItemData()->GetTrailEnd();
 }
 
 void AUSDFCharacterPlayerWarrior::OnWarriorLanded(const FHitResult& Hit)
@@ -431,96 +586,167 @@ void AUSDFCharacterPlayerWarrior::UpperAttack()
 	AnimInstance->Montage_SetEndDelegate(EndDelegate, ComboActionData->ComboAttackMontage);
 }
 
+void AUSDFCharacterPlayerWarrior::DashAttack()
+{
+	const FComboAttackDelegateWrapper& Wrapper = ComboAttackDelegateManager[EPlayerWarriorComboType::Dash];
+	const UUSDFComboActionData* ComboActionData = ComboAttackDataManager[EPlayerWarriorComboType::Dash];
+
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	HitCharaters.Empty();
+	AnimInstance->Montage_Play(ComboActionData->ComboAttackMontage);
+
+	FOnMontageEnded EndDelegate;
+	EndDelegate.BindUObject(this, &AUSDFCharacterPlayerWarrior::ComboActionEnded);
+
+	AnimInstance->Montage_SetEndDelegate(EndDelegate, ComboActionData->ComboAttackMontage);
+}
+
+void AUSDFCharacterPlayerWarrior::PowerAttack()
+{
+	const FComboAttackDelegateWrapper& Wrapper = ComboAttackDelegateManager[EPlayerWarriorComboType::Power];
+	const UUSDFComboActionData* ComboActionData = ComboAttackDataManager[EPlayerWarriorComboType::Power];
+
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	HitCharaters.Empty();
+	AnimInstance->Montage_Play(ComboActionData->ComboAttackMontage);
+
+	FOnMontageEnded EndDelegate;
+	EndDelegate.BindUObject(this, &AUSDFCharacterPlayerWarrior::ComboActionEnded);
+
+	AnimInstance->Montage_SetEndDelegate(EndDelegate, ComboActionData->ComboAttackMontage);
+}
+
 void AUSDFCharacterPlayerWarrior::DefaultAttackHitCheck()
 {
-	FVector AttackBase = FVector::ZeroVector;
-	FVector AttackTip = FVector::ZeroVector;
-
-	if (WeaponStaticMesh)
-	{
-		AttackBase = WeaponStaticMesh->GetSocketLocation("attack_base");
-		AttackTip = WeaponStaticMesh->GetSocketLocation("attack_tip");
-	}
-
-	TArray<FHitResult> OutHitResults;
-	FCollisionQueryParams Params(SCENE_QUERY_STAT(Attack), false, this);
-	bool HitDetected = GetWorld()->SweepMultiByChannel(OutHitResults, AttackBase, AttackTip, FQuat::Identity, CCHANNEL_USDF_PLAYERACTION, FCollisionShape::MakeSphere(25.0f), Params);
-
-	if (HitDetected)
-	{
-		for (auto& HitResult : OutHitResults)
-		{
-
-			bool bIsExist = false;
-			for (TWeakObjectPtr<AUSDFCharacterBase>& Obj : HitCharaters)
-			{
-				if (!Obj.IsValid())
-					continue;
-
-				if (Obj.Get() == HitResult.GetActor())
-				{
-					bIsExist = true;
-					break;
-				}
-			}
-
-			AUSDFCharacterBase* HitCharacter = Cast<AUSDFCharacterBase>(HitResult.GetActor());
-
-			if (HitCharacter && bIsExist == false)
-			{
-				float DamageAmount = Stat->GetPlayerStat().DefaultAttack;
-				FDamageEvent DamageEvent;
-
-				HitCharacter->TakeDamage(DamageAmount, DamageEvent, GetController(), this);
-				HitCharaters.Add(HitCharacter);
-				int32 AttackHitEffectIndex = FMath::RandRange(0, 2);
-				if (AttackHitEffects[AttackHitEffectIndex] != nullptr)
-				{
-					UNiagaraComponent* pNiagaraCompo = UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), AttackHitEffects[AttackHitEffectIndex], HitResult.Location, FRotationMatrix::MakeFromZ(HitResult.ImpactNormal).Rotator());
-					if (pNiagaraCompo != nullptr)
-					{
-						pNiagaraCompo->Activate();
-					}
-				}
-
-				IUSDFCharacterHitReactInterface* HitReactableCharacter = Cast<IUSDFCharacterHitReactInterface>(HitCharacter);
-				if (HitReactableCharacter)
-				{
-					HitReactableCharacter->HitReact(HitResult, DamageAmount, EHitReactType::Default, this);
-				}
-			}
-		}
-	}
-
-#if ENABLE_DRAW_DEBUG
-	FVector CapsuleOrigin = AttackBase + (AttackTip - AttackBase) * 0.5f;
-	float CapsuleHalfHeight = (AttackTip - AttackBase).Length() * 0.5f;
-	FColor DrawColor = HitDetected ? FColor::Green : FColor::Red;
-
-	DrawDebugCapsule(GetWorld(), CapsuleOrigin, CapsuleHalfHeight, 25.0f, FRotationMatrix::MakeFromZ(AttackTip - AttackBase).ToQuat(), DrawColor, false, 5.0f);
-#endif
+	ExecuteDefaultHitCheck(EHitReactType::Default);
 }
 
 void AUSDFCharacterPlayerWarrior::UpperAttackHitCheck()
 {
+	ExecuteDefaultHitCheck(EHitReactType::Upper);
+}
+
+void AUSDFCharacterPlayerWarrior::DashAttackHitCheck()
+{
+	ExecuteDefaultHitCheck(EHitReactType::Dash);
+}
+
+void AUSDFCharacterPlayerWarrior::ApplyDamagePowerAttack()
+{
+	TArray<FOverlapResult> OverlapResults;
+	FCollisionQueryParams Params(SCENE_QUERY_STAT(PowerAttack), false, this);
+	float Radius = 350.0f;
+	bool bOverlapped = GetWorld()->OverlapMultiByChannel(OverlapResults, PowerAttackAreaLocation, FQuat::Identity, CCHANNEL_USDF_PLAYERACTION, FCollisionShape::MakeSphere(Radius), Params);
+	
+	if (bOverlapped)
+	{
+		UE_LOG(LogTemp, Display, TEXT("Power Attack hit Count : %d"), OverlapResults.Num());
+		HitCharaters.Empty();
+		for (int32 i = 0; i < OverlapResults.Num(); ++i)
+		{
+			bool bIsExist = false;
+			for (TWeakObjectPtr<AUSDFCharacterBase>& Obj : HitCharaters)
+			{
+				if (!Obj.IsValid())
+					continue;
+
+				if (Obj.Get() == OverlapResults[i].GetActor())
+				{
+					bIsExist = true;
+					break;
+				}
+			}
+
+			AUSDFCharacterBase* HitCharacter = Cast<AUSDFCharacterBase>(OverlapResults[i].GetActor());
+
+			if (HitCharacter && bIsExist == false)
+			{
+				float DamageAmount = 10;
+				FDamageEvent DamageEvent;
+				UE_LOG(LogTemp, Display, TEXT("Power Attack hit"));
+				HitCharacter->TakeDamage(DamageAmount, DamageEvent, GetController(), this);
+				int32 AttackHitEffectIndex = FMath::RandRange(0, 2);
+				if (AttackHitEffects[AttackHitEffectIndex] != nullptr)
+				{
+					UNiagaraComponent* pNiagaraCompo = UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), AttackHitEffects[AttackHitEffectIndex], HitCharacter->GetActorLocation(), FRotator(FMath::RandRange(-90, 90), FMath::RandRange(-90, 90), FMath::RandRange(-90, 90)));;
+					if (pNiagaraCompo != nullptr)
+					{
+						pNiagaraCompo->Activate();
+					}
+				}
+
+				IUSDFCharacterHitReactInterface* HitReactableCharacter = Cast<IUSDFCharacterHitReactInterface>(HitCharacter);
+				if (HitReactableCharacter)
+				{
+					HitReactableCharacter->HitReact(DamageAmount, EHitReactType::PowerAttack, this);
+				}
+
+				HitCharaters.Add(HitCharacter);
+			}
+		}
+	}
+
+#if ENABLE_DRAW_DEBUG
+	DrawDebugSphere(GetWorld(), PowerAttackAreaLocation, Radius, 20.0f, FColor::Red, false, 5.0f);
+#endif
+}
+
+
+void AUSDFCharacterPlayerWarrior::ExecuteDefaultHitCheck(EHitReactType HitReactType)
+{
+
+	bool HitDetected = false;
+	TArray<FHitResult> OutHitResults;
+	FCollisionQueryParams Params(SCENE_QUERY_STAT(Attack), false, this);
 	FVector AttackBase = FVector::ZeroVector;
 	FVector AttackTip = FVector::ZeroVector;
 
-	if (WeaponStaticMesh)
+	UStaticMeshComponent* WeaponStaticMesh = WeaponSword->GetMesh();
+	switch (HitReactType)
 	{
-		AttackBase = WeaponStaticMesh->GetSocketLocation("attack_base");
-		AttackTip = WeaponStaticMesh->GetSocketLocation("attack_tip");
-	}
+		case EHitReactType::Default:
+		case EHitReactType::Dash:
+		{
+			if (WeaponStaticMesh)
+			{
+				AttackBase = WeaponStaticMesh->GetSocketLocation("attack_base");
+				AttackTip = WeaponStaticMesh->GetSocketLocation("attack_tip");
+			}
 
-	TArray<FHitResult> OutHitResults;
-	FCollisionQueryParams Params(SCENE_QUERY_STAT(Attack), false, this);
-	bool HitDetected = GetWorld()->SweepMultiByChannel(OutHitResults, AttackBase, AttackTip, FQuat::Identity, CCHANNEL_USDF_PLAYERACTION, FCollisionShape::MakeSphere(25.0f), Params);
+			HitDetected = GetWorld()->SweepMultiByChannel(OutHitResults, AttackBase, AttackTip, FQuat::Identity, CCHANNEL_USDF_PLAYERACTION, FCollisionShape::MakeSphere(25.0f), Params);
+#if ENABLE_DRAW_DEBUG
+			FVector CapsuleOrigin = AttackBase + (AttackTip - AttackBase) * 0.5f;
+			float CapsuleHalfHeight = (AttackTip - AttackBase).Length() * 0.5f;
+			FColor DrawColor = HitDetected ? FColor::Green : FColor::Red;
+
+			DrawDebugCapsule(GetWorld(), CapsuleOrigin, CapsuleHalfHeight, 25.0f, FRotationMatrix::MakeFromZ(AttackTip - AttackBase).ToQuat(), DrawColor, false, 5.0f);
+#endif
+		}
+			break;
+		case EHitReactType::Upper:
+		{
+			if (WeaponStaticMesh)
+			{
+				AttackBase = WeaponStaticMesh->GetSocketLocation("attack_base");
+				AttackTip = WeaponStaticMesh->GetSocketLocation("attack_tip");
+			}
+
+			HitDetected = GetWorld()->SweepMultiByChannel(OutHitResults, AttackBase, AttackTip, FQuat::Identity, CCHANNEL_USDF_PLAYERACTION, FCollisionShape::MakeSphere(25.0f), Params);
+#if ENABLE_DRAW_DEBUG
+			FVector CapsuleOrigin = AttackBase + (AttackTip - AttackBase) * 0.5f;
+			float CapsuleHalfHeight = (AttackTip - AttackBase).Length() * 0.5f;
+			FColor DrawColor = HitDetected ? FColor::Green : FColor::Red;
+
+			DrawDebugCapsule(GetWorld(), CapsuleOrigin, CapsuleHalfHeight, 25.0f, FRotationMatrix::MakeFromZ(AttackTip - AttackBase).ToQuat(), DrawColor, false, 5.0f);
+#endif
+		}
+			break;
+	}
 
 	if (HitDetected)
 	{
 		for (auto& HitResult : OutHitResults)
 		{
-
 			bool bIsExist = false;
 			for (TWeakObjectPtr<AUSDFCharacterBase>& Obj : HitCharaters)
 			{
@@ -542,9 +768,6 @@ void AUSDFCharacterPlayerWarrior::UpperAttackHitCheck()
 				FDamageEvent DamageEvent;
 
 				HitCharacter->TakeDamage(DamageAmount, DamageEvent, GetController(), this);
-				bUpperHit = true;
-				UpperHitStateTime = 2.0f;
-				UE_LOG(LogTemp, Display, TEXT("Velocity x: %f, y: %f, z:%f"), HitCharacter->GetCharacterMovement()->Velocity.X, HitCharacter->GetCharacterMovement()->Velocity.Y, HitCharacter->GetCharacterMovement()->Velocity.Z);
 				HitCharaters.Add(HitCharacter);
 				int32 AttackHitEffectIndex = FMath::RandRange(0, 2);
 				if (AttackHitEffects[AttackHitEffectIndex] != nullptr)
@@ -559,31 +782,28 @@ void AUSDFCharacterPlayerWarrior::UpperAttackHitCheck()
 				IUSDFCharacterHitReactInterface* HitReactableCharacter = Cast<IUSDFCharacterHitReactInterface>(HitCharacter);
 				if (HitReactableCharacter)
 				{
-					HitReactableCharacter->HitReact(HitResult, DamageAmount, EHitReactType::Upper, this);
+					HitReactableCharacter->HitReact(DamageAmount, HitReactType, this);
 				}
 			}
 		}
 	}
+}
 
-#if ENABLE_DRAW_DEBUG
-	FVector CapsuleOrigin = AttackBase + (AttackTip - AttackBase) * 0.5f;
-	float CapsuleHalfHeight = (AttackTip - AttackBase).Length() * 0.5f;
-	FColor DrawColor = HitDetected ? FColor::Green : FColor::Red;
+void AUSDFCharacterPlayerWarrior::ResetCombatStateTime()
+{
+	CombatStateTime = 10;
+}
 
-	DrawDebugCapsule(GetWorld(), CapsuleOrigin, CapsuleHalfHeight, 25.0f, FRotationMatrix::MakeFromZ(AttackTip - AttackBase).ToQuat(), DrawColor, false, 5.0f);
-#endif
+void AUSDFCharacterPlayerWarrior::RotateToTarget(EHitReactType HitReactType)
+{
+	Super::RotateToTarget(HitReactType);
+
+	DetectSphere->SetSphereRadius(350.0f);
 }
 
 void AUSDFCharacterPlayerWarrior::ComboActionEnded(UAnimMontage* TargetMontage, bool IsProperlyEnded)
 {
-	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-	if (AnimInstance)
-	{
-		UAnimMontage* CurrentMontage = AnimInstance->GetCurrentActiveMontage();
-		if (CurrentMontage != nullptr && CurrentMontage->GetGroupName().IsEqual("AttackGroup"))
-			return;
-	}
-
+	UE_LOG(LogTemp, Display, TEXT("Montage End"));
 	HasNextComboCommand = false;
 	IgnoreComboCommand = false;
 	CurrentComboCount = 0;
@@ -592,7 +812,7 @@ void AUSDFCharacterPlayerWarrior::ComboActionEnded(UAnimMontage* TargetMontage, 
 	HitCharaters.Empty();
 }
 
-void AUSDFCharacterPlayerWarrior::HitReact(const FHitResult& HitResult, const float DamageAmount, EHitReactType HitReactType, const AActor* HitCauser)
+void AUSDFCharacterPlayerWarrior::HitReact(const float DamageAmount, EHitReactType HitReactType, const AActor* HitCauser)
 {
 	
 }

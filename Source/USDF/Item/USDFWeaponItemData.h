@@ -23,6 +23,24 @@ public:
 		return FPrimaryAssetId(NameAndTag);
 	}
 
-	UPROPERTY(EditAnywhere, Category = "Weapon")
-	TSoftObjectPtr<class UStaticMesh> Mesh;
+
+protected:
+	UPROPERTY(EditAnywhere, Category = WeaponEffect)
+	TObjectPtr<class UParticleSystem> SwordEffect;
+
+	UPROPERTY(EditAnywhere, Category = WeaponEffect)
+	TObjectPtr<class UParticleSystem> TrailEffect;
+
+	UPROPERTY(EditAnywhere, Category = WeaponEffect)
+	FName TrailStart;
+
+	UPROPERTY(EditAnywhere, Category = WeaponEffect)
+	FName TrailEnd;
+
+public:
+	FORCEINLINE class UParticleSystem* GetSwordEffect() { return SwordEffect; }
+	FORCEINLINE class UParticleSystem* GetTrailEffect() { return TrailEffect; }
+
+	FORCEINLINE FName GetTrailStart() { return TrailStart; }
+	FORCEINLINE FName GetTrailEnd() { return TrailEnd; }
 };

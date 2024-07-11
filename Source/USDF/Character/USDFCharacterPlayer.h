@@ -7,12 +7,12 @@
 #include "InputActionValue.h"
 #include "Interface/USDFCharacterPlayerAnimInterface.h"
 #include "Interface/USDFCharacterPlayerHUDInterface.h"
+#include "Interface/USDFCharacterHitReactInterface.h"
 #include "USDFCharacterPlayer.generated.h"
 
 UENUM()
 enum class ECharacterPlayerControlType : uint8
 {
-	Shoulder,
 	Preview,
 };
 
@@ -77,25 +77,37 @@ protected:
 	TObjectPtr<class UInputAction> SprintAction;
 
 	UPROPERTY(VisibleAnywhere, Category = Input, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class UInputAction> ViewChangeAction;
+	TObjectPtr<class UInputAction> AttackAction;
 
 	UPROPERTY(VisibleAnywhere, Category = Input, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class UInputAction> AttackAction;
+	TObjectPtr<class UInputAction> AttackQKeyAction;
+
+	UPROPERTY(VisibleAnywhere, Category = Input, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UInputAction> AttackEKeyAction;
+
+	UPROPERTY(VisibleAnywhere, Category = Input, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UInputAction> AttackRKeyAction;
 
 	ECharacterPlayerControlType CurrentControlType;
 
 	void Move(const FInputActionValue& Value);
 	void ReleaseMove(const FInputActionValue& value);
 	void Look(const FInputActionValue& Value);
-	void PressViewChange();
-	void ReleaseViweChange();
 	void Sprint();
 	void StopSprint();
 	virtual void Attack();
 	virtual void ReleaseAttack();
+	virtual void AttackQKey();
+	virtual void ReleaseAttackQKey();
+	virtual void AttackEKey();
+	virtual void ReleaseAttackEKey();
+	virtual void AttackRKey();
+	virtual void ReleaseAttackRKey();
 
 	bool bAttackKeyPress;
-	float AttackKeyPressTime;
+	bool bAttackQKeyPress;
+	bool bAttackEKeyPress;
+	bool bAttackRKeyPress;
 
 // Character Movement Section
 protected:
@@ -130,4 +142,8 @@ protected:
 public:
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 
+
+// Combat Section
+protected:
+	virtual void RotateToTarget(EHitReactType HitReactType);
 };

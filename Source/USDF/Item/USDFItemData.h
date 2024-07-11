@@ -20,6 +20,10 @@ class USDF_API UUSDFItemData : public UPrimaryDataAsset
 {
 	GENERATED_BODY()
 
+
+public:
+	UUSDFItemData();
+
 public:
 	virtual FPrimaryAssetId GetPrimaryAssetId() const override
 	{
@@ -30,4 +34,11 @@ public:
 protected:
 	UPROPERTY(EditAnywhere, Category = Type)
 	EItemType ItemType;
+
+	UPROPERTY(EditAnywhere, Category = Weapon)
+	TObjectPtr<class UStaticMesh> Mesh;
+
+public:
+	FORCEINLINE EItemType  GetItemType()const { return ItemType; }
+	FORCEINLINE class UStaticMesh* GetMesh() const { return Mesh; }
 };

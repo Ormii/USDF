@@ -18,7 +18,9 @@
 #include "Player/USDFPlayerController.h"
 #include "Game/USDFGameMode.h"
 #include "Interface/USDFGameModeInterface.h"
+#include "Interface/USDFCharacterAIInterface.h"
 #include "CharacterStat/USDFPlayerStatComponent.h"
+#include "Engine/OverlapResult.h"
 
 AUSDFCharacterPlayer::AUSDFCharacterPlayer()
 {
@@ -52,12 +54,6 @@ AUSDFCharacterPlayer::AUSDFCharacterPlayer()
 	GetMesh()->SetAnimationMode(EAnimationMode::AnimationBlueprint);
 	GetMesh()->SetCollisionProfileName(CPROFILE_USDF_PlAYER_CHARACTERMESH);
 
-	static ConstructorHelpers::FObjectFinder<UUSDFCharacterControlData> ShoulderDataAssetRef(TEXT("/Game/CharacterControl/CDA_Shoulder.CDA_Shoulder"));
-	if(ShoulderDataAssetRef.Object)
-	{
-		CharacterControlManager.Add(ECharacterPlayerControlType::Shoulder, ShoulderDataAssetRef.Object);
-	}
-
 	static ConstructorHelpers::FObjectFinder<UUSDFCharacterControlData> PreviewDataAssetRef(TEXT("/Game/CharacterControl/CDA_Preview.CDA_Preview"));
 	if (PreviewDataAssetRef.Object)
 	{
@@ -88,16 +84,28 @@ AUSDFCharacterPlayer::AUSDFCharacterPlayer()
 		SprintAction = SprintActionRef.Object;
 	}
 
-	static ConstructorHelpers::FObjectFinder<UInputAction> ViewChangeActionRef(TEXT("/Game/Input/Actions/IA_ViewChange.IA_ViewChange"));
-	if (ViewChangeActionRef.Object)
-	{
-		ViewChangeAction = ViewChangeActionRef.Object;
-	}
-
 	static ConstructorHelpers::FObjectFinder<UInputAction> AttackActionRef(TEXT("/Game/Input/Actions/IA_Attack.IA_Attack"));
 	if (AttackActionRef.Object)
 	{
 		AttackAction = AttackActionRef.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UInputAction> AttackQKeyActionRef(TEXT("/Game/Input/Actions/IA_AttackQ.IA_AttackQ"));
+	if (AttackQKeyActionRef.Object)
+	{
+		AttackQKeyAction = AttackQKeyActionRef.Object;
+	}
+	
+	static ConstructorHelpers::FObjectFinder<UInputAction> AttackEKeyActionRef(TEXT("/Game/Input/Actions/IA_AttackE.IA_AttackE"));
+	if (AttackEKeyActionRef.Object)
+	{
+		AttackEKeyAction = AttackEKeyActionRef.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UInputAction> AttackRKeyActionRef(TEXT("/Game/Input/Actions/IA_AttackR.IA_AttackR"));
+	if (AttackRKeyActionRef.Object)
+	{
+		AttackRKeyAction = AttackRKeyActionRef.Object;
 	}
 
 	CurrentControlType = ECharacterPlayerControlType::Preview;
@@ -120,11 +128,6 @@ void AUSDFCharacterPlayer::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
-	if (bAttackKeyPress)
-	{
-		AttackKeyPressTime += DeltaSeconds;
-	}
-
 #if ENABLE_DRAW_DEBUG
 	DrawDebugSphere(GetWorld(), GetActorLocation(), DetectSphere->GetScaledSphereRadius(), 20, FColor::Green, false, 0.01f);
 #endif
@@ -140,8 +143,6 @@ void AUSDFCharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 	EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AUSDFCharacterPlayer::Look);
 	EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Started, this, &AUSDFCharacterPlayer::Sprint);
 	EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &AUSDFCharacterPlayer::StopSprint);
-	EnhancedInputComponent->BindAction(ViewChangeAction, ETriggerEvent::Started, this, &AUSDFCharacterPlayer::PressViewChange);
-	EnhancedInputComponent->BindAction(ViewChangeAction, ETriggerEvent::Completed, this, &AUSDFCharacterPlayer::ReleaseViweChange);
 }
 
 void AUSDFCharacterPlayer::SetDead()
@@ -220,16 +221,6 @@ void AUSDFCharacterPlayer::Look(const FInputActionValue& Value)
 	AddControllerPitchInput(-LookAxisVector.Y * 45 *GetWorld()->GetDeltaSeconds());
 }
 
-void AUSDFCharacterPlayer::PressViewChange()
-{
-	SetCharacterControl(ECharacterPlayerControlType::Preview);
-}
-
-void AUSDFCharacterPlayer::ReleaseViweChange()
-{
-	SetCharacterControl(ECharacterPlayerControlType::Shoulder);
-}
-
 void AUSDFCharacterPlayer::Sprint()
 {
 	bSprintKeyPress = true;
@@ -243,12 +234,41 @@ void AUSDFCharacterPlayer::StopSprint()
 void AUSDFCharacterPlayer::Attack()
 {
 	bAttackKeyPress = true;
-	AttackKeyPressTime = 0.0f;
 }
 
 void AUSDFCharacterPlayer::ReleaseAttack()
 {
 	bAttackKeyPress = false;
+}
+
+void AUSDFCharacterPlayer::AttackQKey()
+{
+	bAttackQKeyPress = true;
+}
+
+void AUSDFCharacterPlayer::ReleaseAttackQKey()
+{
+	bAttackQKeyPress = false;
+}
+
+void AUSDFCharacterPlayer::AttackEKey()
+{
+	bAttackEKeyPress = true;
+}
+
+void AUSDFCharacterPlayer::ReleaseAttackEKey()
+{
+	bAttackEKeyPress = false;
+}
+
+void AUSDFCharacterPlayer::AttackRKey()
+{
+	bAttackRKeyPress = true;
+}
+
+void AUSDFCharacterPlayer::ReleaseAttackRKey()
+{
+	bAttackRKeyPress = false;
 }
 
 bool AUSDFCharacterPlayer::IsSprintState()
@@ -287,4 +307,81 @@ float AUSDFCharacterPlayer::TakeDamage(float DamageAmount, FDamageEvent const& D
 	Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 	Stat->ApplyDamage(DamageAmount);
 	return DamageAmount;
+}
+
+void AUSDFCharacterPlayer::RotateToTarget(EHitReactType HitReactType)
+{
+	// 타겟 설정
+	TArray<FOverlapResult> OverlapResults;
+	FCollisionQueryParams OverlapParams(SCENE_QUERY_STAT(FindEnemy), false, this);
+	FVector Center = GetActorLocation();
+	float Radius = DetectSphere->GetScaledSphereRadius();
+
+	bool bOverlapped = GetWorld()->OverlapMultiByChannel(OverlapResults, Center, FQuat::Identity, CCHANNEL_USDF_PLAYERACTION, FCollisionShape::MakeSphere(Radius), OverlapParams);
+	if (bOverlapped)
+	{
+		OverlapResults.Sort([&](const FOverlapResult& LHS, const FOverlapResult& RHS)-> bool {
+			FVector LHSForwardVector = LHS.GetActor()->GetActorLocation() - Center;
+			FVector RHSForwardVector = RHS.GetActor()->GetActorLocation() - Center;
+
+			return LHSForwardVector.Length() < RHSForwardVector.Length();
+			});
+
+
+#if ENABLE_DRAW_DEBUG
+		for (int32 i = 0; i < OverlapResults.Num(); ++i)
+		{
+			IUSDFCharacterAIInterface* AIPawn = Cast<IUSDFCharacterAIInterface>(OverlapResults[i].GetActor());
+			if (AIPawn == nullptr)
+				continue;
+
+			DrawDebugPoint(GetWorld(), OverlapResults[i].GetActor()->GetActorLocation(), 10.0f, FColor::Red, false, 0.2f);
+			DrawDebugLine(GetWorld(), Center, OverlapResults[i].GetActor()->GetActorLocation(), FColor::Red, false, 0.27f);
+		}
+#endif
+		for (int32 i = 0; i < OverlapResults.Num(); ++i)
+		{
+			IUSDFCharacterAIInterface* AIPawn = Cast<IUSDFCharacterAIInterface>(OverlapResults[i].GetActor());
+			if (AIPawn == nullptr)
+				continue;
+
+			FVector TargetForwardVector = OverlapResults[i].GetActor()->GetActorLocation() - Center;
+			TargetForwardVector = TargetForwardVector.GetSafeNormal();
+
+			FHitResult HitResult;
+			float HitRadius = 45;
+			FCollisionQueryParams HitParams(SCENE_QUERY_STAT(LookDirect), false, this);
+			FVector StartPoint = Center + TargetForwardVector * HitRadius;
+			FVector EndPoint = StartPoint + TargetForwardVector * (Radius - 2 * HitRadius);
+			float HalfLength = (Radius - 2 * HitRadius) * 0.5f;
+
+			bool bHitted = GetWorld()->SweepSingleByChannel(HitResult, StartPoint, EndPoint, FRotationMatrix::MakeFromZ(TargetForwardVector).ToQuat(), ECC_Pawn, FCollisionShape::MakeSphere(HitRadius), HitParams);
+			if (bHitted)
+			{
+				AIPawn = Cast<IUSDFCharacterAIInterface>(HitResult.GetActor());
+				if (AIPawn == nullptr)
+					continue;
+
+				FRotator Rotation = FRotationMatrix::MakeFromX(TargetForwardVector).Rotator();
+				FRotator NewRotation = FRotator(0.0f, Rotation.Yaw, 0.0f);
+
+				switch (HitReactType)
+				{
+					case EHitReactType::Dash:
+						NewRotation.Yaw -= 10.0f;
+						break;
+					default:
+						break;
+				}
+
+				SetActorRotation(NewRotation);
+
+#if ENABLE_DRAW_DEBUG
+				DrawDebugCapsule(GetWorld(), (StartPoint + EndPoint) / 2, HalfLength, HitRadius, FRotationMatrix::MakeFromZ(TargetForwardVector).ToQuat(), FColor::Green, false, 0.27f);
+				DrawDebugLine(GetWorld(), Center, OverlapResults[i].GetActor()->GetActorLocation(), FColor::Green, false, 0.27f);
+#endif
+				break;
+			}
+		}
+	}
 }

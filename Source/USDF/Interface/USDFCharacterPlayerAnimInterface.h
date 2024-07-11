@@ -32,4 +32,10 @@ public:
 	virtual void UnEquipWeapon() {};
 
 	virtual void CheckCombo() {};
+
+	virtual void CheckApplyDamagePoint() {}
+	virtual class UParticleSystem* GetTrailParticleSystem() { return nullptr; }
+	virtual FName GetTrailStartSocketName() { return ""; }
+	virtual FName GetTrailEndSocketName() { return ""; }
+
 };

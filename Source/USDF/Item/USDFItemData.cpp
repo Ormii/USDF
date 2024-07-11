@@ -2,3 +2,9 @@
 
 
 #include "Item/USDFItemData.h"
+
+
+UUSDFItemData::UUSDFItemData()
+{
+
+}

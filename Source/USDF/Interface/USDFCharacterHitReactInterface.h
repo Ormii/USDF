@@ -13,6 +13,8 @@ enum class EHitReactType : uint8
 	Default,
 	Upper,
 	Air,
+	Dash,
+	PowerAttack,
 };
 
 // This class does not need to be modified.
@@ -31,6 +33,6 @@ class USDF_API IUSDFCharacterHitReactInterface
 
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
-	virtual void HitReact(const FHitResult& HitResult, const float DamageAmount, EHitReactType HitReactType ,const AActor* HitCauser) = 0;
+	virtual void HitReact(const float DamageAmount, EHitReactType HitReactType ,const AActor* HitCauser) = 0;
 	virtual bool GetHitReactState() = 0;
 };

@@ -49,6 +49,8 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
 	ELocomotionState LocomotionState;
 
+public:
+	ELocomotionState GetLocomotionState()const { return LocomotionState; }
 
 // Character Animation Data Section
 protected:

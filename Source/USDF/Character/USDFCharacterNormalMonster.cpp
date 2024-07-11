@@ -107,7 +107,7 @@ bool AUSDFCharacterNormalMonster::GetHitReactState()
 	return bHitReactState;
 }
 
-void AUSDFCharacterNormalMonster::HitReact(const FHitResult& HitResult, const float DamageAmount, EHitReactType HitReactType, const AActor* HitCauser)
+void AUSDFCharacterNormalMonster::HitReact(const float DamageAmount, EHitReactType HitReactType, const AActor* HitCauser)
 {
 	UUSDFNonPlayerAnimInstance* NonPlayerAnimInstance = Cast<UUSDFNonPlayerAnimInstance>(GetMesh()->GetAnimInstance());
 	if (NonPlayerAnimInstance == nullptr)
