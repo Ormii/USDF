@@ -715,11 +715,13 @@ void AUSDFCharacterPlayerWarrior::ExecuteDefaultHitCheck(EHitReactType HitReactT
 
 			HitDetected = GetWorld()->SweepMultiByChannel(OutHitResults, AttackBase, AttackTip, FQuat::Identity, CCHANNEL_USDF_PLAYERACTION, FCollisionShape::MakeSphere(25.0f), Params);
 #if ENABLE_DRAW_DEBUG
+			/*
 			FVector CapsuleOrigin = AttackBase + (AttackTip - AttackBase) * 0.5f;
 			float CapsuleHalfHeight = (AttackTip - AttackBase).Length() * 0.5f;
 			FColor DrawColor = HitDetected ? FColor::Green : FColor::Red;
 
 			DrawDebugCapsule(GetWorld(), CapsuleOrigin, CapsuleHalfHeight, 25.0f, FRotationMatrix::MakeFromZ(AttackTip - AttackBase).ToQuat(), DrawColor, false, 5.0f);
+			*/
 #endif
 		}
 			break;
@@ -733,11 +735,15 @@ void AUSDFCharacterPlayerWarrior::ExecuteDefaultHitCheck(EHitReactType HitReactT
 
 			HitDetected = GetWorld()->SweepMultiByChannel(OutHitResults, AttackBase, AttackTip, FQuat::Identity, CCHANNEL_USDF_PLAYERACTION, FCollisionShape::MakeSphere(25.0f), Params);
 #if ENABLE_DRAW_DEBUG
+
+			/*
 			FVector CapsuleOrigin = AttackBase + (AttackTip - AttackBase) * 0.5f;
 			float CapsuleHalfHeight = (AttackTip - AttackBase).Length() * 0.5f;
 			FColor DrawColor = HitDetected ? FColor::Green : FColor::Red;
 
 			DrawDebugCapsule(GetWorld(), CapsuleOrigin, CapsuleHalfHeight, 25.0f, FRotationMatrix::MakeFromZ(AttackTip - AttackBase).ToQuat(), DrawColor, false, 5.0f);
+
+			*/
 #endif
 		}
 			break;
