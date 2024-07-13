@@ -3,6 +3,8 @@
 
 #include "UI/USDFPlayerHUDWidget.h"
 #include "UI/USDFPlayerHpBarWidget.h"
+#include "UI/USDFPrepareStageWidget.h"
+#include "UI/USDFEndStageWidget.h"
 #include "Interface/USDFCharacterPlayerHUDInterface.h"
 
 UUSDFPlayerHUDWidget::UUSDFPlayerHUDWidget(const FObjectInitializer& ObjectInitializer)
@@ -16,6 +18,12 @@ void UUSDFPlayerHUDWidget::NativeOnInitialized()
 
 	PlayerHpBar = Cast<UUSDFPlayerHpBarWidget>(GetWidgetFromName(TEXT("PlayerHpBar")));
 	ensure(PlayerHpBar);
+
+	PrepareStageWidget = Cast<UUSDFPrepareStageWidget>(GetWidgetFromName(TEXT("PrepareStage")));
+	ensure(PrepareStageWidget);
+
+	EndStageWidget = Cast<UUSDFEndStageWidget>(GetWidgetFromName(TEXT("EndStage")));
+	ensure(EndStageWidget);
 }
 
 void UUSDFPlayerHUDWidget::NativeConstruct()

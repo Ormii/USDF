@@ -12,6 +12,8 @@
 #include "NiagaraComponent.h"
 #include "CharacterStat/USDFNormalMonsterStatComponent.h"
 #include "GameData/USDFGameSingleton.h"
+#include "Interface/USDFGameModeInterface.h"
+#include "GameFramework/GameModeBase.h"
 
 AUSDFCharacterMeleeMonster::AUSDFCharacterMeleeMonster()
 {
@@ -171,6 +173,23 @@ void AUSDFCharacterMeleeMonster::AttackHitCheck()
 			break;
 	}
 
+}
+
+void AUSDFCharacterMeleeMonster::SetDead()
+{
+	Super::SetDead();
+
+
+	FTimerHandle TimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateLambda(
+		[&]() {
+			Destroy();
+			IUSDFGameModeInterface* GameModeInterface = Cast<IUSDFGameModeInterface>(GetWorld()->GetAuthGameMode());
+			if (GameModeInterface)
+			{
+				GameModeInterface->UpdateCurrent(StaticClass());
+			}
+		}), 5.0f, false);
 }
 
 void AUSDFCharacterMeleeMonster::AttackMontageEnded(UAnimMontage* TargetMontage, bool IsProperlyEnded)

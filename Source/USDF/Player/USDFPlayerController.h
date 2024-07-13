@@ -24,6 +24,15 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, Category = Game, Meta = (DisplayName = "OnGameOverCpp"))
 	void K2_OnGameOver();
 
+	UFUNCTION(BlueprintImplementableEvent, Category = Game, Meta = (DisplayName = "OnPrepareGameStageCpp"))
+	void K2_OnPrepareGameStage();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = Game, Meta = (DisplayName = "OnEndGameStageCpp"))
+	void K2_OnEndGameStage();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = Game, Meta = (DisplayName = "OnAllGameStageClearCpp"))
+	void K2_OnAllGameStageClear();
+
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = HUD, Meta = (AllowPrivateAccess= "true"))
 	TSubclassOf<class UUSDFPlayerHUDWidget> HUDWidgetClass;

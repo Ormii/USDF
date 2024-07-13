@@ -96,9 +96,12 @@ void AUSDFAISpawner::Spawn(const FStageSpawnOrder& SpawnOrder)
 		if (bHitted)
 		{
 			AUSDFCharacterNonPlayer* NonPlayer = GetWorld()->SpawnActor<AUSDFCharacterNonPlayer>(SpawnMonsterClass);
+			AUSDFAIController* PreController = Cast<AUSDFAIController>(NonPlayer->GetController());
 			AUSDFAIController* AIController = GetWorld()->SpawnActor<AUSDFAIController>(SpawnOrder.AIControllerClass);
 
+			PreController->StopAI();
 			NonPlayer->UnPossessed();
+			PreController->Destroy();
 			AIController->Possess(Cast<APawn>(NonPlayer));
 
 			float HalfLength = NonPlayer->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
@@ -131,5 +134,19 @@ void AUSDFAISpawner::BeginSpawn()
 	UE_LOG(LogTemp, Display, TEXT("Begin Spawn"));
 	bIsSpawnning = true;
 	SpawnningTime = 0;
+}
+
+void AUSDFAISpawner::SetGoal(TMap<UClass*, int>& Goal)
+{
+	if (Goal.Find(SpawnMonsterClass) == nullptr)
+		Goal.Add(SpawnMonsterClass, 0);
+
+	for (int32 i = 0; i < TotalStageSpawnOrder.Num(); ++i)
+	{
+		if (TotalStageSpawnOrder[i].TargetStageNumber != StageNumber)
+			continue;
+
+		Goal[SpawnMonsterClass]+= TotalStageSpawnOrder[i].SpawnMonsterCount;
+	}
 }
 

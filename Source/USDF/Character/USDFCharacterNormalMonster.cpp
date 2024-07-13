@@ -181,12 +181,6 @@ void AUSDFCharacterNormalMonster::SetDead()
 {
 	Super::SetDead();
 
-	FTimerHandle TimerHandle;
-	GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateLambda(
-		[&]() {
-			Destroy();
-		}), 5.0f, false);
-
 	UUSDFNonPlayerAnimInstance* NonPlayerAnimInstance = Cast<UUSDFNonPlayerAnimInstance>(GetMesh()->GetAnimInstance());
 
 	if (NonPlayerAnimInstance && DeadAnimMontage)

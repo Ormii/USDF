@@ -72,7 +72,12 @@ protected:
 	int32 StageNumber;
 	bool bIsSpawnning;
 	float SpawnningTime;
+
 public:
 	virtual void PrepareSpawn(int32 InStageNumber);
 	virtual void BeginSpawn();
+
+public:
+	// Goal Section
+	void SetGoal(TMap<UClass*, int>& Goal);
 };

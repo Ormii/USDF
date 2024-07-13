@@ -16,6 +16,6 @@ class USDF_API UUSDFGameOverWidget : public UUserWidget
 	
 	//Retry Section
 protected:
-	UFUNCTION(BlueprintCallable, Category = Retry, Meta = (DisplayName = "OnRetryButtonEventCpp"))
-	void K2_OnRetryButtonEvent();
+	UFUNCTION(BlueprintCallable, Category = Retry, Meta = (DisplayName = "OnGameOverRetryButtonEventCpp"))
+	void K2_OnGameOverRetryButtonEvent();
 };

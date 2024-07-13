@@ -20,7 +20,35 @@ public:
 
 	// GameMode Section
 public:
-	virtual void OnPlayerDead() override;
+	UFUNCTION(BlueprintCallable)
+	virtual void PrepareGameStage() override;
 
-	void OnGameRetry();
+	virtual void EndGameStage() override;
+	virtual void OnPlayerDead() override;
+	virtual FOnGoalComplete& OnGoalCompleteDelegate() { return OnGoalComplete; };
+	virtual void SetGameStage(class AUSDFGameStage* NewGameStage);
+	virtual bool IsCompleteGoal() override;
+	virtual void UpdateCurrent(UClass* Class) override;
+
+
+	UFUNCTION(BlueprintCallable)
+	void BattleGameStage();
+
+	virtual void OnGameRetry() override;
+
+	void IncreaseCurrentGoalValue(UClass* Class);
+
+	// Game Goal Section
+protected:
+	UPROPERTY(VisibleAnywhere, Category = GameGoal, Meta = (AllowPrivateAccess = "true"))
+	FGameModeGoalParam Target;
+
+	UPROPERTY(VisibleAnywhere, Category = GameGoal, Meta = (AllowPrivateAccess= "true"))
+	FGameModeGoalParam Current;
+
+	virtual void SetGameModeGoal(FGameModeGoalParam&& NewGoal)override;
+
+public:
+	FOnGoalComplete OnGoalComplete;
+	TObjectPtr<class AUSDFGameStage> GameStage;
 };

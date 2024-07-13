@@ -47,6 +47,10 @@ public:
 
 	virtual void AttackHitCheck() override;
 
+	// Dead Section
+protected:
+	virtual void SetDead() override;
+
 private:
 	UFUNCTION()
 	void AttackMontageEnded(UAnimMontage* TargetMontage, bool IsProperlyEnded);
