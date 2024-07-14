@@ -15,6 +15,8 @@
 AUSDFCharacterNormalMonster::AUSDFCharacterNormalMonster()
 {
 	PrimaryActorTick.bCanEverTick = true;
+	
+
 	// CDO
 	HpBarWidget = CreateDefaultSubobject<UUSDFWidgetComponent>(TEXT("HpBarWidget"));
 	HpBarWidget->SetupAttachment(GetMesh());
