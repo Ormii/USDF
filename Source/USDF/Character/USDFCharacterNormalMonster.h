@@ -42,6 +42,10 @@ protected:
 	virtual float GetAIDetectRadius() override;
 	virtual float GetAIAttackRange() override;
 	virtual float GetAITurnRateSpeed() override;
+	virtual class AUSDFPatrolRoute* GetPatrolRoute() override;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly ,Category = AI, Meta = (AllowPrivateAccess= "true"))
+	TObjectPtr<class AUSDFPatrolRoute> PatrolRoute;
 
 	// Hit React Section
 protected:

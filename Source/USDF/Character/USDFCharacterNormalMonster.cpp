@@ -11,6 +11,8 @@
 #include "AI/USDFAIController.h"
 #include "CharacterStat/USDFNormalMonsterStatComponent.h"
 #include "GameData/USDFNormalMonsterStat.h"
+#include "AI/USDFAIController.h"
+#include "Perception/AISense_Damage.h"
 
 AUSDFCharacterNormalMonster::AUSDFCharacterNormalMonster()
 {
@@ -59,7 +61,6 @@ void AUSDFCharacterNormalMonster::Tick(float DeltaSeconds)
 			HitReactTime = 0;
 			CurrentHitReactType = EHitReactType::None;
 			GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_NavWalking);
-			
 			UUSDFNonPlayerAnimInstance* NonPlayerAnimInstance = Cast<UUSDFNonPlayerAnimInstance>(GetMesh()->GetAnimInstance());
 			if (NonPlayerAnimInstance)
 			{
@@ -102,6 +103,11 @@ float AUSDFCharacterNormalMonster::GetAIAttackRange()
 float AUSDFCharacterNormalMonster::GetAITurnRateSpeed()
 {
 	return Stat->GetNormalMonsterStat().TurnRateSpeed;
+}
+
+AUSDFPatrolRoute* AUSDFCharacterNormalMonster::GetPatrolRoute()
+{
+	return PatrolRoute;
 }
 
 bool AUSDFCharacterNormalMonster::GetHitReactState()
@@ -215,6 +221,8 @@ void AUSDFCharacterNormalMonster::SetupHpBarWidget(UUSDFUserWidget* InUserWidget
 float AUSDFCharacterNormalMonster::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
 	Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+
+	UAISense_Damage::ReportDamageEvent(this, this, DamageCauser, DamageAmount, GetActorLocation(), GetActorLocation());
 	Stat->ApplyDamage(DamageAmount);
 	return 0.0f;
 }

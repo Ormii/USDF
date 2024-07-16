@@ -127,10 +127,6 @@ void AUSDFCharacterPlayer::PostInitializeComponents()
 void AUSDFCharacterPlayer::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-
-#if ENABLE_DRAW_DEBUG
-	DrawDebugSphere(GetWorld(), GetActorLocation(), DetectSphere->GetScaledSphereRadius(), 20, FColor::Green, false, 0.01f);
-#endif
 }
 
 void AUSDFCharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)

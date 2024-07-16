@@ -25,7 +25,11 @@ AUSDFCharacterNonPlayer::AUSDFCharacterNonPlayer()
 	// Mesh
 	GetMesh()->SetCollisionProfileName(CPROFILE_USDF_NONPlAYER_CHARACTERMESH);
 
-
+	AIStateManager.Add(EAIState::Passive, FOnChangeAIState::CreateUObject(this, &AUSDFCharacterNonPlayer::SetAIStatePassive));
+	AIStateManager.Add(EAIState::Attacking, FOnChangeAIState::CreateUObject(this, &AUSDFCharacterNonPlayer::SetAIStateAttacking));
+	AIStateManager.Add(EAIState::Frozen, FOnChangeAIState::CreateUObject(this, &AUSDFCharacterNonPlayer::SetAIStateFrozen));
+	AIStateManager.Add(EAIState::Investigating, FOnChangeAIState::CreateUObject(this, &AUSDFCharacterNonPlayer::SetAIStateInvestigating));
+	AIStateManager.Add(EAIState::Dead, FOnChangeAIState::CreateUObject(this, &AUSDFCharacterNonPlayer::SetAIStateDead));
 }
 
 void AUSDFCharacterNonPlayer::SetAIAttackDelegate(const FAICharacterAttackFinished& InOnAttackFinished)
@@ -43,4 +47,38 @@ void AUSDFCharacterNonPlayer::SetLocomotionState(ELocomotionState NewLocomotionS
 	UUSDFNonPlayerAnimInstance* NonPlayerAnimInstance = Cast<UUSDFNonPlayerAnimInstance>(GetMesh()->GetAnimInstance());
 	if (NonPlayerAnimInstance)
 		NonPlayerAnimInstance->SetLocomotionState(NewLocomotionState);
+}
+
+void AUSDFCharacterNonPlayer::SetAIState(EAIState NewAIState, FAISensedParam InParam)
+{
+	CurrentAIState = NewAIState;
+	if (AIStateManager.Find(CurrentAIState) != nullptr)
+	{
+		AIStateManager[CurrentAIState].OnChangeAIState.ExecuteIfBound(InParam);
+	}
+}
+
+void AUSDFCharacterNonPlayer::SetAIStatePassive(FAISensedParam InParam)
+{
+	Target = nullptr;
+}
+
+void AUSDFCharacterNonPlayer::SetAIStateAttacking(FAISensedParam InParam)
+{
+	Target = InParam.Actor;
+}
+
+void AUSDFCharacterNonPlayer::SetAIStateFrozen(FAISensedParam InParam)
+{
+	Target = nullptr;
+}
+
+void AUSDFCharacterNonPlayer::SetAIStateInvestigating(FAISensedParam InParam)
+{
+	Target = nullptr;
+}
+
+void AUSDFCharacterNonPlayer::SetAIStateDead(FAISensedParam InParam)
+{
+	Target = nullptr;
 }

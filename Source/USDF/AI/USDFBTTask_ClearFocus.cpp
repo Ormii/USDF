@@ -8,7 +8,7 @@ EBTNodeResult::Type UUSDFBTTask_ClearFocus::ExecuteTask(UBehaviorTreeComponent& 
 {
 	Super::ExecuteTask(OwnerComp, NodeMemory);
 
-	OwnerComp.GetAIOwner()->ClearFocus(EAIFocusPriority::Default);
+	OwnerComp.GetAIOwner()->ClearFocus(EAIFocusPriority::Gameplay);
 
 	return EBTNodeResult::Succeeded;
 }

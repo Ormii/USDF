@@ -4,8 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "AIController.h"
+#include "AI/USDFAICommon.h"
 #include "USDFAIController.generated.h"
 
+
+struct FAIStimulus;
 /**
  * 
  */
@@ -23,6 +26,15 @@ protected:
 	virtual void OnPossess(APawn* InPawn) override;
 
 public:
+	bool CanSenseActor(AActor* InActor, EAISense AISense, FAIStimulus& OutStimulus);
+	void HandleSensedSight(AActor* InActor);
+	void HandleSensedSound(FVector Location);
+	void HandleSensedDamage(AActor* InActor);
+
+	void SetCurrentAIState(EAIState NewState);
+	EAIState GetCurrentAIState();
+
+public:
 	void RunAI();
 	void StopAI();
 protected:
@@ -32,4 +44,19 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = AI, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UBehaviorTree> BTAsset;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = AI, Meta = (AllowPrivateAccess= "true"))
+	TObjectPtr<class UAIPerceptionComponent> AIPerception;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = AI, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UAISenseConfig_Sight> SightConfig;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = AI, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UAISenseConfig_Hearing> HearingConfig;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = AI, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UAISenseConfig_Damage> DamageConfig;
+
+protected:
+	UFUNCTION()
+	void OnPerceptionUpdated(const TArray<AActor*>& UpdatedActors);
 };

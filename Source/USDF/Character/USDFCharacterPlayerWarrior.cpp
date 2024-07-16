@@ -23,6 +23,7 @@
 #include "Animation/USDFLocomotionState.h"
 #include "Item/USDFItemWeaponDarkSword.h"
 #include "Item/USDFWeaponItemData.h"
+#include "Perception/AISense_Damage.h"
 
 AUSDFCharacterPlayerWarrior::AUSDFCharacterPlayerWarrior()
 {
@@ -411,6 +412,7 @@ void AUSDFCharacterPlayerWarrior::PossessAttackMontage()
 		RotateToTarget(HitReactType);
 
 		bAttackState = true;
+		//MakeNoise(1.0f, this, GetActorLocation());
 		Wrapper.OnComboAttackDelegate.ExecuteIfBound();
 	}
 	else
@@ -538,7 +540,7 @@ void AUSDFCharacterPlayerWarrior::CheckCombo()
 
 		FName NextSection = *FString::Printf(TEXT("%s%d"), *ComboActionData->MontageSectionNamePrefix, CurrentComboCount);
 		AnimInstance->Montage_JumpToSection(NextSection, ComboActionData->ComboAttackMontage);
-
+		//MakeNoise(1.0f, this, GetActorLocation());
 		HasNextComboCommand = false;
 	}
 	else

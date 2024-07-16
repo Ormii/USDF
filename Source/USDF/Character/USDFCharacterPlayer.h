@@ -8,6 +8,7 @@
 #include "Interface/USDFCharacterPlayerAnimInterface.h"
 #include "Interface/USDFCharacterPlayerHUDInterface.h"
 #include "Interface/USDFCharacterHitReactInterface.h"
+#include "Interface/USDFCharacterPlayerInterface.h"
 #include "USDFCharacterPlayer.generated.h"
 
 UENUM()
@@ -21,7 +22,7 @@ enum class ECharacterPlayerControlType : uint8
  */
 UCLASS()
 class USDF_API AUSDFCharacterPlayer : public AUSDFCharacterBase, public IUSDFCharacterPlayerAnimInterface
-	,public IUSDFCharacterPlayerHUDInterface
+	,public IUSDFCharacterPlayerHUDInterface, public IUSDFCharacterPlayerInterface
 {
 	GENERATED_BODY()
 public:
