@@ -42,6 +42,8 @@ protected:
 	virtual float GetAIDetectRadius() override;
 	virtual float GetAIAttackRange() override;
 	virtual float GetAITurnRateSpeed() override;
+	virtual float GetAIEQSTargetRadius() override;
+	virtual float GetAIEQSDefendRadius() override;
 	virtual class AUSDFPatrolRoute* GetPatrolRoute() override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly ,Category = AI, Meta = (AllowPrivateAccess= "true"))

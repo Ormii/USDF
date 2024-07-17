@@ -3,6 +3,7 @@
 
 #include "Animation/USDFNonPlayerAnimInstance.h"
 #include "Character/USDFCharacterNonPlayer.h"
+#include "AIController.h"
 
 UUSDFNonPlayerAnimInstance::UUSDFNonPlayerAnimInstance()
 {
@@ -24,6 +25,12 @@ void UUSDFNonPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	{
 		const FRotator Rotaion = NonPlayer->GetControlRotation();
 		Angle = CalculateDirection(Velocity, Rotaion);
+
+		AAIController* AIController = Cast<AAIController>(NonPlayer->GetController());
+		if (AIController)
+		{
+			bIsFocusingTarget = IsValid(AIController->GetFocusActor());
+		}
 	}
 
 }

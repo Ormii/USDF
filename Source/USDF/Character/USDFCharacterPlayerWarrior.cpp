@@ -412,7 +412,7 @@ void AUSDFCharacterPlayerWarrior::PossessAttackMontage()
 		RotateToTarget(HitReactType);
 
 		bAttackState = true;
-		//MakeNoise(1.0f, this, GetActorLocation());
+		MakeNoise(1.0f, this, GetActorLocation());
 		Wrapper.OnComboAttackDelegate.ExecuteIfBound();
 	}
 	else

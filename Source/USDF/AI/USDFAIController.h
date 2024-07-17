@@ -31,7 +31,7 @@ public:
 	void HandleSensedSound(FVector Location);
 	void HandleSensedDamage(AActor* InActor);
 
-	void SetCurrentAIState(EAIState NewState);
+	void SetCurrentAIState(EAIState NewState, FAISensedParam Param);
 	EAIState GetCurrentAIState();
 
 public:
@@ -59,4 +59,9 @@ protected:
 protected:
 	UFUNCTION()
 	void OnPerceptionUpdated(const TArray<AActor*>& UpdatedActors);
+
+
+protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = AI, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<AActor> AttackTarget;
 };

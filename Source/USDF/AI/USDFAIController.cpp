@@ -115,13 +115,16 @@ void AUSDFAIController::HandleSensedSight(AActor* InActor)
 
 	FAISensedParam Param = {};
 	Param.Actor = InActor;
+
+	AttackTarget = InActor;
+
 	EAIState AIState = GetCurrentAIState();
 	switch (AIState)
 	{
 		case EAIState::Passive:
 		case EAIState::Investigating:
 			StopMovement();
-			SetCurrentAIState(EAIState::Attacking);
+			SetCurrentAIState(EAIState::Attacking, Param);
 			AIPawn->SetAIState(EAIState::Attacking, Param);
 			break;
 		default:
@@ -144,7 +147,7 @@ void AUSDFAIController::HandleSensedSound(FVector Location)
 		case EAIState::Passive:
 		case EAIState::Investigating:
 			StopMovement();
-			SetCurrentAIState(EAIState::Investigating);
+			SetCurrentAIState(EAIState::Investigating, Param);
 			Blackboard->SetValueAsVector(BBKEY_POINT_OF_INTREST, Location);
 			AIPawn->SetAIState(EAIState::Investigating, Param);
 			break;
@@ -171,7 +174,7 @@ void AUSDFAIController::HandleSensedDamage(AActor* InActor)
 	case EAIState::Passive:
 	case EAIState::Investigating:
 		StopMovement();
-		SetCurrentAIState(EAIState::Attacking);
+		SetCurrentAIState(EAIState::Attacking,Param);
 		AIPawn->SetAIState(EAIState::Attacking, Param);
 		break;
 	default:
@@ -179,9 +182,19 @@ void AUSDFAIController::HandleSensedDamage(AActor* InActor)
 	}
 }
 
-void AUSDFAIController::SetCurrentAIState(EAIState NewState)
+void AUSDFAIController::SetCurrentAIState(EAIState NewState, FAISensedParam Param)
 {
 	Blackboard->SetValueAsEnum(BBKEY_AISTATE, static_cast<uint8>(NewState));
+	switch (NewState)
+	{
+		case EAIState::Attacking:
+		{
+			Blackboard->SetValueAsObject(BBKEY_ATTACK_TARGET, Param.Actor);
+		}
+			break;
+		default:
+			break;
+	}
 }
 
 EAIState AUSDFAIController::GetCurrentAIState()
@@ -197,6 +210,16 @@ void AUSDFAIController::RunAI()
 	{
 		Blackboard->SetValueAsVector(BBKEY_HOMEPOS, GetPawn()->GetActorLocation());
 		
+		IUSDFCharacterAIInterface* AIPawn = Cast<IUSDFCharacterAIInterface>(GetPawn());
+		if (AIPawn)
+		{
+			float EQSTargetRadius = AIPawn->GetAIEQSTargetRadius();
+			float EQSDefendRadius = AIPawn->GetAIEQSDefendRadius();
+
+			Blackboard->SetValueAsFloat(BBKEY_EQS_TARGET_RADIUS, EQSTargetRadius);
+			Blackboard->SetValueAsFloat(BBKEY_EQS_DEFEND_RADIUS, EQSDefendRadius);
+		}
+
 		bool RunResult = RunBehaviorTree(BTAsset);
 		ensure(RunResult);
 	}

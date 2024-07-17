@@ -39,6 +39,8 @@ public:
 	virtual float GetAIAttackRange() { return 0.0f; }
 	virtual float GetAITurnRateSpeed() { return 0.0f; }
 	virtual class AUSDFPatrolRoute* GetPatrolRoute() { return nullptr; }
+	virtual float GetAIEQSTargetRadius(){ return 0.0f; }
+	virtual float GetAIEQSDefendRadius() { return 0.0f; }
 
 	virtual void SetLocomotionState(ELocomotionState NewLocomotionState) = 0;
 	virtual void SetAIState(EAIState NewAIState, FAISensedParam InParam) = 0;

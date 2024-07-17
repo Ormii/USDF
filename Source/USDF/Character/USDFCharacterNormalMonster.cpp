@@ -110,6 +110,16 @@ AUSDFPatrolRoute* AUSDFCharacterNormalMonster::GetPatrolRoute()
 	return PatrolRoute;
 }
 
+float AUSDFCharacterNormalMonster::GetAIEQSTargetRadius()
+{
+	return Stat->GetNormalMonsterStat().EQSTargetRange;
+}
+
+float AUSDFCharacterNormalMonster::GetAIEQSDefendRadius()
+{
+	return Stat->GetNormalMonsterStat().EQSDefendRange;
+}
+
 bool AUSDFCharacterNormalMonster::GetHitReactState()
 {
 	return bHitReactState;

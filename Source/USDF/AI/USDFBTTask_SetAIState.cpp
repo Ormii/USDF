@@ -13,7 +13,7 @@ EBTNodeResult::Type UUSDFBTTask_SetAIState::ExecuteTask(UBehaviorTreeComponent& 
 	if (AIController == nullptr)
 		return EBTNodeResult::Failed;
 
-	AIController->SetCurrentAIState(AIState);
+	AIController->SetCurrentAIState(AIState, FAISensedParam());
 
 	return EBTNodeResult::Succeeded;
 }

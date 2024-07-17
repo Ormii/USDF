@@ -37,5 +37,11 @@ public:
 	float AttackRange;
 
 	UPROPERTY()
+	float EQSTargetRange;
+
+	UPROPERTY()
+	float EQSDefendRange;
+
+	UPROPERTY()
 	float TurnRateSpeed;
 };
