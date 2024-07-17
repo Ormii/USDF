@@ -23,9 +23,6 @@ void UUSDFNonPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	AUSDFCharacterNonPlayer* NonPlayer = Cast<AUSDFCharacterNonPlayer>(GetOwningActor());
 	if (NonPlayer)
 	{
-		const FRotator Rotaion = NonPlayer->GetControlRotation();
-		Angle = CalculateDirection(Velocity, Rotaion);
-
 		AAIController* AIController = Cast<AAIController>(NonPlayer->GetController());
 		if (AIController)
 		{

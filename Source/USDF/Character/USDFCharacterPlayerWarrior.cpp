@@ -320,7 +320,7 @@ void AUSDFCharacterPlayerWarrior::WarriorJump()
 
 		WarriorAnimInstance->K2_OnJump();
 
-		WarriorAnimInstance->SetRootMotionMode(ERootMotionMode::IgnoreRootMotion);
+		//WarriorAnimInstance->SetRootMotionMode(ERootMotionMode::IgnoreRootMotion);
 	}
 }
 
@@ -511,8 +511,10 @@ void AUSDFCharacterPlayerWarrior::OnWarriorLanded(const FHitResult& Hit)
 	UUSDFPlayerWarriorAnimInstance* WarriorAnimInstance = Cast<UUSDFPlayerWarriorAnimInstance>(GetMesh()->GetAnimInstance());
 	if (WarriorAnimInstance)
 	{
-		WarriorAnimInstance->SetRootMotionMode(ERootMotionMode::RootMotionFromEverything);
+		//WarriorAnimInstance->SetRootMotionMode(ERootMotionMode::RootMotionFromEverything);
 	}
+
+	GetCharacterMovement()->StopMovementImmediately();
 }
 
 bool AUSDFCharacterPlayerWarrior::IsCombatState()

@@ -24,7 +24,9 @@ void UUSDFPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
 	if (CharacterAnimData && Movement && Owner)
 	{
-		Velocity = Owner->GetVelocity();
+		/*
+			Velocity = Owner->GetVelocity();
+		*/
 		
 		IUSDFCharacterPlayerAnimInterface* PlayerAnimInterface = Cast<IUSDFCharacterPlayerAnimInterface>(Owner);
 		if (PlayerAnimInterface)
@@ -33,13 +35,18 @@ void UUSDFPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 			bAttackState = PlayerAnimInterface->IsAttackState();
 			bIsDead = PlayerAnimInterface->IsDeadState();
 
-			DesiredVelocity = CalculateDesiredVelocity();
-			TurnDotProductValue = CalculateTurnDotProductValue();
-			
 			FindLocomotionState();
 
-			ForwardInput = FMath::Lerp(ForwardInput, DesiredVelocity.Dot(Owner->GetActorForwardVector()) * (LocomotionState == ELocomotionState::Run ? 2 : 1), 0.1f);
-			SlideInput = FMath::Lerp(SlideInput, DesiredVelocity.Dot(Owner->GetActorRightVector()) * (LocomotionState == ELocomotionState::Run ? 2 : 1), 0.1f);
+			
+			DesiredVelocity = CalculateDesiredVelocity();
+			TurnDotProductValue = CalculateTurnDotProductValue();
+
+			/*
+				ForwardInput = FMath::Lerp(ForwardInput, DesiredVelocity.Dot(Owner->GetActorForwardVector()) * (LocomotionState == ELocomotionState::Run ? 2 : 1), 0.1f);
+				SlideInput = FMath::Lerp(SlideInput, DesiredVelocity.Dot(Owner->GetActorRightVector()) * (LocomotionState == ELocomotionState::Run ? 2 : 1), 0.1f);
+			*/
+
+			
 
 			if (LocomotionState != ELocomotionState::Idle)
 			{
@@ -48,6 +55,14 @@ void UUSDFPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
 				FRotator NewOwnerRotation = FMath::RInterpTo(OwnerRotation, OwnerControlRotation, GetWorld()->GetDeltaSeconds(), 1.0f);
 				Owner->SetActorRotation(FRotator(0.0f, NewOwnerRotation.Yaw, 0.0f));
+			}
+			
+			
+			ACharacter* Character = Cast<ACharacter>(GetOwningActor());
+			if (Character)
+			{
+				const FRotator Rotaion = Character->GetActorRotation();
+				Angle = CalculateDirection(Velocity, Rotaion);
 			}
 		}
 	}

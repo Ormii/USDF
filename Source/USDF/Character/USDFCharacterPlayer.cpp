@@ -201,6 +201,12 @@ void AUSDFCharacterPlayer::Move(const FInputActionValue& Value)
 	const FRotator Rotation = GetControlRotation();
 	const FRotator YawRotation = FRotator(0.0f, Rotation.Yaw, 0.0f);
 
+	FVector ForwardVector = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Type::X);
+	FVector RightVector = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Type::Y);
+
+	AddMovementInput(ForwardVector, MovementVector.X);
+	AddMovementInput(RightVector, MovementVector.Y);
+
 	MovementInputValue = MovementVector;
 }
 

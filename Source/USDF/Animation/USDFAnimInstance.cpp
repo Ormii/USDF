@@ -35,7 +35,16 @@ void UUSDFAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	if (CharacterAnimData && Movement && Owner)
 	{
 		Velocity = Movement->Velocity;
+		GroundSpeed = Velocity.Size2D();
 		Acceleration = Movement->GetCurrentAcceleration();
 		Acceleration = FVector(Acceleration.X, Acceleration.Y, 0.0f);
+
+		ACharacter* Character = Cast<ACharacter>(GetOwningActor());
+
+		if (Character)
+		{
+			const FRotator Rotaion = Character->GetControlRotation();
+			Angle = CalculateDirection(Velocity, Rotaion);
+		}
 	}
 }

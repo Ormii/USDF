@@ -31,6 +31,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
 	FVector Velocity;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Character, Meta = (AllowPrivateAccess = "true"))
+	float Angle;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
 	FVector Acceleration;
 
