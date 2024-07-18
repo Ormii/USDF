@@ -168,3 +168,8 @@ void AUSDFCharacterRangeMonster::AttackMontageEnded(UAnimMontage* TargetMontage,
 	CurrentAttackType = ERangeMonsterAttackType::None;
 }
 
+void AUSDFCharacterRangeMonster::AttackFire()
+{
+
+}
+

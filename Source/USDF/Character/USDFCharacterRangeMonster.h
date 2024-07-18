@@ -46,6 +46,8 @@ protected:
 	UFUNCTION()
 	void AttackMontageEnded(UAnimMontage* TargetMontage, bool IsProperlyEnded);
 
+	virtual void AttackFire() override;
+
 	// Combat Section
 protected:
 	UPROPERTY(VisibleAnywhere, Category = Combat, Meta = (AllowPrivateAccess = "true"))
