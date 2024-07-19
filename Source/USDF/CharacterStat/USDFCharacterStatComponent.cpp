@@ -22,10 +22,6 @@ void UUSDFCharacterStatComponent::SetCurrentHp(float NewCurrentHp)
 	CurrentHp = ActualCurrentHp;
 
 	OnHpChangedDelegate.Broadcast(NewCurrentHp);
-	if (CurrentHp <= 0)
-	{
-		OnHpZeroDelegate.Broadcast();
-	}
 }
 
 void UUSDFCharacterStatComponent::ApplyDamage(float DamageAmount)

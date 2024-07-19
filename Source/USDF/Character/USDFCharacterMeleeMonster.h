@@ -36,20 +36,12 @@ protected:
 	virtual void AttackByAI(EAIAttackType InAIAttackType) override;
 	virtual void AttackFinished();
 
-	// Hit React Section
-public:
-	virtual void HitReact(const float DamageAmount, EHitReactType HitReactType ,const AActor* HitCauser) override;
-
 	// Animation Section
 public:
 	UPROPERTY(VisibleAnywhere, Category = Animation, Meta = (AllowPrivateAccess= "true"))
 	TMap<EMeleeMonsterAttackType, TObjectPtr<class UAnimMontage>> AttackMontages;
 
 	virtual void AttackHitCheck() override;
-
-	// Dead Section
-protected:
-	virtual void SetDead() override;
 
 private:
 	UFUNCTION()
@@ -67,5 +59,9 @@ protected:
 protected:
 	UPROPERTY(EditAnywhere, Category = AttackHit, Meta = (AllowPrivateAccess = "true"))
 	TArray<TObjectPtr<class UNiagaraSystem>> AttackHitEffects;
+
+	// Damage Section
+protected:
+	virtual void OnDeath() override;
 
 };

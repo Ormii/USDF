@@ -6,11 +6,16 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Character/USDFCharacterControlData.h"
 #include "Engine/DamageEvents.h"
+#include "Damage/USDFDamageSystemComponent.h"
 
 // Sets default values
 AUSDFCharacterBase::AUSDFCharacterBase()
 {
 	RootComponent = GetCapsuleComponent();
+
+	// CDO
+	DamageSystem = CreateDefaultSubobject<UUSDFDamageSystemComponent>(TEXT("DamageSystem"));
+
 
 	// Pawn
 	bUseControllerRotationPitch = false;
@@ -41,12 +46,7 @@ void AUSDFCharacterBase::SetCharacterControlData(const UUSDFCharacterControlData
 	GetCharacterMovement()->bUseControllerDesiredRotation = NewCharacterControlData->bUseControllerDesiredRotation;
 }
 
-void AUSDFCharacterBase::AttackHitCheck()
-{
-
-}
-
-void AUSDFCharacterBase::SetDead()
+void AUSDFCharacterBase::OnDeath()
 {
 	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
 	SetActorEnableCollision(false);

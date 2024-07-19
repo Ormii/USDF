@@ -4,15 +4,15 @@
 #include "Character/USDFCharacterNormalMonster.h"
 #include "UI/USDFWidgetComponent.h"
 #include "UI/USDFEnemyHpBarWidget.h"
-#include "Physics/USDFCollision.h"
 #include "Animation/USDFMeleeMonsterAnimInstance.h"
 #include "Animation/USDFNonPlayerAnimInstance.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "AI/USDFAIController.h"
 #include "CharacterStat/USDFNormalMonsterStatComponent.h"
+#include "Physics/USDFCollision.h"
 #include "GameData/USDFNormalMonsterStat.h"
 #include "AI/USDFAIController.h"
 #include "Perception/AISense_Damage.h"
+#include "Damage/USDFDamageSystemComponent.h"
 
 AUSDFCharacterNormalMonster::AUSDFCharacterNormalMonster()
 {
@@ -38,51 +38,19 @@ AUSDFCharacterNormalMonster::AUSDFCharacterNormalMonster()
 		HpBarWidget->SetDrawSize(FVector2D(200.0f, 15.0f));
 		HpBarWidget->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
-
-	CurrentHitReactType = EHitReactType::None;
-	UpperHitTime = 0;
 }
 
 void AUSDFCharacterNormalMonster::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
-	Stat->OnHpZeroDelegate.AddUObject(this, &AUSDFCharacterNormalMonster::SetDead);
+
+	DamageSystem->OnDeath.BindUObject(this, &AUSDFCharacterNormalMonster::OnDeath);
+	DamageSystem->OnDamageResponse.BindUObject(this, &AUSDFCharacterNormalMonster::OnDamageResponse);
 }
 
 void AUSDFCharacterNormalMonster::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-	if (bHitReactState)
-	{
-		HitReactTime -= DeltaSeconds;
-		if (HitReactTime <= 0)
-		{
-			bHitReactState = false;
-			HitReactTime = 0;
-			CurrentHitReactType = EHitReactType::None;
-			GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_NavWalking);
-			UUSDFNonPlayerAnimInstance* NonPlayerAnimInstance = Cast<UUSDFNonPlayerAnimInstance>(GetMesh()->GetAnimInstance());
-			if (NonPlayerAnimInstance)
-			{
-				NonPlayerAnimInstance->StopAllMontages(0.0f);
-			}
-		}
-
-		switch (CurrentHitReactType)
-		{
-			case EHitReactType::Upper:
-			{
-				if (UpperHitTime > 0)
-				{
-					UpperHitTime -= DeltaSeconds;
-					GetCharacterMovement()->Velocity.Z = FMath::FInterpTo(GetCharacterMovement()->Velocity.Z, 0, 10*DeltaSeconds, 1.0f);
-				}
-			}
-				break;
-			default:
-				break;
-		}
-	}	
 }
 
 float AUSDFCharacterNormalMonster::GetAIPatrolRadius()
@@ -122,7 +90,17 @@ float AUSDFCharacterNormalMonster::GetCurrentHealth()
 
 void AUSDFCharacterNormalMonster::Heal(float HealAmount)
 {
-	Stat->SetCurrentHp(Stat->GetCurrentHp() + HealAmount);
+	DamageSystem->Heal(Stat, HealAmount);
+}
+
+void AUSDFCharacterNormalMonster::TakeDamage(FDamageInfo DamageInfo)
+{
+	DamageSystem->TakeDamage(Stat, DamageInfo);
+}
+
+bool AUSDFCharacterNormalMonster::IsDead()
+{
+	return DamageSystem->GetIsDead();
 }
 
 float AUSDFCharacterNormalMonster::GetAIEQSTargetRadius()
@@ -135,106 +113,6 @@ float AUSDFCharacterNormalMonster::GetAIEQSDefendRadius()
 	return Stat->GetNormalMonsterStat().EQSDefendRange;
 }
 
-bool AUSDFCharacterNormalMonster::GetHitReactState()
-{
-	return bHitReactState;
-}
-
-void AUSDFCharacterNormalMonster::HitReact(const float DamageAmount, EHitReactType HitReactType, const AActor* HitCauser)
-{
-	UUSDFNonPlayerAnimInstance* NonPlayerAnimInstance = Cast<UUSDFNonPlayerAnimInstance>(GetMesh()->GetAnimInstance());
-	if (NonPlayerAnimInstance == nullptr)
-		return;
-
-	if (HitCauser == nullptr)
-		return;
-
-	if (Stat->GetCurrentHp() <= 0.0f)
-		return;
-
-	NonPlayerAnimInstance->StopAllMontages(0.0f);
-	HitCharaters.Empty();
-
-	FVector ActorForwardVector = GetActorForwardVector();
-	FVector ActorRightVector = GetActorRightVector();
-	FVector HitActorForwardVector = HitCauser->GetActorForwardVector();
-
-	float ForwardDotProduct = ActorForwardVector.Dot(HitActorForwardVector);
-	float RightDotProduct = ActorRightVector.Dot(HitActorForwardVector);
-
-	UAnimMontage* HitReactMontage = nullptr;
-	if (ForwardDotProduct >= 0.5f)
-	{
-		HitReactMontage = HitReactAnimMontage[EHitReactDirection::Front];
-	}
-	else if(ForwardDotProduct <= -0.5f)
-	{
-		HitReactMontage = HitReactAnimMontage[EHitReactDirection::Back];
-	}
-	else if (RightDotProduct >= 0.0f)
-	{
-		HitReactMontage = HitReactAnimMontage[EHitReactDirection::Right];
-	}
-	else
-	{
-		HitReactMontage = HitReactAnimMontage[EHitReactDirection::Left];
-	}
-
-	if (HitReactMontage)
-	{
-		UE_LOG(LogTemp, Display, TEXT("Hit React"));
-
-		NonPlayerAnimInstance->Montage_Play(HitReactMontage);
-		bHitReactState = true;
-		HitReactTime = 3.0f;
-
-		CurrentHitReactType = HitReactType;
-		switch (HitReactType)
-		{
-			case EHitReactType::Upper:
-			{
-				GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Flying);
-				GetCharacterMovement()->Velocity += FVector(0.0f, 0.0f, 2000.0f);
-				UE_LOG(LogTemp, Display, TEXT("Velocity x:%f y:%f, z:%f"), GetCharacterMovement()->Velocity.X, GetCharacterMovement()->Velocity.Y, GetCharacterMovement()->Velocity.Z);
-				UpperHitTime = 0.1f;
-			}
-				break;
-			default:
-			{
-				GetCharacterMovement()->DisableMovement();
-				GetCharacterMovement()->StopActiveMovement();
-				GetCharacterMovement()->StopMovementImmediately();
-			}
-				break;
-		}
-	}
-}
-
-void AUSDFCharacterNormalMonster::SetDead()
-{
-	Super::SetDead();
-
-	UUSDFNonPlayerAnimInstance* NonPlayerAnimInstance = Cast<UUSDFNonPlayerAnimInstance>(GetMesh()->GetAnimInstance());
-
-	if (NonPlayerAnimInstance && DeadAnimMontage)
-	{
-		bHitReactState = false;
-		HitReactTime = 0.0f;
-		NonPlayerAnimInstance->StopAllMontages(0.0f);
-		NonPlayerAnimInstance->Montage_Play(DeadAnimMontage);
-	}
-
-	AUSDFAIController* AIController = Cast<AUSDFAIController>(GetController());
-	if (AIController)
-	{
-		AIController->StopAI();
-		AIController->UnPossess();
-	}
-	
-
-	HpBarWidget->SetHiddenInGame(true);
-}
-
 void AUSDFCharacterNormalMonster::SetupHpBarWidget(UUSDFUserWidget* InUserWidget)
 {
 	UUSDFEnemyHpBarWidget* HpBar = Cast<UUSDFEnemyHpBarWidget>(InUserWidget);
@@ -242,15 +120,6 @@ void AUSDFCharacterNormalMonster::SetupHpBarWidget(UUSDFUserWidget* InUserWidget
 
 	HpBar->SetMaxHp(Stat->GetMaxHp());
 	HpBar->UpdateHpBar(Stat->GetCurrentHp());
-}
-
-float AUSDFCharacterNormalMonster::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
-{
-	Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
-
-	UAISense_Damage::ReportDamageEvent(this, this, DamageCauser, DamageAmount, GetActorLocation(), GetActorLocation());
-	Stat->ApplyDamage(DamageAmount);
-	return 0.0f;
 }
 
 float AUSDFCharacterNormalMonster::GetMaxWalkSpeed()
@@ -278,5 +147,109 @@ void AUSDFCharacterNormalMonster::SetLocomotionState(ELocomotionState NewLocomot
 			break;
 		default:
 			break;
+	}
+}
+
+void AUSDFCharacterNormalMonster::OnHitReactMontageBlendOut(UAnimMontage* TargetMontage, bool bInterrupted)
+{
+	if (!bInterrupted)
+	{
+		AUSDFAIController* AIController = Cast<AUSDFAIController>(GetController());
+		if (AIController)
+		{
+			FAISensedParam Param = {};
+			Param.bUseLastAttackTarget = true;
+			AIController->SetCurrentAIState(EAIState::Attacking, Param);
+		}
+	}
+}
+
+void AUSDFCharacterNormalMonster::OnDeath()
+{
+	Super::OnDeath();
+
+	UUSDFNonPlayerAnimInstance* NonPlayerAnimInstance = Cast<UUSDFNonPlayerAnimInstance>(GetMesh()->GetAnimInstance());
+
+	if (NonPlayerAnimInstance && DeadAnimMontage)
+	{
+		NonPlayerAnimInstance->StopAllMontages(0.0f);
+		NonPlayerAnimInstance->Montage_Play(DeadAnimMontage);
+	}
+
+	AUSDFAIController* AIController = Cast<AUSDFAIController>(GetController());
+	if (AIController)
+	{
+		AIController->SetCurrentAIState(EAIState::Dead, FAISensedParam{});
+		AIController->StopAI();
+		AIController->UnPossess();
+	}
+
+
+	HpBarWidget->SetHiddenInGame(true);
+}
+
+void AUSDFCharacterNormalMonster::OnDamageResponse(FDamageInfo DamageInfo)
+{
+	Super::OnDamageResponse(DamageInfo);
+
+	AUSDFAIController* AIController = Cast<AUSDFAIController>(GetController());
+	if (AIController == nullptr)
+		return;
+
+	FAISensedParam Param = {};
+	Param.DamageInfo = DamageInfo;
+
+	AIController->SetCurrentAIState(EAIState::Frozen, Param);
+
+	AActor* HitCauser = DamageInfo.DamageCauser;
+
+	UUSDFNonPlayerAnimInstance* NonPlayerAnimInstance = Cast<UUSDFNonPlayerAnimInstance>(GetMesh()->GetAnimInstance());
+	if (NonPlayerAnimInstance == nullptr)
+		return;
+
+	if (HitCauser == nullptr)
+		return;
+
+	if (Stat->GetCurrentHp() <= 0.0f)
+		return;
+
+	NonPlayerAnimInstance->StopAllMontages(0.0f);
+
+	FVector ActorForwardVector = GetActorForwardVector();
+	FVector ActorRightVector = GetActorRightVector();
+	FVector HitActorForwardVector = HitCauser->GetActorForwardVector();
+	
+	float ForwardDotProduct = ActorForwardVector.Dot(HitActorForwardVector);
+	float RightDotProduct = ActorRightVector.Dot(HitActorForwardVector);
+
+	UAnimMontage* HitReactMontage = nullptr;
+	if (ForwardDotProduct >= 0.5f)
+	{
+		HitReactMontage = HitReactAnimMontage[EHitReactDirection::Front];
+	}
+	else if (ForwardDotProduct <= -0.5f)
+	{
+		HitReactMontage = HitReactAnimMontage[EHitReactDirection::Back];
+	}
+	else if (RightDotProduct >= 0.0f)
+	{
+		HitReactMontage = HitReactAnimMontage[EHitReactDirection::Right];
+	}
+	else
+	{
+		HitReactMontage = HitReactAnimMontage[EHitReactDirection::Left];
+	}
+
+	if (HitReactMontage)
+	{
+		UE_LOG(LogTemp, Display, TEXT("Hit React"));
+
+		NonPlayerAnimInstance->Montage_Play(HitReactMontage);
+		AIController->StopMovement();
+
+		FOnMontageBlendingOutStarted BlendOutDelegate;
+		BlendOutDelegate.BindUObject(this, &AUSDFCharacterNormalMonster::OnHitReactMontageBlendOut);
+
+		NonPlayerAnimInstance->Montage_SetBlendingOutDelegate(BlendOutDelegate, HitReactMontage);
 	}
 }

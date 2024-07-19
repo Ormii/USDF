@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Interface/USDFCharacterAttackAnimInterface.h"
+#include "Damage/USDFDamageCommon.h"
 #include "USDFCharacterBase.generated.h"
 
 UCLASS()
@@ -22,11 +23,17 @@ protected:
 
 	// Attack Hit Section
 protected:
-	virtual void AttackHitCheck() override;
 	UPROPERTY(VisibleAnywhere, Category = AttackHit, Meta = (AllowPrivateAccess = "true"))
 	TArray<TWeakObjectPtr<AUSDFCharacterBase>> HitCharaters;
 
-	// Dead Section
+	virtual void AttackHitCheck() override {};
+
+	// Damage Section
 protected:
-	virtual void SetDead();
+	UPROPERTY(VisibleAnywhere, Category = AttackHit, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UUSDFDamageSystemComponent> DamageSystem;
+
+
+	virtual void OnDamageResponse(FDamageInfo DamageInfo) {};
+	virtual void OnDeath();
 };

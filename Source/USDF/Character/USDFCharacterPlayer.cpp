@@ -21,6 +21,7 @@
 #include "Interface/USDFCharacterAIInterface.h"
 #include "CharacterStat/USDFPlayerStatComponent.h"
 #include "Engine/OverlapResult.h"
+#include "Damage/USDFDamageSystemComponent.h"
 
 AUSDFCharacterPlayer::AUSDFCharacterPlayer()
 {
@@ -121,7 +122,8 @@ void AUSDFCharacterPlayer::BeginPlay()
 void AUSDFCharacterPlayer::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
-	Stat->OnHpZeroDelegate.AddUObject(this, &AUSDFCharacterPlayer::SetDead);
+
+	DamageSystem->OnDeath.BindUObject(this, &AUSDFCharacterPlayer::OnDeath);
 }
 
 void AUSDFCharacterPlayer::Tick(float DeltaSeconds)
@@ -139,23 +141,6 @@ void AUSDFCharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 	EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AUSDFCharacterPlayer::Look);
 	EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Started, this, &AUSDFCharacterPlayer::Sprint);
 	EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &AUSDFCharacterPlayer::StopSprint);
-}
-
-void AUSDFCharacterPlayer::SetDead()
-{
-	Super::SetDead();
-
-	APlayerController* PlayerController = Cast<APlayerController>(GetController());
-	if (PlayerController)
-	{
-		DisableInput(PlayerController);
-	
-		IUSDFGameModeInterface* GameModeInterface = Cast<IUSDFGameModeInterface>(GetWorld()->GetAuthGameMode());
-		if (GameModeInterface)
-		{
-			GameModeInterface->OnPlayerDead();
-		}
-	}
 }
 
 void AUSDFCharacterPlayer::SetCharacterControl(ECharacterPlayerControlType NewCharacterControlType)
@@ -304,86 +289,45 @@ void AUSDFCharacterPlayer::SetupPlayerHpBarHUDWidget(UUSDFPlayerHpBarWidget* HpB
 	}
 }
 
-float AUSDFCharacterPlayer::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+float AUSDFCharacterPlayer::GetCurrentHealth()
 {
-	Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
-	Stat->ApplyDamage(DamageAmount);
-	return DamageAmount;
+	return Stat->GetCurrentHp();
 }
 
-void AUSDFCharacterPlayer::RotateToTarget(EHitReactType HitReactType)
+float AUSDFCharacterPlayer::GetMaxHealth()
 {
-	// 타겟 설정
-	TArray<FOverlapResult> OverlapResults;
-	FCollisionQueryParams OverlapParams(SCENE_QUERY_STAT(FindEnemy), false, this);
-	FVector Center = GetActorLocation();
-	float Radius = DetectSphere->GetScaledSphereRadius();
+	return Stat->GetMaxHp();
+}
 
-	bool bOverlapped = GetWorld()->OverlapMultiByChannel(OverlapResults, Center, FQuat::Identity, CCHANNEL_USDF_PLAYERACTION, FCollisionShape::MakeSphere(Radius), OverlapParams);
-	if (bOverlapped)
+void AUSDFCharacterPlayer::Heal(float HealAmount)
+{
+	DamageSystem->Heal(Stat, HealAmount);
+}
+
+void AUSDFCharacterPlayer::TakeDamage(FDamageInfo DamageInfo)
+{
+	DamageSystem->TakeDamage(Stat, DamageInfo);
+}
+
+
+bool AUSDFCharacterPlayer::IsDead()
+{
+	return DamageSystem->GetIsDead();
+}
+
+void AUSDFCharacterPlayer::OnDeath()
+{
+	Super::OnDeath();
+
+	APlayerController* PlayerController = Cast<APlayerController>(GetController());
+	if (PlayerController)
 	{
-		OverlapResults.Sort([&](const FOverlapResult& LHS, const FOverlapResult& RHS)-> bool {
-			FVector LHSForwardVector = LHS.GetActor()->GetActorLocation() - Center;
-			FVector RHSForwardVector = RHS.GetActor()->GetActorLocation() - Center;
+		DisableInput(PlayerController);
 
-			return LHSForwardVector.Length() < RHSForwardVector.Length();
-			});
-
-
-#if ENABLE_DRAW_DEBUG
-		for (int32 i = 0; i < OverlapResults.Num(); ++i)
+		IUSDFGameModeInterface* GameModeInterface = Cast<IUSDFGameModeInterface>(GetWorld()->GetAuthGameMode());
+		if (GameModeInterface)
 		{
-			IUSDFCharacterAIInterface* AIPawn = Cast<IUSDFCharacterAIInterface>(OverlapResults[i].GetActor());
-			if (AIPawn == nullptr)
-				continue;
-
-			DrawDebugPoint(GetWorld(), OverlapResults[i].GetActor()->GetActorLocation(), 10.0f, FColor::Red, false, 0.2f);
-			DrawDebugLine(GetWorld(), Center, OverlapResults[i].GetActor()->GetActorLocation(), FColor::Red, false, 0.27f);
-		}
-#endif
-		for (int32 i = 0; i < OverlapResults.Num(); ++i)
-		{
-			IUSDFCharacterAIInterface* AIPawn = Cast<IUSDFCharacterAIInterface>(OverlapResults[i].GetActor());
-			if (AIPawn == nullptr)
-				continue;
-
-			FVector TargetForwardVector = OverlapResults[i].GetActor()->GetActorLocation() - Center;
-			TargetForwardVector = TargetForwardVector.GetSafeNormal();
-
-			FHitResult HitResult;
-			float HitRadius = 45;
-			FCollisionQueryParams HitParams(SCENE_QUERY_STAT(LookDirect), false, this);
-			FVector StartPoint = Center + TargetForwardVector * HitRadius;
-			FVector EndPoint = StartPoint + TargetForwardVector * (Radius - 2 * HitRadius);
-			float HalfLength = (Radius - 2 * HitRadius) * 0.5f;
-
-			bool bHitted = GetWorld()->SweepSingleByChannel(HitResult, StartPoint, EndPoint, FRotationMatrix::MakeFromZ(TargetForwardVector).ToQuat(), ECC_Pawn, FCollisionShape::MakeSphere(HitRadius), HitParams);
-			if (bHitted)
-			{
-				AIPawn = Cast<IUSDFCharacterAIInterface>(HitResult.GetActor());
-				if (AIPawn == nullptr)
-					continue;
-
-				FRotator Rotation = FRotationMatrix::MakeFromX(TargetForwardVector).Rotator();
-				FRotator NewRotation = FRotator(0.0f, Rotation.Yaw, 0.0f);
-
-				switch (HitReactType)
-				{
-					case EHitReactType::Dash:
-						NewRotation.Yaw -= 10.0f;
-						break;
-					default:
-						break;
-				}
-
-				SetActorRotation(NewRotation);
-
-#if ENABLE_DRAW_DEBUG
-				DrawDebugCapsule(GetWorld(), (StartPoint + EndPoint) / 2, HalfLength, HitRadius, FRotationMatrix::MakeFromZ(TargetForwardVector).ToQuat(), FColor::Green, false, 0.27f);
-				DrawDebugLine(GetWorld(), Center, OverlapResults[i].GetActor()->GetActorLocation(), FColor::Green, false, 0.27f);
-#endif
-				break;
-			}
+			GameModeInterface->OnPlayerDead();
 		}
 	}
 }

@@ -7,8 +7,9 @@
 #include "InputActionValue.h"
 #include "Interface/USDFCharacterPlayerAnimInterface.h"
 #include "Interface/USDFCharacterPlayerHUDInterface.h"
-#include "Interface/USDFCharacterHitReactInterface.h"
 #include "Interface/USDFCharacterPlayerInterface.h"
+#include "Interface/USDFDamageableInterface.h"
+#include "Damage/USDFDamageCommon.h"
 #include "USDFCharacterPlayer.generated.h"
 
 UENUM()
@@ -22,7 +23,7 @@ enum class ECharacterPlayerControlType : uint8
  */
 UCLASS()
 class USDF_API AUSDFCharacterPlayer : public AUSDFCharacterBase, public IUSDFCharacterPlayerAnimInterface
-	,public IUSDFCharacterPlayerHUDInterface, public IUSDFCharacterPlayerInterface
+	,public IUSDFCharacterPlayerHUDInterface, public IUSDFCharacterPlayerInterface, public IUSDFDamageableInterface
 {
 	GENERATED_BODY()
 public:
@@ -48,10 +49,6 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, Category = Detect, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class USphereComponent> DetectSphere;
-
-// Dead Section
-protected:
-	virtual void SetDead() override;
 
 // CharacterControl Section
 protected:
@@ -139,12 +136,12 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Stat, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UUSDFPlayerStatComponent> Stat;
 
-// Attack Hit Section
-public:
-	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
-
-
-// Combat Section
+	//Damage Section
 protected:
-	virtual void RotateToTarget(EHitReactType HitReactType);
+	virtual float GetCurrentHealth() override;
+	virtual float GetMaxHealth() override;
+	virtual void Heal(float HealAmount) override;
+	virtual void TakeDamage(FDamageInfo) override;
+	virtual bool IsDead() override;
+	virtual void OnDeath() override;
 };

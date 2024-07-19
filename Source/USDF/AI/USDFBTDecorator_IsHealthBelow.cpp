@@ -7,6 +7,7 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "AIController.h"
 #include "Interface/USDFCharacterAIInterface.h"
+#include "Interface/USDFDamageableInterface.h"
 #include "AI/USDFAICommon.h"
 
 bool UUSDFBTDecorator_IsHealthBelow::CalculateRawConditionValue(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) const
@@ -21,12 +22,12 @@ bool UUSDFBTDecorator_IsHealthBelow::CalculateRawConditionValue(UBehaviorTreeCom
 	if (AIController == nullptr)
 		return false;
 
-	IUSDFCharacterAIInterface* AIPawn = Cast<IUSDFCharacterAIInterface>(AIController->GetPawn());
-	if (AIPawn == nullptr)
+	IUSDFDamageableInterface* DamageablePawn = Cast<IUSDFDamageableInterface>(AIController->GetPawn());
+	if (DamageablePawn == nullptr)
 		return false;
 
-	float MaxHealth = AIPawn->GetMaxHealth();
-	float CurrentHealth = AIPawn->GetCurrentHealth();
+	float MaxHealth = DamageablePawn->GetMaxHealth();
+	float CurrentHealth = DamageablePawn->GetCurrentHealth();
 
 	float Ratio = CurrentHealth / MaxHealth;
 

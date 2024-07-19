@@ -91,7 +91,7 @@ void AUSDFAISpawner::Spawn(const FStageSpawnOrder& SpawnOrder)
 
 		FHitResult HitResult = {};
 		FCollisionQueryParams Params(SCENE_QUERY_STAT(FindLocation), false, this);
-		bool bHitted = GetWorld()->LineTraceSingleByChannel(HitResult, RayStartPoint, RayStartPoint + TargetVector * RayLength, ECC_Pawn, Params);
+		bool bHitted = GetWorld()->LineTraceSingleByChannel(HitResult, RayStartPoint, RayStartPoint + TargetVector * RayLength, ECC_Visibility, Params);
 		
 		if (bHitted)
 		{

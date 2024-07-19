@@ -6,6 +6,7 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "AIController.h"
 #include "Interface/USDFCharacterAIInterface.h"
+#include "Interface/USDFDamageableInterface.h"
 
 EBTNodeResult::Type UUSDFBTTask_Heal::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
@@ -24,14 +25,14 @@ EBTNodeResult::Type UUSDFBTTask_Heal::ExecuteTask(UBehaviorTreeComponent& OwnerC
 	if (Pawn == nullptr)
 		return EBTNodeResult::Failed;
 
-	IUSDFCharacterAIInterface* AIPawn = Cast<IUSDFCharacterAIInterface>(Pawn);
-	if (AIPawn == nullptr)
+	IUSDFDamageableInterface* DamageablePawn = Cast<IUSDFDamageableInterface>(Pawn);
+	if (DamageablePawn == nullptr)
 		return EBTNodeResult::Failed;
 
 	
 	HealPercentage = FMath::Clamp(HealPercentage, 0.0f, 1.0f);
-	float HealAmount = AIPawn->GetCurrentHealth() * HealPercentage;
-	AIPawn->Heal(HealAmount);
+	float HealAmount = DamageablePawn->GetCurrentHealth() * HealPercentage;
+	DamageablePawn->Heal(HealAmount);
 
 	return EBTNodeResult::Succeeded;
 }

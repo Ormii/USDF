@@ -15,7 +15,6 @@
 #include "Engine/OverlapResult.h"
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraComponent.h"
-#include "Interface/USDFCharacterHitReactInterface.h"
 #include "CharacterStat/USDFPlayerStatComponent.h"
 #include "GameData/USDFGameSingleton.h"
 #include "USDFCharacterControlData.h"
@@ -24,6 +23,7 @@
 #include "Item/USDFItemWeaponDarkSword.h"
 #include "Item/USDFWeaponItemData.h"
 #include "Perception/AISense_Damage.h"
+#include "Damage/USDFDamageSystemComponent.h"
 
 AUSDFCharacterPlayerWarrior::AUSDFCharacterPlayerWarrior()
 {
@@ -137,6 +137,8 @@ void AUSDFCharacterPlayerWarrior::PostInitializeComponents()
 	UUSDFGameSingleton* GameSingleton = Cast<UUSDFGameSingleton>(GEngine->GameSingleton.Get());
 
 	Stat->InitPlayerStat(GameSingleton->GetPlayerStat("PlayerWarrior"));
+
+	DamageSystem->OnDamageResponse.BindUObject(this, &AUSDFCharacterPlayerWarrior::OnDamageResponse);
 }
 
 void AUSDFCharacterPlayerWarrior::Tick(float DeltaSeconds)
@@ -224,8 +226,6 @@ void AUSDFCharacterPlayerWarrior::AttackQKey()
 				const UUSDFComboActionData* ComboActionData = ComboAttackDataManager[CurrentComboAttackType];
 				if (!AnimInstance->Montage_IsPlaying(ComboActionData->ComboAttackMontage))
 				{
-					RotateToTarget(EHitReactType::Upper);
-
 					bAttackState = true;
 					Wrapper.OnComboAttackDelegate.ExecuteIfBound();
 					ResetCombatStateTime();
@@ -391,26 +391,6 @@ void AUSDFCharacterPlayerWarrior::PossessAttackMontage()
 	const UUSDFComboActionData* ComboActionData = ComboAttackDataManager[CurrentComboAttackType];
 	if (!bAttackState)
 	{
-		EHitReactType HitReactType = EHitReactType::None;
-		switch (CurrentComboAttackType)
-		{
-			case  EPlayerWarriorComboType::Default:
-				HitReactType = EHitReactType::Default;
-				break;
-			case EPlayerWarriorComboType::UpperCut:
-				HitReactType = EHitReactType::Upper;
-				break;
-			case EPlayerWarriorComboType::Dash:
-				HitReactType = EHitReactType::Dash;
-				break;
-			case EPlayerWarriorComboType::Power:
-				HitReactType = EHitReactType::PowerAttack;
-				break;
-			default:
-				break;
-		}
-		RotateToTarget(HitReactType);
-
 		bAttackState = true;
 		MakeNoise(1.0f, this, GetActorLocation());
 		Wrapper.OnComboAttackDelegate.ExecuteIfBound();
@@ -449,8 +429,6 @@ void AUSDFCharacterPlayerWarrior::UnEquipWeapon()
 
 void AUSDFCharacterPlayerWarrior::CheckApplyDamagePoint()
 {
-	Super::CheckApplyDamagePoint();
-	
 	switch (CurrentComboAttackType)
 	{
 		case EPlayerWarriorComboType::Power:
@@ -463,8 +441,6 @@ void AUSDFCharacterPlayerWarrior::CheckApplyDamagePoint()
 
 void AUSDFCharacterPlayerWarrior::AttackHitCheck()
 {
-	Super::AttackHitCheck();
-
 	switch (CurrentComboAttackType)
 	{
 		case EPlayerWarriorComboType::Default:
@@ -622,17 +598,17 @@ void AUSDFCharacterPlayerWarrior::PowerAttack()
 
 void AUSDFCharacterPlayerWarrior::DefaultAttackHitCheck()
 {
-	ExecuteDefaultHitCheck(EHitReactType::Default);
+	ExecuteDefaultHitCheck();
 }
 
 void AUSDFCharacterPlayerWarrior::UpperAttackHitCheck()
 {
-	ExecuteDefaultHitCheck(EHitReactType::Upper);
+	ExecuteDefaultHitCheck();
 }
 
 void AUSDFCharacterPlayerWarrior::DashAttackHitCheck()
 {
-	ExecuteDefaultHitCheck(EHitReactType::Dash);
+	ExecuteDefaultHitCheck();
 }
 
 void AUSDFCharacterPlayerWarrior::ApplyDamagePowerAttack()
@@ -662,13 +638,20 @@ void AUSDFCharacterPlayerWarrior::ApplyDamagePowerAttack()
 			}
 
 			AUSDFCharacterBase* HitCharacter = Cast<AUSDFCharacterBase>(OverlapResults[i].GetActor());
+			IUSDFDamageableInterface* DamageableTarget = Cast<IUSDFDamageableInterface>(HitCharacter);
 
-			if (HitCharacter && bIsExist == false)
+			if (HitCharacter&& DamageableTarget && bIsExist == false)
 			{
 				float DamageAmount = 10;
-				FDamageEvent DamageEvent;
 				UE_LOG(LogTemp, Display, TEXT("Power Attack hit"));
-				HitCharacter->TakeDamage(DamageAmount, DamageEvent, GetController(), this);
+
+				FDamageInfo DamageInfo = {};
+				DamageInfo.DamageAmount = DamageAmount;
+				DamageInfo.DamageCauser = this;
+				DamageInfo.DamageType = EDamageType::HitDefault;
+
+				DamageableTarget->TakeDamage(DamageInfo);
+				
 				int32 AttackHitEffectIndex = FMath::RandRange(0, 2);
 				if (AttackHitEffects[AttackHitEffectIndex] != nullptr)
 				{
@@ -677,12 +660,6 @@ void AUSDFCharacterPlayerWarrior::ApplyDamagePowerAttack()
 					{
 						pNiagaraCompo->Activate();
 					}
-				}
-
-				IUSDFCharacterHitReactInterface* HitReactableCharacter = Cast<IUSDFCharacterHitReactInterface>(HitCharacter);
-				if (HitReactableCharacter)
-				{
-					HitReactableCharacter->HitReact(DamageAmount, EHitReactType::PowerAttack, this);
 				}
 
 				HitCharaters.Add(HitCharacter);
@@ -696,7 +673,7 @@ void AUSDFCharacterPlayerWarrior::ApplyDamagePowerAttack()
 }
 
 
-void AUSDFCharacterPlayerWarrior::ExecuteDefaultHitCheck(EHitReactType HitReactType)
+void AUSDFCharacterPlayerWarrior::ExecuteDefaultHitCheck()
 {
 
 	bool HitDetected = false;
@@ -706,52 +683,23 @@ void AUSDFCharacterPlayerWarrior::ExecuteDefaultHitCheck(EHitReactType HitReactT
 	FVector AttackTip = FVector::ZeroVector;
 
 	UStaticMeshComponent* WeaponStaticMesh = WeaponSword->GetMesh();
-	switch (HitReactType)
+
+	if (WeaponStaticMesh)
 	{
-		case EHitReactType::Default:
-		case EHitReactType::Dash:
-		{
-			if (WeaponStaticMesh)
-			{
-				AttackBase = WeaponStaticMesh->GetSocketLocation("attack_base");
-				AttackTip = WeaponStaticMesh->GetSocketLocation("attack_tip");
-			}
-
-			HitDetected = GetWorld()->SweepMultiByChannel(OutHitResults, AttackBase, AttackTip, FQuat::Identity, CCHANNEL_USDF_PLAYERACTION, FCollisionShape::MakeSphere(25.0f), Params);
-#if ENABLE_DRAW_DEBUG
-			/*
-			FVector CapsuleOrigin = AttackBase + (AttackTip - AttackBase) * 0.5f;
-			float CapsuleHalfHeight = (AttackTip - AttackBase).Length() * 0.5f;
-			FColor DrawColor = HitDetected ? FColor::Green : FColor::Red;
-
-			DrawDebugCapsule(GetWorld(), CapsuleOrigin, CapsuleHalfHeight, 25.0f, FRotationMatrix::MakeFromZ(AttackTip - AttackBase).ToQuat(), DrawColor, false, 5.0f);
-			*/
-#endif
-		}
-			break;
-		case EHitReactType::Upper:
-		{
-			if (WeaponStaticMesh)
-			{
-				AttackBase = WeaponStaticMesh->GetSocketLocation("attack_base");
-				AttackTip = WeaponStaticMesh->GetSocketLocation("attack_tip");
-			}
-
-			HitDetected = GetWorld()->SweepMultiByChannel(OutHitResults, AttackBase, AttackTip, FQuat::Identity, CCHANNEL_USDF_PLAYERACTION, FCollisionShape::MakeSphere(25.0f), Params);
-#if ENABLE_DRAW_DEBUG
-
-			/*
-			FVector CapsuleOrigin = AttackBase + (AttackTip - AttackBase) * 0.5f;
-			float CapsuleHalfHeight = (AttackTip - AttackBase).Length() * 0.5f;
-			FColor DrawColor = HitDetected ? FColor::Green : FColor::Red;
-
-			DrawDebugCapsule(GetWorld(), CapsuleOrigin, CapsuleHalfHeight, 25.0f, FRotationMatrix::MakeFromZ(AttackTip - AttackBase).ToQuat(), DrawColor, false, 5.0f);
-
-			*/
-#endif
-		}
-			break;
+		AttackBase = WeaponStaticMesh->GetSocketLocation("attack_base");
+		AttackTip = WeaponStaticMesh->GetSocketLocation("attack_tip");
 	}
+
+	HitDetected = GetWorld()->SweepMultiByChannel(OutHitResults, AttackBase, AttackTip, FQuat::Identity, CCHANNEL_USDF_PLAYERACTION, FCollisionShape::MakeSphere(25.0f), Params);
+#if ENABLE_DRAW_DEBUG
+	/*
+	FVector CapsuleOrigin = AttackBase + (AttackTip - AttackBase) * 0.5f;
+	float CapsuleHalfHeight = (AttackTip - AttackBase).Length() * 0.5f;
+	FColor DrawColor = HitDetected ? FColor::Green : FColor::Red;
+
+	DrawDebugCapsule(GetWorld(), CapsuleOrigin, CapsuleHalfHeight, 25.0f, FRotationMatrix::MakeFromZ(AttackTip - AttackBase).ToQuat(), DrawColor, false, 5.0f);
+	*/
+#endif
 
 	if (HitDetected)
 	{
@@ -771,14 +719,18 @@ void AUSDFCharacterPlayerWarrior::ExecuteDefaultHitCheck(EHitReactType HitReactT
 			}
 
 			AUSDFCharacterBase* HitCharacter = Cast<AUSDFCharacterBase>(HitResult.GetActor());
+			IUSDFDamageableInterface* DamageableTarget = Cast<IUSDFDamageableInterface>(HitCharacter);
 
-			if (HitCharacter && bIsExist == false)
+			if (HitCharacter && DamageableTarget && bIsExist == false)
 			{
 				float DamageAmount = Stat->GetPlayerStat().DefaultAttack;
-				FDamageEvent DamageEvent;
 
-				HitCharacter->TakeDamage(DamageAmount, DamageEvent, GetController(), this);
-				HitCharaters.Add(HitCharacter);
+				FDamageInfo DamageInfo = {};
+				DamageInfo.DamageAmount = DamageAmount;
+				DamageInfo.DamageCauser = this;
+				DamageInfo.DamageType = EDamageType::HitDefault;
+
+				DamageableTarget->TakeDamage(DamageInfo);
 
 				FVector BoneLocation = FVector::ZeroVector;
 				HitCharacter->GetMesh()->FindClosestBone(HitResult.Location, &BoneLocation);
@@ -794,11 +746,7 @@ void AUSDFCharacterPlayerWarrior::ExecuteDefaultHitCheck(EHitReactType HitReactT
 					}
 				}
 
-				IUSDFCharacterHitReactInterface* HitReactableCharacter = Cast<IUSDFCharacterHitReactInterface>(HitCharacter);
-				if (HitReactableCharacter)
-				{
-					HitReactableCharacter->HitReact(DamageAmount, HitReactType, this);
-				}
+				HitCharaters.Add(HitCharacter);
 			}
 		}
 	}
@@ -809,12 +757,11 @@ void AUSDFCharacterPlayerWarrior::ResetCombatStateTime()
 	CombatStateTime = 10;
 }
 
-void AUSDFCharacterPlayerWarrior::RotateToTarget(EHitReactType HitReactType)
+void AUSDFCharacterPlayerWarrior::OnDamageResponse(FDamageInfo DamageInfo)
 {
-	Super::RotateToTarget(HitReactType);
-
-	DetectSphere->SetSphereRadius(350.0f);
+	Super::OnDamageResponse(DamageInfo);
 }
+
 
 void AUSDFCharacterPlayerWarrior::ComboActionEnded(UAnimMontage* TargetMontage, bool IsProperlyEnded)
 {
@@ -827,15 +774,6 @@ void AUSDFCharacterPlayerWarrior::ComboActionEnded(UAnimMontage* TargetMontage, 
 	HitCharaters.Empty();
 }
 
-void AUSDFCharacterPlayerWarrior::HitReact(const float DamageAmount, EHitReactType HitReactType, const AActor* HitCauser)
-{
-	
-}
-
-bool AUSDFCharacterPlayerWarrior::GetHitReactState()
-{
-	return bHitReactState;
-}
 
 void AUSDFCharacterPlayerWarrior::SetCombatState(bool NewCombatState)
 {

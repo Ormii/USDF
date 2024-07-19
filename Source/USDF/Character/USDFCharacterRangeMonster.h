@@ -29,10 +29,6 @@ public:
 protected:
 	virtual void PostInitializeComponents() override;
 
-	// Dead Section
-protected:
-	virtual void SetDead() override;
-
 	// AI Section
 protected:
 	virtual void AttackByAI(EAIAttackType InAIAttackType) override;
@@ -57,4 +53,8 @@ protected:
 protected:
 	UPROPERTY(EditAnywhere, Category = AttackHit, Meta = (AllowPrivateAccess = "true"))
 	TArray<TObjectPtr<class UNiagaraSystem>> AttackHitEffects;
+
+	// Damage Section
+protected:
+	virtual void OnDeath() override;
 };

@@ -8,8 +8,6 @@
 #include "GameData/USDFGameSingleton.h"
 #include "GameData/USDFNormalMonsterStat.h"
 #include "CharacterStat/USDFNormalMonsterStatComponent.h"
-#include "GameFramework/GameModeBase.h"
-#include "Interface/USDFGameModeInterface.h"
 #include "UI/USDFEnemyHpBarWidget.h"
 #include "UI/USDFWidgetComponent.h"
 #include "Animation/USDFRangeMonsterAnimInstance.h"
@@ -17,6 +15,8 @@
 #include "Engine/DamageEvents.h"
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraComponent.h"
+#include "GameFramework/GameModeBase.h"
+#include "Interface/USDFGameModeInterface.h"
 
 
 AUSDFCharacterRangeMonster::AUSDFCharacterRangeMonster()
@@ -116,22 +116,6 @@ void AUSDFCharacterRangeMonster::PostInitializeComponents()
 	GetCharacterMovement()->MaxWalkSpeed = Stat->GetNormalMonsterStat().RunSpeed;
 }
 
-void AUSDFCharacterRangeMonster::SetDead()
-{
-	Super::SetDead();
-
-	FTimerHandle TimerHandle;
-	GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateLambda(
-		[&]() {
-			Destroy();
-			IUSDFGameModeInterface* GameModeInterface = Cast<IUSDFGameModeInterface>(GetWorld()->GetAuthGameMode());
-			if (GameModeInterface)
-			{
-				GameModeInterface->UpdateCurrent(StaticClass());
-			}
-		}), 5.0f, false);
-}
-
 void AUSDFCharacterRangeMonster::AttackByAI(EAIAttackType InAIAttackType)
 {
 	UE_LOG(LogTemp, Display, TEXT("AI AttackStart"));
@@ -195,13 +179,18 @@ void AUSDFCharacterRangeMonster::AttackFire()
 	if (bHitted)
 	{
 		AUSDFCharacterBase* HitCharacter = Cast<AUSDFCharacterBase>(HitResult.GetActor());
+		IUSDFDamageableInterface* DamageableTarget = Cast<IUSDFDamageableInterface>(HitCharacter);
 
-		if (HitCharacter)
+		if (HitCharacter && DamageableTarget)
 		{
 			float DamageAmount = Stat->GetNormalMonsterStat().DefaultAttack;
-			FDamageEvent DamageEvent;
 
-			HitCharacter->TakeDamage(DamageAmount, DamageEvent, GetController(), this);
+			FDamageInfo DamageInfo = {};
+			DamageInfo.DamageAmount = DamageAmount;
+			DamageInfo.DamageCauser = this;
+			DamageInfo.DamageType = EDamageType::HitDefault;
+
+			DamageableTarget->TakeDamage(DamageInfo);
 
 			bCharacterHit = true;
 			int32 AttackHitEffectIndex = FMath::RandRange(0, 2);
@@ -217,12 +206,6 @@ void AUSDFCharacterRangeMonster::AttackFire()
 					pNiagaraCompo->Activate();
 				}
 			}
-
-			IUSDFCharacterHitReactInterface* HitReactableCharacter = Cast<IUSDFCharacterHitReactInterface>(HitCharacter);
-			if (HitReactableCharacter)
-			{
-				HitReactableCharacter->HitReact(DamageAmount, EHitReactType::Default, this);
-			}
 		}
 	}
 
@@ -236,5 +219,22 @@ void AUSDFCharacterRangeMonster::AttackFire()
 		DrawDebugPoint(GetWorld(), HitResult.Location, 10.0f, Color, false, 0.2f);
 	}
 #endif
+}
+
+void AUSDFCharacterRangeMonster::OnDeath()
+{
+	Super::OnDeath();
+
+
+	FTimerHandle TimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateLambda(
+		[&]() {
+			Destroy();
+			IUSDFGameModeInterface* GameModeInterface = Cast<IUSDFGameModeInterface>(GetWorld()->GetAuthGameMode());
+			if (GameModeInterface)
+			{
+				GameModeInterface->UpdateCurrent(StaticClass());
+			}
+		}), 5.0f, false);
 }
 

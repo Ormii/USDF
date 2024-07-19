@@ -7,7 +7,6 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "AI/USDFAICommon.h"
 #include "Kismet/GameplayStatics.h"
-#include "Interface/USDFCharacterHitReactInterface.h"
 #include "Interface/USDFCharacterAIInterface.h"
 #include "Interface/USDFCharacterPlayerInterface.h"
 #include "Perception/AIPerceptionComponent.h"
@@ -189,7 +188,8 @@ void AUSDFAIController::SetCurrentAIState(EAIState NewState, FAISensedParam Para
 	{
 		case EAIState::Attacking:
 		{
-			Blackboard->SetValueAsObject(BBKEY_ATTACK_TARGET, Param.Actor);
+			if(Param.bUseLastAttackTarget == false)
+				Blackboard->SetValueAsObject(BBKEY_ATTACK_TARGET, Param.Actor);
 		}
 			break;
 		default:
@@ -213,18 +213,6 @@ void AUSDFAIController::RunAI()
 	UBlackboardComponent* BlackboardPtr = Blackboard.Get();
 	if (UseBlackboard(BBAsset, BlackboardPtr))
 	{
-		Blackboard->SetValueAsVector(BBKEY_HOMEPOS, GetPawn()->GetActorLocation());
-		
-		IUSDFCharacterAIInterface* AIPawn = Cast<IUSDFCharacterAIInterface>(GetPawn());
-		if (AIPawn)
-		{
-			float EQSTargetRadius = AIPawn->GetAIEQSTargetRadius();
-			float EQSDefendRadius = AIPawn->GetAIEQSDefendRadius();
-
-			Blackboard->SetValueAsFloat(BBKEY_EQS_TARGET_RADIUS, EQSTargetRadius);
-			Blackboard->SetValueAsFloat(BBKEY_EQS_DEFEND_RADIUS, EQSDefendRadius);
-		}
-
 		bool RunResult = RunBehaviorTree(BTAsset);
 		ensure(RunResult);
 	}

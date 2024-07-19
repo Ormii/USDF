@@ -6,7 +6,6 @@
 #include "Components/ActorComponent.h"
 #include "USDFCharacterStatComponent.generated.h"
 
-DECLARE_MULTICAST_DELEGATE(FOnHpZeroDelegate);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnHpChangedDelegate, float /*CurrentHp*/);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -24,7 +23,6 @@ protected:
 
 	// HP Section
 public:
-	FOnHpZeroDelegate OnHpZeroDelegate;
 	FOnHpChangedDelegate OnHpChangedDelegate;
 
 	FORCEINLINE const float GetMaxHp()const { return MaxHp; }

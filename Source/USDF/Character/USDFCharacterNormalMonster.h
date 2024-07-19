@@ -5,8 +5,8 @@
 #include "CoreMinimal.h"
 #include "Character/USDFCharacterNonPlayer.h"
 #include "Interface/USDFCharacterWidgetInterface.h"
-#include "Interface/USDFCharacterHitReactInterface.h"
 #include "Interface/USDFCharacterAnimInterface.h"
+#include "Interface/USDFDamageableInterface.h"
 #include "USDFCharacterNormalMonster.generated.h"
 
 UENUM()
@@ -22,8 +22,8 @@ enum class EHitReactDirection : uint8
  * 
  */
 UCLASS()
-class USDF_API AUSDFCharacterNormalMonster : public AUSDFCharacterNonPlayer, public IUSDFCharacterWidgetInterface, 
-	public IUSDFCharacterHitReactInterface, public IUSDFCharacterAnimInterface
+class USDF_API AUSDFCharacterNormalMonster : public AUSDFCharacterNonPlayer, public IUSDFCharacterWidgetInterface,
+	public IUSDFCharacterAnimInterface, public IUSDFDamageableInterface
 {
 	GENERATED_BODY()
 
@@ -47,7 +47,9 @@ protected:
 	virtual class AUSDFPatrolRoute* GetPatrolRoute() override;
 	virtual float GetMaxHealth() override;
 	virtual float GetCurrentHealth() override;
-	virtual void Heal(float HealAmount)override;
+	virtual void Heal(float HealAmount) override;
+	virtual void TakeDamage(FDamageInfo DamageInfo) override;
+	virtual bool IsDead() override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly ,Category = AI, Meta = (AllowPrivateAccess= "true"))
 	TObjectPtr<class AUSDFPatrolRoute> PatrolRoute;
@@ -56,27 +58,7 @@ protected:
 protected:
 	UPROPERTY()
 	TMap<EHitReactDirection, TObjectPtr<class UAnimMontage>> HitReactAnimMontage;
-
-	UPROPERTY()
-	uint8 bHitReactState : 1;
-
-	UPROPERTY()
-	EHitReactType CurrentHitReactType;
-
-	float HitReactTime;
-	float UpperHitTime;
 	
-	virtual bool GetHitReactState() override;
-public:
-	virtual void HitReact(const float DamageAmount, EHitReactType HitReactType, const AActor* HitCauser) override;
-
-	// Dead Section
-protected:
-	virtual void SetDead() override;
-
-	UPROPERTY()
-	TObjectPtr<class UAnimMontage> DeadAnimMontage;
-
 	// Widget Section
 public:
 	virtual void SetupHpBarWidget(class UUSDFUserWidget* InUserWidget) override;
@@ -90,13 +72,20 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Stat, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UUSDFNormalMonsterStatComponent> Stat;
 
-	// Attack Hit Section
-public:
-	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
-
-// Animation Section
+	// Animation Section
 public:
 	virtual float GetMaxWalkSpeed() override;
 	virtual float GetMaxRunSpeed() override;
 	virtual void SetLocomotionState(ELocomotionState NewLocomotionState) override;
+
+	// Damage Section
+protected:
+	UPROPERTY()
+	TObjectPtr<class UAnimMontage> DeadAnimMontage;
+
+	UFUNCTION()
+	void OnHitReactMontageBlendOut(UAnimMontage* TargetMontage, bool bInterrupted);
+
+	virtual void OnDeath() override;
+	virtual void OnDamageResponse(FDamageInfo DamageInfo) override;
 };

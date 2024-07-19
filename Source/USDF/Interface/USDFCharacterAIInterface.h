@@ -41,12 +41,9 @@ public:
 	virtual class AUSDFPatrolRoute* GetPatrolRoute() { return nullptr; }
 	virtual float GetAIEQSTargetRadius(){ return 0.0f; }
 	virtual float GetAIEQSDefendRadius() { return 0.0f; }
-	virtual float GetMaxHealth() { return 1.0f; }
-	virtual float GetCurrentHealth() { return 0.0f; }
 
 	virtual void SetLocomotionState(ELocomotionState NewLocomotionState) = 0;
 	virtual void SetAIState(EAIState NewAIState, FAISensedParam InParam) = 0;
-	virtual void Heal(float HealAmount) {}
 
 	virtual void SetAIAttackDelegate(const FAICharacterAttackFinished& InOnAttackFinished){};
 	virtual void AttackByAI(EAIAttackType InAIAttackType) {}

@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Character/USDFCharacterPlayer.h"
-#include "Interface/USDFCharacterHitReactInterface.h"
+#include "Damage/USDFDamageCommon.h"
 #include "USDFCharacterPlayerWarrior.generated.h"
 
 class UUSDFComboActionData;
@@ -37,7 +37,7 @@ struct FComboAttackDelegateWrapper
  * 
  */
 UCLASS()
-class USDF_API AUSDFCharacterPlayerWarrior : public AUSDFCharacterPlayer, public IUSDFCharacterHitReactInterface
+class USDF_API AUSDFCharacterPlayerWarrior : public AUSDFCharacterPlayer
 {
 	GENERATED_BODY()
 	
@@ -101,7 +101,6 @@ private:
 	void OnWarriorLanded(const FHitResult& Hit);
 
 // Combat Section
-
 protected:
 
 	UPROPERTY(Transient, VisibleAnywhere, Category = Combat, Meta = (AllowPrivateAccess = "true"))
@@ -141,20 +140,15 @@ protected:
 
 	void ApplyDamagePowerAttack();
 
-	void ExecuteDefaultHitCheck(EHitReactType HitReactType);
+	void ExecuteDefaultHitCheck();
 	void ResetCombatStateTime();
-
-	virtual void RotateToTarget(EHitReactType HitReactType) override;
 
 // Attack Hit Section
 protected:
 	UPROPERTY(EditAnywhere, Category = AttackHit, Meta = (AllowPrivateAccess = "true"))
 	TArray<TObjectPtr<class UNiagaraSystem>> AttackHitEffects;
 
-// Hit React Section
+// DamageSection
 protected:
-	bool bHitReactState;
-
-	virtual void HitReact(const float DamageAmount, EHitReactType HitReactType, const AActor* HitCauser) override;
-	virtual bool GetHitReactState() override;
+	virtual void OnDamageResponse(FDamageInfo DamageInfo)override;
 };

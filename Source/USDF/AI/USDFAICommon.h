@@ -1,12 +1,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Damage/USDFDamageCommon.h"
 #include "USDFAICommon.generated.h"
 
-#define BBKEY_TARGET TEXT("Target")
-#define BBKEY_HOMEPOS TEXT("HomePos")
-#define BBKEY_PATROLPOS TEXT("NextPatrolPos")
-#define BBKEY_HITREACTSTATE TEXT("HitReactState")
 #define BBKEY_AISTATE TEXT("State")
 #define BBKEY_POINT_OF_INTREST TEXT("PointOfInterest")
 #define BBKEY_ATTACK_TARGET TEXT("AttackTarget")
@@ -43,4 +40,7 @@ struct FAISensedParam
 
 	TObjectPtr<AActor> Actor;
 	FVector Location;
+	FDamageInfo DamageInfo;
+
+	bool bUseLastAttackTarget;
 };

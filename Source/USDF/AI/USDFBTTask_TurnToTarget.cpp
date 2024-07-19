@@ -29,7 +29,7 @@ EBTNodeResult::Type UUSDFBTTask_TurnToTarget::ExecuteTask(UBehaviorTreeComponent
 	if (AIPawn == nullptr)
 		return EBTNodeResult::Failed;
 
-	APawn* Target = Cast<APawn>(Blackboard->GetValueAsObject(BBKEY_TARGET));
+	APawn* Target = Cast<APawn>(Blackboard->GetValueAsObject(BBKEY_ATTACK_TARGET));
 	if (Target == nullptr)
 		return EBTNodeResult::Failed;
 

@@ -12,8 +12,8 @@
 #include "NiagaraComponent.h"
 #include "CharacterStat/USDFNormalMonsterStatComponent.h"
 #include "GameData/USDFGameSingleton.h"
-#include "Interface/USDFGameModeInterface.h"
 #include "GameFramework/GameModeBase.h"
+#include "Interface/USDFGameModeInterface.h"
 
 AUSDFCharacterMeleeMonster::AUSDFCharacterMeleeMonster()
 {
@@ -155,12 +155,6 @@ void AUSDFCharacterMeleeMonster::AttackFinished()
 	HitCharaters.Empty();
 }
 
-void AUSDFCharacterMeleeMonster::HitReact(const float DamageAmount, EHitReactType HitReactType ,const AActor* HitCauser)
-{
-	Super::HitReact(DamageAmount, HitReactType, HitCauser);
-	CurrentAttackType = EMeleeMonsterAttackType::None;
-}
-
 void AUSDFCharacterMeleeMonster::AttackHitCheck()
 {
 	switch (CurrentAttackType)
@@ -173,23 +167,6 @@ void AUSDFCharacterMeleeMonster::AttackHitCheck()
 			break;
 	}
 
-}
-
-void AUSDFCharacterMeleeMonster::SetDead()
-{
-	Super::SetDead();
-
-
-	FTimerHandle TimerHandle;
-	GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateLambda(
-		[&]() {
-			Destroy();
-			IUSDFGameModeInterface* GameModeInterface = Cast<IUSDFGameModeInterface>(GetWorld()->GetAuthGameMode());
-			if (GameModeInterface)
-			{
-				GameModeInterface->UpdateCurrent(StaticClass());
-			}
-		}), 5.0f, false);
 }
 
 void AUSDFCharacterMeleeMonster::AttackMontageEnded(UAnimMontage* TargetMontage, bool IsProperlyEnded)
@@ -226,14 +203,19 @@ void AUSDFCharacterMeleeMonster::WeakAttackHitCheck()
 			}
 
 			AUSDFCharacterBase* HitCharacter = Cast<AUSDFCharacterBase>(HitResult.GetActor());
+			IUSDFDamageableInterface* DamageableTarget = Cast<IUSDFDamageableInterface>(HitCharacter);
 
-			if (HitCharacter && bIsExist == false)
+			if (HitCharacter && DamageableTarget && bIsExist == false)
 			{
 				float DamageAmount = Stat->GetNormalMonsterStat().DefaultAttack;
-				FDamageEvent DamageEvent;
 
-				HitCharacter->TakeDamage(DamageAmount, DamageEvent, GetController(), this);
-				HitCharaters.Add(HitCharacter);
+				FDamageInfo DamageInfo = {};
+				DamageInfo.DamageAmount = DamageAmount;
+				DamageInfo.DamageCauser = this;
+				DamageInfo.DamageType = EDamageType::HitDefault;
+
+				DamageableTarget->TakeDamage(DamageInfo);
+
 				FVector BoneLocation = FVector::ZeroVector;
 				HitCharacter->GetMesh()->FindClosestBone(HitResult.Location, &BoneLocation);
 				FVector ImpactNormal = (HitResult.Location - BoneLocation).GetSafeNormal();
@@ -248,11 +230,7 @@ void AUSDFCharacterMeleeMonster::WeakAttackHitCheck()
 					}
 				}
 
-				IUSDFCharacterHitReactInterface* HitReactableCharacter = Cast<IUSDFCharacterHitReactInterface>(HitCharacter);
-				if (HitReactableCharacter)
-				{
-					HitReactableCharacter->HitReact(DamageAmount, EHitReactType::Default ,this);
-				}
+				HitCharaters.Add(HitCharacter);
 			}
 		}
 	}
@@ -295,14 +273,18 @@ void AUSDFCharacterMeleeMonster::StrongAttackHitCheck()
 			}
 
 			AUSDFCharacterBase* HitCharacter = Cast<AUSDFCharacterBase>(HitResult.GetActor());
+			IUSDFDamageableInterface* DamageableTarget = Cast<IUSDFDamageableInterface>(HitCharacter);
 
-			if (HitCharacter && bIsExist == false)
+			if (HitCharacter && DamageableTarget && bIsExist == false)
 			{
 				float DamageAmount = Stat->GetNormalMonsterStat().StrongAttack;
-				FDamageEvent DamageEvent;
 
-				HitCharacter->TakeDamage(DamageAmount, DamageEvent, GetController(), this);
-				HitCharaters.Add(HitCharacter);
+				FDamageInfo DamageInfo = {};
+				DamageInfo.DamageAmount = DamageAmount;
+				DamageInfo.DamageCauser = this;
+				DamageInfo.DamageType = EDamageType::HitDefault;
+
+				DamageableTarget->TakeDamage(DamageInfo);
 
 				FVector BoneLocation = FVector::ZeroVector;
 				HitCharacter->GetMesh()->FindClosestBone(HitResult.Location, &BoneLocation);
@@ -318,11 +300,7 @@ void AUSDFCharacterMeleeMonster::StrongAttackHitCheck()
 					}
 				}
 
-				IUSDFCharacterHitReactInterface* HitReactableCharacter = Cast<IUSDFCharacterHitReactInterface>(HitCharacter);
-				if (HitReactableCharacter)
-				{
-					HitReactableCharacter->HitReact(DamageAmount, EHitReactType::Default ,this);
-				}
+				HitCharaters.Add(HitCharacter);
 			}
 		}
 	}
@@ -336,4 +314,21 @@ void AUSDFCharacterMeleeMonster::StrongAttackHitCheck()
 	DrawDebugCapsule(GetWorld(), CapsuleOrigin, CapsuleHalfHeight, 15.0f, FRotationMatrix::MakeFromZ(AttackTip - AttackBase).ToQuat(), DrawColor, false, 5.0f);
 	*/
 #endif
+}
+
+void AUSDFCharacterMeleeMonster::OnDeath()
+{
+	Super::OnDeath();
+
+
+	FTimerHandle TimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateLambda(
+		[&]() {
+			Destroy();
+			IUSDFGameModeInterface* GameModeInterface = Cast<IUSDFGameModeInterface>(GetWorld()->GetAuthGameMode());
+			if (GameModeInterface)
+			{
+				GameModeInterface->UpdateCurrent(StaticClass());
+			}
+		}), 5.0f, false);
 }
