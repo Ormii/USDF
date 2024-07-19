@@ -203,6 +203,11 @@ EAIState AUSDFAIController::GetCurrentAIState()
 	return CurrentAIState;
 }
 
+const AActor* AUSDFAIController::GetAttackTarget() const
+{
+	return dynamic_cast<AActor*>(Blackboard->GetValueAsObject(BBKEY_ATTACK_TARGET));
+}
+
 void AUSDFAIController::RunAI()
 {
 	UBlackboardComponent* BlackboardPtr = Blackboard.Get();

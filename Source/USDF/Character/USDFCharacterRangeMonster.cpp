@@ -13,6 +13,10 @@
 #include "UI/USDFEnemyHpBarWidget.h"
 #include "UI/USDFWidgetComponent.h"
 #include "Animation/USDFRangeMonsterAnimInstance.h"
+#include "Physics/USDFCollision.h"
+#include "Engine/DamageEvents.h"
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraComponent.h"
 
 
 AUSDFCharacterRangeMonster::AUSDFCharacterRangeMonster()
@@ -90,6 +94,15 @@ AUSDFCharacterRangeMonster::AUSDFCharacterRangeMonster()
 	if (StrongAttackMontageRef.Object)
 	{
 		AttackMontages.Add(ERangeMonsterAttackType::StrongAttack, StrongAttackMontageRef.Object);
+	}
+
+	for (int i = 0; i < 3; ++i)
+	{
+		static ConstructorHelpers::FObjectFinder<UNiagaraSystem> AttackHitEffectRef(*FString::Printf(TEXT("/Game/ReferenceAsset/RealisticBlood/Slash/Niagara/NS_Slash_%d.NS_Slash_%d"), i, i));
+		if (AttackHitEffectRef.Object)
+		{
+			AttackHitEffects.Add(AttackHitEffectRef.Object);
+		}
 	}
 }
 
@@ -170,6 +183,58 @@ void AUSDFCharacterRangeMonster::AttackMontageEnded(UAnimMontage* TargetMontage,
 
 void AUSDFCharacterRangeMonster::AttackFire()
 {
+	AUSDFRangeMonsterAIController* AIController = Cast<AUSDFRangeMonsterAIController>(GetController());
+	const AActor* Target = (AIController != nullptr) ? AIController->GetAttackTarget() : nullptr;
+	FVector StartLocation = GetMesh()->GetSocketLocation("rifle_fire_socket");
+	FVector EndLocation = (Target != nullptr) ? Target->GetActorLocation() : StartLocation + GetActorForwardVector() * Stat->GetNormalMonsterStat().AttackRange;
 
+	FHitResult HitResult{};
+	FCollisionQueryParams Params(SCENE_QUERY_STAT(Fire), false, this);
+	bool bHitted = GetWorld()->LineTraceSingleByChannel(HitResult,StartLocation, EndLocation, ECC_Visibility, Params);
+	bool bCharacterHit = false;
+	if (bHitted)
+	{
+		AUSDFCharacterBase* HitCharacter = Cast<AUSDFCharacterBase>(HitResult.GetActor());
+
+		if (HitCharacter)
+		{
+			float DamageAmount = Stat->GetNormalMonsterStat().DefaultAttack;
+			FDamageEvent DamageEvent;
+
+			HitCharacter->TakeDamage(DamageAmount, DamageEvent, GetController(), this);
+
+			bCharacterHit = true;
+			int32 AttackHitEffectIndex = FMath::RandRange(0, 2);
+			if (AttackHitEffects[AttackHitEffectIndex] != nullptr)
+			{
+				FVector BoneLocation = FVector::ZeroVector;
+				HitCharacter->GetMesh()->FindClosestBone(HitResult.Location, &BoneLocation);
+				FVector ImpactNormal = (HitResult.Location - BoneLocation).GetSafeNormal();
+
+				UNiagaraComponent* pNiagaraCompo = UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), AttackHitEffects[AttackHitEffectIndex], BoneLocation, FRotationMatrix::MakeFromZ(ImpactNormal).Rotator());
+				if (pNiagaraCompo != nullptr)
+				{
+					pNiagaraCompo->Activate();
+				}
+			}
+
+			IUSDFCharacterHitReactInterface* HitReactableCharacter = Cast<IUSDFCharacterHitReactInterface>(HitCharacter);
+			if (HitReactableCharacter)
+			{
+				HitReactableCharacter->HitReact(DamageAmount, EHitReactType::Default, this);
+			}
+		}
+	}
+
+
+#if ENABLE_DRAW_DEBUG
+	FColor Color = (bCharacterHit) ? FColor::Green : FColor::Red;
+	DrawDebugLine(GetWorld(), StartLocation, EndLocation, Color, false, 0.2f);
+
+	if (bCharacterHit)
+	{
+		DrawDebugPoint(GetWorld(), HitResult.Location, 10.0f, Color, false, 0.2f);
+	}
+#endif
 }
 

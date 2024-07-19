@@ -52,7 +52,7 @@ AUSDFCharacterPlayer::AUSDFCharacterPlayer()
 	// Mesh
 	GetMesh()->SetRelativeLocationAndRotation(FVector(0.0f, 0.0f, -85.0f), FRotator(0.0f, -90.0f, 0.0f));
 	GetMesh()->SetAnimationMode(EAnimationMode::AnimationBlueprint);
-	GetMesh()->SetCollisionProfileName(CPROFILE_USDF_PlAYER_CHARACTERMESH);
+	GetMesh()->SetCollisionProfileName("NoCollision");
 
 	static ConstructorHelpers::FObjectFinder<UUSDFCharacterControlData> PreviewDataAssetRef(TEXT("/Game/CharacterControl/CDA_Preview.CDA_Preview"));
 	if (PreviewDataAssetRef.Object)

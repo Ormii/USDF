@@ -779,10 +779,15 @@ void AUSDFCharacterPlayerWarrior::ExecuteDefaultHitCheck(EHitReactType HitReactT
 
 				HitCharacter->TakeDamage(DamageAmount, DamageEvent, GetController(), this);
 				HitCharaters.Add(HitCharacter);
+
+				FVector BoneLocation = FVector::ZeroVector;
+				HitCharacter->GetMesh()->FindClosestBone(HitResult.Location, &BoneLocation);
+				FVector ImpactNormal = (HitResult.Location - BoneLocation).GetSafeNormal();
+
 				int32 AttackHitEffectIndex = FMath::RandRange(0, 2);
 				if (AttackHitEffects[AttackHitEffectIndex] != nullptr)
 				{
-					UNiagaraComponent* pNiagaraCompo = UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), AttackHitEffects[AttackHitEffectIndex], HitResult.Location, FRotationMatrix::MakeFromZ(HitResult.ImpactNormal).Rotator());
+					UNiagaraComponent* pNiagaraCompo = UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), AttackHitEffects[AttackHitEffectIndex], BoneLocation, FRotationMatrix::MakeFromZ(ImpactNormal).Rotator());
 					if (pNiagaraCompo != nullptr)
 					{
 						pNiagaraCompo->Activate();

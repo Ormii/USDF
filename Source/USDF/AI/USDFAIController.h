@@ -33,6 +33,7 @@ public:
 
 	void SetCurrentAIState(EAIState NewState, FAISensedParam Param);
 	EAIState GetCurrentAIState();
+	const AActor* GetAttackTarget() const;
 
 public:
 	void RunAI();

@@ -57,7 +57,4 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, Category = AIState, Meta = (AllowPrivateAccess = "true"))
 	TMap<EAIState, FAIStateChangeWrapper> AIStateManager;
-
-	UPROPERTY(VisibleAnywhere, Category = AIState, Meta = (AllowPrivateAccess= "true"))
-	TObjectPtr<AActor> Target;
 };

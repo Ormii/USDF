@@ -110,6 +110,21 @@ AUSDFPatrolRoute* AUSDFCharacterNormalMonster::GetPatrolRoute()
 	return PatrolRoute;
 }
 
+float AUSDFCharacterNormalMonster::GetMaxHealth()
+{
+	return Stat->GetMaxHp();
+}
+
+float AUSDFCharacterNormalMonster::GetCurrentHealth()
+{
+	return Stat->GetCurrentHp();
+}
+
+void AUSDFCharacterNormalMonster::Heal(float HealAmount)
+{
+	Stat->SetCurrentHp(Stat->GetCurrentHp() + HealAmount);
+}
+
 float AUSDFCharacterNormalMonster::GetAIEQSTargetRadius()
 {
 	return Stat->GetNormalMonsterStat().EQSTargetRange;
@@ -213,6 +228,7 @@ void AUSDFCharacterNormalMonster::SetDead()
 	if (AIController)
 	{
 		AIController->StopAI();
+		AIController->UnPossess();
 	}
 	
 

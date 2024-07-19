@@ -45,6 +45,9 @@ protected:
 	virtual float GetAIEQSTargetRadius() override;
 	virtual float GetAIEQSDefendRadius() override;
 	virtual class AUSDFPatrolRoute* GetPatrolRoute() override;
+	virtual float GetMaxHealth() override;
+	virtual float GetCurrentHealth() override;
+	virtual void Heal(float HealAmount)override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly ,Category = AI, Meta = (AllowPrivateAccess= "true"))
 	TObjectPtr<class AUSDFPatrolRoute> PatrolRoute;

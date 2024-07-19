@@ -23,7 +23,7 @@ AUSDFCharacterNonPlayer::AUSDFCharacterNonPlayer()
 	GetCapsuleComponent()->SetCollisionProfileName(CPROFILE_USDF_NONPLAYER_CAPSULE);
 
 	// Mesh
-	GetMesh()->SetCollisionProfileName(CPROFILE_USDF_NONPlAYER_CHARACTERMESH);
+	GetMesh()->SetCollisionProfileName("NoCollision");
 
 	AIStateManager.Add(EAIState::Passive, FOnChangeAIState::CreateUObject(this, &AUSDFCharacterNonPlayer::SetAIStatePassive));
 	AIStateManager.Add(EAIState::Attacking, FOnChangeAIState::CreateUObject(this, &AUSDFCharacterNonPlayer::SetAIStateAttacking));
@@ -60,25 +60,25 @@ void AUSDFCharacterNonPlayer::SetAIState(EAIState NewAIState, FAISensedParam InP
 
 void AUSDFCharacterNonPlayer::SetAIStatePassive(FAISensedParam InParam)
 {
-	Target = nullptr;
+	
 }
 
 void AUSDFCharacterNonPlayer::SetAIStateAttacking(FAISensedParam InParam)
 {
-	Target = InParam.Actor;
+	
 }
 
 void AUSDFCharacterNonPlayer::SetAIStateFrozen(FAISensedParam InParam)
 {
-	Target = nullptr;
+	
 }
 
 void AUSDFCharacterNonPlayer::SetAIStateInvestigating(FAISensedParam InParam)
 {
-	Target = nullptr;
+	
 }
 
 void AUSDFCharacterNonPlayer::SetAIStateDead(FAISensedParam InParam)
 {
-	Target = nullptr;
+	
 }
