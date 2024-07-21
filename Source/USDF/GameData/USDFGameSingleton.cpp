@@ -3,6 +3,7 @@
 
 #include "GameData/USDFGameSingleton.h"
 #include "USDFNormalMonsterStat.h"
+#include "USDFBossMonsterStat.h"
 #include "USDFPlayerStat.h"
 
 DEFINE_LOG_CATEGORY(USDFGameSingleton);
@@ -23,6 +24,22 @@ UUSDFGameSingleton::UUSDFGameSingleton()
 		}
 	}
 
+	
+	static ConstructorHelpers::FObjectFinder<UDataTable> BossMonsterStatDataTableRef(TEXT("/Game/GameData/DT_USDF_BossMonsterStat.DT_USDF_BossMonsterStat"));
+	if (NormalMonsterStatDataTableRef.Object)
+	{
+		const UDataTable* DataTable = BossMonsterStatDataTableRef.Object;
+		check(DataTable->GetRowMap().Num() > 0);
+
+		FString ContextString;
+		for (int i = 0; i < DataTable->GetRowMap().Num(); ++i)
+		{
+			FUSDFBossMonsterStat* BossMonsterStat = DataTable->FindRow<FUSDFBossMonsterStat>(DataTable->GetRowNames()[i], ContextString);
+			BossMonsterStatTable.Add(DataTable->GetRowNames()[i], *BossMonsterStat);
+		}
+	}
+	
+
 	static ConstructorHelpers::FObjectFinder<UDataTable> PlayerStatDataTableRef(TEXT("/Game/GameData/USDFPlayerStatTable.USDFPlayerStatTable"));
 	if(PlayerStatDataTableRef.Object)
 	{
@@ -36,6 +53,8 @@ UUSDFGameSingleton::UUSDFGameSingleton()
 			PlayerStatTable.Add(DataTable->GetRowNames()[i], *PlayerStat);
 		}
 	}
+
+
 }
 
 const UUSDFGameSingleton& UUSDFGameSingleton::Get()

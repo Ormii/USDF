@@ -9,15 +9,6 @@
 #include "Interface/USDFDamageableInterface.h"
 #include "USDFCharacterNormalMonster.generated.h"
 
-UENUM()
-enum class EHitReactDirection : uint8
-{
-	Front,
-	Back,
-	Right,
-	Left
-};
-
 /**
  * 
  */

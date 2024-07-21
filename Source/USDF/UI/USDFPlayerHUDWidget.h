@@ -21,6 +21,8 @@ protected:
 	virtual void NativeOnInitialized() override;
 	virtual void NativeConstruct() override;
 
+public:
+	class UUSDFEnemyHpBarWidget* GetBossHpBar() { return BossHpBar; }
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Player, Meta = (AllowPrivateAccess = "true"))
@@ -32,4 +34,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = GameStage, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UUSDFEndStageWidget> EndStageWidget;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Boss, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UUSDFEnemyHpBarWidget> BossHpBar;
 };

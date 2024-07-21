@@ -25,6 +25,8 @@ public:
 
 	virtual void EndGameStage() override;
 	virtual void OnPlayerDead() override;
+	virtual void OnBossEntry(class AUSDFCharacterBossMonster* BossMonster) override;
+	virtual void OnBossDead(class AUSDFCharacterBossMonster* BossMonster) override;
 	virtual FOnGoalComplete& OnGoalCompleteDelegate() { return OnGoalComplete; };
 	virtual void SetGameStage(class AUSDFGameStage* NewGameStage);
 	virtual bool IsCompleteGoal() override;

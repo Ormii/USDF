@@ -7,6 +7,15 @@
 #include "Damage/USDFDamageCommon.h"
 #include "USDFDamageableInterface.generated.h"
 
+UENUM()
+enum class EHitReactDirection : uint8
+{
+	Front,
+	Back,
+	Right,
+	Left
+};
+
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)
 class UUSDFDamageableInterface : public UInterface

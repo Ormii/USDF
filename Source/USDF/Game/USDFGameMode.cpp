@@ -5,6 +5,7 @@
 #include "Player/USDFPlayerController.h"
 #include "Kismet/GameplayStatics.h"
 #include "Game/USDFGameStage.h"
+#include "Character/USDFCharacterBossMonster.h"
 
 AUSDFGameMode::AUSDFGameMode()
 {
@@ -27,6 +28,24 @@ void AUSDFGameMode::OnPlayerDead()
 	if (PlayerController)
 	{
 		PlayerController->K2_OnGameOver();
+	}
+}
+
+void AUSDFGameMode::OnBossEntry(AUSDFCharacterBossMonster* BossMonster)
+{
+	AUSDFPlayerController* PlayerController = Cast<AUSDFPlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
+	if (PlayerController)
+	{
+		PlayerController->SetTargetBoss(BossMonster);
+	}
+}
+
+void AUSDFGameMode::OnBossDead(AUSDFCharacterBossMonster* BossMonster)
+{
+	AUSDFPlayerController* PlayerController = Cast<AUSDFPlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
+	if (PlayerController)
+	{
+		PlayerController->OnBossDead(BossMonster);
 	}
 }
 

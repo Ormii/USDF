@@ -33,11 +33,16 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, Category = Game, Meta = (DisplayName = "OnAllGameStageClearCpp"))
 	void K2_OnAllGameStageClear();
 
+	void SetTargetBoss(class AUSDFCharacterBossMonster* BossMonster);
+	void OnBossDead(class AUSDFCharacterBossMonster* BossMonster);
+
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = HUD, Meta = (AllowPrivateAccess= "true"))
 	TSubclassOf<class UUSDFPlayerHUDWidget> HUDWidgetClass;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = HUD, Meta= (AllowPrivateAccess = "true"))
 	TObjectPtr<class UUSDFPlayerHUDWidget> HUDWidget;
-};
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Boss, Meta = (AllowPrivateAccess= "true"))
+	TObjectPtr<class AUSDFCharacterBossMonster> TargetBoss;
+};

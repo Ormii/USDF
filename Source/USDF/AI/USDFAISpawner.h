@@ -67,7 +67,7 @@ protected:
 	
 	TQueue<FStageSpawnOrder> CurrentSpawnOrder;
 
-	void Spawn(const FStageSpawnOrder& SpawnOrder);
+	virtual void Spawn(const FStageSpawnOrder& SpawnOrder);
 
 	int32 StageNumber;
 	bool bIsSpawnning;

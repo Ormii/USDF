@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
 #include "USDFNormalMonsterStat.h"
+#include "USDFBossMonsterStat.h"
 #include "USDFPlayerStat.h"
 #include "USDFGameSingleton.generated.h"
 
@@ -49,7 +50,20 @@ public:
 		return FUSDFPlayerStat();
 	}
 
+	FORCEINLINE const FUSDFBossMonsterStat GetBossMonsterStat(FName KeyName)
+	{
+		if (BossMonsterStatTable.Find(KeyName) != nullptr)
+		{
+			return BossMonsterStatTable[KeyName];
+		}
+
+		UE_LOG(LogTemp, Display, TEXT("Not Found BossMonster Stat : %s"), *KeyName.ToString());
+
+		return FUSDFBossMonsterStat();
+	}
+
 private:
 	TMap<FName, FUSDFNormalMonsterStat> NormalMonsterStatTable;
+	TMap<FName, FUSDFBossMonsterStat> BossMonsterStatTable;
 	TMap<FName, FUSDFPlayerStat> PlayerStatTable;
 };

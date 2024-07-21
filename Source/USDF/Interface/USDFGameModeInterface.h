@@ -40,6 +40,8 @@ public:
 	
 	virtual void EndGameStage() = 0;
 	virtual void OnPlayerDead() = 0;
+	virtual void OnBossEntry(class AUSDFCharacterBossMonster* BossMonster) = 0;
+	virtual void OnBossDead(class AUSDFCharacterBossMonster* BossMonster) = 0;
 	virtual void OnGameRetry() = 0;
 	virtual FOnGoalComplete& OnGoalCompleteDelegate() = 0;
 	virtual void SetGameStage(class AUSDFGameStage* NewGameStage) = 0;

@@ -5,6 +5,7 @@
 #include "UI/USDFPlayerHpBarWidget.h"
 #include "UI/USDFPrepareStageWidget.h"
 #include "UI/USDFEndStageWidget.h"
+#include "UI/USDFEnemyHpBarWidget.h"
 #include "Interface/USDFCharacterPlayerHUDInterface.h"
 
 UUSDFPlayerHUDWidget::UUSDFPlayerHUDWidget(const FObjectInitializer& ObjectInitializer)
@@ -24,6 +25,9 @@ void UUSDFPlayerHUDWidget::NativeOnInitialized()
 
 	EndStageWidget = Cast<UUSDFEndStageWidget>(GetWidgetFromName(TEXT("EndStage")));
 	ensure(EndStageWidget);
+
+	BossHpBar = Cast<UUSDFEnemyHpBarWidget>(GetWidgetFromName(TEXT("BossHpBar")));
+	ensure(BossHpBar);
 }
 
 void UUSDFPlayerHUDWidget::NativeConstruct()

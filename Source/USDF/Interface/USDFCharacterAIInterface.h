@@ -16,6 +16,9 @@ enum class EAIAttackType : uint8
 	Melee,
 	Range,
 	Dash,
+	Attack1,
+	Attack2,
+	Attack3,
 };
 
 // This class does not need to be modified.
