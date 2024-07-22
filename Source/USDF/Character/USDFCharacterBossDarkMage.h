@@ -46,6 +46,8 @@ protected:
 
 	virtual void AttackFire() override;
 	virtual void SpawnOrb() override;
+	virtual void TeleportStart() override;
+	virtual void TeleportEnd() override;
 
 	// Combat Section
 protected:
@@ -62,4 +64,13 @@ protected:
 
 	UPROPERTY()
 	TObjectPtr<class AUSDFEnemyProjectile> DefaultAtkProjectile;
+
+
+	// Teleport Section
+protected:
+	UPROPERTY(VisibleAnywhere, Category = Teleport, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UNiagaraSystem> TeleportEffect;
+
+	float SaveMaxFlySpeed;
+	float SaveMaxAcceleration;
 };

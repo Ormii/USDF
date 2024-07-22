@@ -36,7 +36,7 @@ bool UUSDFBTDecorator_CanSeeTarget::CalculateRawConditionValue(UBehaviorTreeComp
 
 	FVector StartLocation = Owner->GetMesh()->GetSocketLocation("eye_socket");
 
-	bool bHitted = GetWorld()->LineTraceSingleByChannel(HitResult, StartLocation, Target->GetActorLocation(), ECC_Pawn, Params);
+	bool bHitted = GetWorld()->LineTraceSingleByChannel(HitResult, StartLocation, Target->GetActorLocation(), CCHANNEL_USDF_NON_PLAYER_CHARACTER, Params);
 	if(bHitted)
 		UE_LOG(LogTemp, Display, TEXT("HitResult : %s"), *HitResult.GetActor()->GetName());
 	

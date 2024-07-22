@@ -63,8 +63,6 @@ EBTNodeResult::Type UUSDFBTTask_MoveToTargetRange::ExecuteTask(UBehaviorTreeComp
 EBTNodeResult::Type UUSDFBTTask_MoveToTargetRange::AbortTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
 	Super::AbortTask(OwnerComp, NodeMemory);
-
-	Super::AbortTask(OwnerComp, NodeMemory);
 	AAIController* AIController = OwnerComp.GetAIOwner();
 	if (AIController == nullptr)
 		return EBTNodeResult::Failed;

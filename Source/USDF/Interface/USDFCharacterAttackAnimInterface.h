@@ -25,5 +25,6 @@ public:
 	virtual void AttackHitCheck() = 0;
 	virtual void AttackFire() {}
 	virtual void SpawnOrb() {}
-	virtual void Teleport() {}
+	virtual void TeleportStart() {}
+	virtual void TeleportEnd() {}
 };

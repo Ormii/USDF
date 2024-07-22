@@ -11,6 +11,9 @@
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Animation/USDFBossDarkMageAnimInstance.h"
 #include "AI/USDFAIController.h"
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraComponent.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 AUSDFCharacterBossDarkMage::AUSDFCharacterBossDarkMage()
 {
@@ -79,6 +82,12 @@ AUSDFCharacterBossDarkMage::AUSDFCharacterBossDarkMage()
 	if (DefaultAttackMontageRef.Object)
 	{
 		AttackMontages.Add(EDarkMageAttackType::DefaultAttack, DefaultAttackMontageRef.Object);
+	}
+
+	static ConstructorHelpers::FObjectFinder<UNiagaraSystem> TeleportEffectRef(TEXT("/Game/ReferenceAsset/BlinkAndDashVFX/VFX_Niagara/NS_Dash_Vampire.NS_Dash_Vampire"));
+	if (TeleportEffectRef.Object)
+	{
+		TeleportEffect = TeleportEffectRef.Object;
 	}
 }
 
@@ -184,6 +193,48 @@ void AUSDFCharacterBossDarkMage::SpawnOrb()
 			break;
 	}
 }
+
+void AUSDFCharacterBossDarkMage::TeleportStart()
+{
+	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Flying);
+
+	SaveMaxFlySpeed = GetCharacterMovement()->MaxFlySpeed;
+	SaveMaxAcceleration = GetCharacterMovement()->MaxAcceleration;
+
+	GetCharacterMovement()->MaxFlySpeed = 5000.0f;
+	GetCharacterMovement()->MaxAcceleration = 99999.0f;
+
+
+	GetMesh()->SetVisibility(false, true);
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
+
+	UNiagaraComponent* pNiagaraCompo = UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), TeleportEffect, GetActorLocation(), FRotationMatrix::Identity.Rotator());;
+	if (pNiagaraCompo != nullptr)
+	{
+		pNiagaraCompo->Activate();
+		pNiagaraCompo->SetAutoDestroy(true);
+	}
+}
+
+void AUSDFCharacterBossDarkMage::TeleportEnd()
+{
+	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_NavWalking);
+	
+
+	GetCharacterMovement()->MaxFlySpeed = SaveMaxFlySpeed;
+	GetCharacterMovement()->MaxAcceleration = SaveMaxAcceleration;
+
+	GetMesh()->SetVisibility(true, true);
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Block);
+
+	UNiagaraComponent* pNiagaraCompo = UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), TeleportEffect, GetActorLocation(), FRotationMatrix::Identity.Rotator());
+	if (pNiagaraCompo != nullptr)
+	{
+		pNiagaraCompo->Activate();
+		pNiagaraCompo->SetAutoDestroy(true);
+	}
+}
+
 
 void AUSDFCharacterBossDarkMage::OnDeath()
 {
