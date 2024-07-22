@@ -7,7 +7,7 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "AIController.h"
 #include "Physics/USDFCollision.h"
-
+#include "GameFramework/Character.h"
 
 bool UUSDFBTDecorator_CanSeeTarget::CalculateRawConditionValue(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) const
 {
@@ -21,7 +21,7 @@ bool UUSDFBTDecorator_CanSeeTarget::CalculateRawConditionValue(UBehaviorTreeComp
 	if (AIController == nullptr)
 		return false;
 
-	AActor* Owner = dynamic_cast<AActor*>(AIController->GetPawn());
+	ACharacter* Owner = Cast<ACharacter>(AIController->GetPawn());
 	if (Owner == nullptr)
 		return false;
 
@@ -34,12 +34,14 @@ bool UUSDFBTDecorator_CanSeeTarget::CalculateRawConditionValue(UBehaviorTreeComp
 	Params.AddIgnoredActor(Target);
 	Params.AddIgnoredActor(Owner);
 
-	bool bHitted = GetWorld()->LineTraceSingleByChannel(HitResult, Owner->GetActorLocation(), Target->GetActorLocation(), ECC_Pawn, Params);
+	FVector StartLocation = Owner->GetMesh()->GetSocketLocation("eye_socket");
+
+	bool bHitted = GetWorld()->LineTraceSingleByChannel(HitResult, StartLocation, Target->GetActorLocation(), ECC_Pawn, Params);
 	if(bHitted)
 		UE_LOG(LogTemp, Display, TEXT("HitResult : %s"), *HitResult.GetActor()->GetName());
 	
 	FColor Color = (bHitted == true) ? FColor::Green : FColor::Red;
-	DrawDebugLine(GetWorld(), Owner->GetActorLocation(), Target->GetActorLocation(), Color, false, 0.2f);
+	DrawDebugLine(GetWorld(), StartLocation, Target->GetActorLocation(), Color, false, 0.2f);
 
 	return !bHitted;
 }

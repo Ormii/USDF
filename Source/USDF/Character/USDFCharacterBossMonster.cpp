@@ -84,10 +84,6 @@ float AUSDFCharacterBossMonster::GetAIEQSDefendRadius()
 	return Stat->GetBossMonsterStat().EQSDefendRange;
 }
 
-void AUSDFCharacterBossMonster::OnHitReactMontageBlendOut(UAnimMontage* TargetMontage, bool bInterrupted)
-{
-}
-
 float AUSDFCharacterBossMonster::GetCurrentHealth()
 {
 	return Stat->GetCurrentHp();
@@ -136,7 +132,68 @@ void AUSDFCharacterBossMonster::OnDeath()
 
 void AUSDFCharacterBossMonster::OnDamageResponse(FDamageInfo DamageInfo)
 {
+	Super::OnDamageResponse(DamageInfo);
 
+	AUSDFAIController* AIController = Cast<AUSDFAIController>(GetController());
+	if (AIController == nullptr)
+		return;
+
+	FAISensedParam Param = {};
+	Param.DamageInfo = DamageInfo;
+
+	AIController->SetCurrentAIState(EAIState::Frozen, Param);
+
+	AActor* HitCauser = DamageInfo.DamageCauser;
+
+	UUSDFNonPlayerAnimInstance* NonPlayerAnimInstance = Cast<UUSDFNonPlayerAnimInstance>(GetMesh()->GetAnimInstance());
+	if (NonPlayerAnimInstance == nullptr)
+		return;
+
+	if (HitCauser == nullptr)
+		return;
+
+	if (Stat->GetCurrentHp() <= 0.0f)
+		return;
+
+	NonPlayerAnimInstance->StopAllMontages(0.0f);
+
+	FVector ActorForwardVector = GetActorForwardVector();
+	FVector ActorRightVector = GetActorRightVector();
+	FVector HitActorForwardVector = HitCauser->GetActorForwardVector();
+
+	float ForwardDotProduct = ActorForwardVector.Dot(HitActorForwardVector);
+	float RightDotProduct = ActorRightVector.Dot(HitActorForwardVector);
+
+	UAnimMontage* HitReactMontage = nullptr;
+	if (ForwardDotProduct >= 0.5f)
+	{
+		HitReactMontage = HitReactAnimMontage[EHitReactDirection::Front];
+	}
+	else if (ForwardDotProduct <= -0.5f)
+	{
+		HitReactMontage = HitReactAnimMontage[EHitReactDirection::Back];
+	}
+	else if (RightDotProduct >= 0.0f)
+	{
+		HitReactMontage = HitReactAnimMontage[EHitReactDirection::Right];
+	}
+	else
+	{
+		HitReactMontage = HitReactAnimMontage[EHitReactDirection::Left];
+	}
+
+	if (HitReactMontage)
+	{
+		UE_LOG(LogTemp, Display, TEXT("Hit React"));
+
+		NonPlayerAnimInstance->Montage_Play(HitReactMontage);
+		AIController->StopMovement();
+
+		FOnMontageBlendingOutStarted BlendOutDelegate;
+		BlendOutDelegate.BindUObject(this, &AUSDFCharacterBossMonster::OnHitReactMontageBlendOut);
+
+		NonPlayerAnimInstance->Montage_SetBlendingOutDelegate(BlendOutDelegate, HitReactMontage);
+	}
 }
 
 void AUSDFCharacterBossMonster::SetupHpBarWidget(UUSDFUserWidget* InUserWidget)
@@ -147,4 +204,18 @@ void AUSDFCharacterBossMonster::SetupHpBarWidget(UUSDFUserWidget* InUserWidget)
 
 	HpBar->SetMaxHp(Stat->GetMaxHp());
 	HpBar->UpdateHpBar(Stat->GetCurrentHp());
+}
+
+void AUSDFCharacterBossMonster::OnHitReactMontageBlendOut(UAnimMontage* TargetMontage, bool bInterrupted)
+{
+	if (!bInterrupted)
+	{
+		AUSDFAIController* AIController = Cast<AUSDFAIController>(GetController());
+		if (AIController)
+		{
+			FAISensedParam Param = {};
+			Param.bUseLastAttackTarget = true;
+			AIController->SetCurrentAIState(EAIState::Attacking, Param);
+		}
+	}
 }

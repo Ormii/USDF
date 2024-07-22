@@ -24,4 +24,6 @@ class USDF_API IUSDFCharacterAttackAnimInterface
 public:
 	virtual void AttackHitCheck() = 0;
 	virtual void AttackFire() {}
+	virtual void SpawnOrb() {}
+	virtual void Teleport() {}
 };

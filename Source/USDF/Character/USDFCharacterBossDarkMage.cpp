@@ -7,6 +7,10 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameData/USDFGameSingleton.h"
 #include "CharacterStat/USDFBossMonsterStatComponent.h"
+#include "Projectiles/USDFEnemyProjectile.h"
+#include "GameFramework/ProjectileMovementComponent.h"
+#include "Animation/USDFBossDarkMageAnimInstance.h"
+#include "AI/USDFAIController.h"
 
 AUSDFCharacterBossDarkMage::AUSDFCharacterBossDarkMage()
 {
@@ -40,6 +44,42 @@ AUSDFCharacterBossDarkMage::AUSDFCharacterBossDarkMage()
 	{
 		GetMesh()->SetAnimInstanceClass(AnimInstanceRef.Class);
 	}
+
+	static ConstructorHelpers::FClassFinder<AUSDFEnemyProjectile> DefaultAtkProjectileClassRef(TEXT("/Game/Blueprint/Projectiles/BP_USDFDarkMageDefaultProjectile.BP_USDFDarkMageDefaultProjectile_C"));
+	if (DefaultAtkProjectileClassRef.Class)
+	{
+		DefaultAtkProjectileClass = DefaultAtkProjectileClassRef.Class;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> HitReactFrontMontageRef(TEXT("/Game/Animation/NonPlayer/BossDarkMage/BS_USDF_Boss_DarkMage_HitReact_Front.BS_USDF_Boss_DarkMage_HitReact_Front"));
+	if (HitReactFrontMontageRef.Object)
+	{
+		HitReactAnimMontage.Add(EHitReactDirection::Front, HitReactFrontMontageRef.Object);
+	}
+
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> HitReactBackMontageRef(TEXT("/Game/Animation/NonPlayer/BossDarkMage/BS_USDF_Boss_DarkMage_HitReact_Back.BS_USDF_Boss_DarkMage_HitReact_Back"));
+	if (HitReactBackMontageRef.Object)
+	{
+		HitReactAnimMontage.Add(EHitReactDirection::Back, HitReactBackMontageRef.Object);
+	}
+
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> HitReactRightMontageRef(TEXT("/Game/Animation/NonPlayer/BossDarkMage/BS_USDF_Boss_DarkMage_HitReact_Right.BS_USDF_Boss_DarkMage_HitReact_Right"));
+	if (HitReactRightMontageRef.Object)
+	{
+		HitReactAnimMontage.Add(EHitReactDirection::Right, HitReactRightMontageRef.Object);
+	}
+
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> HitReactLeftMontageRef(TEXT("/Game/Animation/NonPlayer/BossDarkMage/BS_USDF_Boss_DarkMage_HitReact_Left.BS_USDF_Boss_DarkMage_HitReact_Left"));
+	if (HitReactLeftMontageRef.Object)
+	{
+		HitReactAnimMontage.Add(EHitReactDirection::Left, HitReactLeftMontageRef.Object);
+	}
+
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> DefaultAttackMontageRef(TEXT("/Game/Animation/NonPlayer/BossDarkMage/BS_USDF_Boss_DarkMage_DefaultAtk.BS_USDF_Boss_DarkMage_DefaultAtk"));
+	if (DefaultAttackMontageRef.Object)
+	{
+		AttackMontages.Add(EDarkMageAttackType::DefaultAttack, DefaultAttackMontageRef.Object);
+	}
 }
 
 void AUSDFCharacterBossDarkMage::PostInitializeComponents()
@@ -55,18 +95,94 @@ void AUSDFCharacterBossDarkMage::PostInitializeComponents()
 
 void AUSDFCharacterBossDarkMage::AttackByAI(EAIAttackType InAIAttackType)
 {
+	switch (InAIAttackType)
+	{
+	case EAIAttackType::Range:
+	{
+		CurrentAttackType = EDarkMageAttackType::DefaultAttack;
+	}
+	break;
+	case EAIAttackType::Melee:
+	case EAIAttackType::Dash:
+		break;
+	default:
+		break;
+	}
+
+	if (CurrentAttackType != EDarkMageAttackType::None)
+	{
+		UUSDFBossDarkMageAnimInstance* AnimInstance = Cast<UUSDFBossDarkMageAnimInstance>(GetMesh()->GetAnimInstance());
+		if (AnimInstance)
+		{
+			UAnimMontage* PlayAttackMontage = AttackMontages[CurrentAttackType];
+
+			AnimInstance->StopAllMontages(0.0f);
+			AnimInstance->Montage_Play(PlayAttackMontage);
+
+			FOnMontageEnded OnMontageEnded;
+			OnMontageEnded.BindUObject(this, &AUSDFCharacterBossDarkMage::AttackMontageEnded);
+			AnimInstance->Montage_SetEndDelegate(OnMontageEnded, PlayAttackMontage);
+		}
+	}
 }
 
 void AUSDFCharacterBossDarkMage::AttackFinished()
 {
+	Super::AttackFinished();
 }
 
 void AUSDFCharacterBossDarkMage::AttackMontageEnded(UAnimMontage* TargetMontage, bool IsProperlyEnded)
 {
+	AttackFinished();
+	CurrentAttackType = EDarkMageAttackType::None;
 }
 
 void AUSDFCharacterBossDarkMage::AttackFire()
 {
+	if (DefaultAtkProjectile == nullptr)
+		return;
+	
+	AUSDFAIController* AIController = Cast<AUSDFAIController>(GetController());
+	if (AIController == nullptr)
+		return;
+
+	const AActor* Target = AIController->GetAttackTarget();
+	if (Target == nullptr)
+		return;
+
+	DefaultAtkProjectile->DetachAllSceneComponents(GetMesh(), FDetachmentTransformRules::KeepWorldTransform);
+	DefaultAtkProjectile->GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	DefaultAtkProjectile->GetProjectileMovementComp()->bSimulationEnabled = true;
+	DefaultAtkProjectile->GetProjectileMovementComp()->ProjectileGravityScale = 0.0f;
+
+	DefaultAtkProjectile->SetAttackDamage(Stat->GetBossMonsterStat().DefaultAttack);
+
+	FVector StartLocation = DefaultAtkProjectile->GetActorLocation();
+	FVector TargetLocation = Target->GetActorLocation();
+
+	FVector ForwardVector = (TargetLocation - StartLocation).GetSafeNormal();
+	DefaultAtkProjectile->SetActorRotation(FRotationMatrix::MakeFromX(ForwardVector).ToQuat());
+	DefaultAtkProjectile->GetProjectileMovementComp()->Velocity = ForwardVector * 3000.0f;
+}
+
+void AUSDFCharacterBossDarkMage::SpawnOrb()
+{
+	switch (CurrentAttackType)
+	{
+		case EDarkMageAttackType::DefaultAttack:
+		{
+			DefaultAtkProjectile = GetWorld()->SpawnActor<AUSDFEnemyProjectile>(DefaultAtkProjectileClass, FTransform::Identity);
+			if (DefaultAtkProjectile != nullptr)
+			{
+				DefaultAtkProjectile->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, "default_orb_spawn_socket");
+				DefaultAtkProjectile->GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+				DefaultAtkProjectile->GetProjectileMovementComp()->bSimulationEnabled = false;
+			}
+		}
+			break;
+		default:
+			break;
+	}
 }
 
 void AUSDFCharacterBossDarkMage::OnDeath()

@@ -45,6 +45,7 @@ protected:
 	void AttackMontageEnded(UAnimMontage* TargetMontage, bool IsProperlyEnded);
 
 	virtual void AttackFire() override;
+	virtual void SpawnOrb() override;
 
 	// Combat Section
 protected:
@@ -54,4 +55,11 @@ protected:
 	// Damage Section
 protected:
 	virtual void OnDeath() override;
+
+protected:
+	UPROPERTY(VisibleAnywhere, Category = Attack, Meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<class AUSDFEnemyProjectile> DefaultAtkProjectileClass;
+
+	UPROPERTY()
+	TObjectPtr<class AUSDFEnemyProjectile> DefaultAtkProjectile;
 };

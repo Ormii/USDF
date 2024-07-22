@@ -72,6 +72,11 @@ protected:
 	virtual void OnDeath() override;
 	virtual void OnDamageResponse(FDamageInfo DamageInfo) override;
 
+	// Hit React Section
+protected:
+	UPROPERTY()
+	TMap<EHitReactDirection, TObjectPtr<class UAnimMontage>> HitReactAnimMontage;
+
 	// Widget Section
 public:
 	virtual void SetupHpBarWidget(class UUSDFUserWidget* InUserWidget) override;
