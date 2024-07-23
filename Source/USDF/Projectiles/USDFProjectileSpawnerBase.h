@@ -19,6 +19,8 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	virtual void BeginDestroy() override;
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -52,6 +54,9 @@ protected:
 
 	UPROPERTY(Transient)
 	float AttackDamage;
+
+	UPROPERTY()
+	FTimerHandle TimerHandle;
 
 public:
 	FORCEINLINE void SetAttackDamage(float NewAttackDamage) { AttackDamage = NewAttackDamage; }

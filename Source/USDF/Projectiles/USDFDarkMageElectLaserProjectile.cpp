@@ -26,13 +26,23 @@ void AUSDFDarkMageElectLaserProjectile::BeginPlay()
 	Super::BeginPlay();
 	BoxCollision->SetVisibility(false);
 
-	FTimerHandle TimerHandle;
 	FTimerDelegate TimerDelegate;
 	TimerDelegate.BindLambda([&]() {
 		bRotate = true;
 	});
 
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, 1.0f, false);
+}
+
+void AUSDFDarkMageElectLaserProjectile::BeginDestroy()
+{
+	UWorld* World = GetWorld();
+	if (World)
+	{
+		World->GetTimerManager().ClearTimer(TimerHandle);
+	}
+
+	Super::BeginDestroy();
 }
 
 void AUSDFDarkMageElectLaserProjectile::Tick(float DeltaTime)

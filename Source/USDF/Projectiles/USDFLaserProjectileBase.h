@@ -14,10 +14,11 @@ class USDF_API AUSDFLaserProjectileBase : public AActor
 public:	
 	// Sets default values for this actor's properties
 	AUSDFLaserProjectileBase();
-
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
+	virtual void BeginDestroy() override;
 
 public:	
 	// Called every frame

@@ -24,7 +24,10 @@ public:
 protected:
 	virtual void PostInitializeComponents() override;
 
-public:
+protected:
+	virtual void BeginPlay() override;
+
+protected:
 	virtual void Tick(float DeltaSeconds) override;
 
 	// AI Section

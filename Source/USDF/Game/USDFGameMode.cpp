@@ -118,6 +118,7 @@ void AUSDFGameMode::OnGameRetry()
 {
 	UWorld* World = GetWorld();
 	FName CurrentLevelName = *UGameplayStatics::GetCurrentLevelName(GetWorld());
+
 	UGameplayStatics::OpenLevel(World, CurrentLevelName);
 }
 

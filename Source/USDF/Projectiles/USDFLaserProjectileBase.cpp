@@ -25,6 +25,7 @@ AUSDFLaserProjectileBase::AUSDFLaserProjectileBase()
 	BoxCollision->SetupAttachment(RootComponent);
 }
 
+
 // Called when the game starts or when spawned
 void AUSDFLaserProjectileBase::BeginPlay()
 {
@@ -32,6 +33,11 @@ void AUSDFLaserProjectileBase::BeginPlay()
 	BoxCollision->OnComponentBeginOverlap.AddDynamic(this, &AUSDFLaserProjectileBase::OnOverlapBeginFunc);
 	BaseEffect->Activate();
 	BaseEffect->SetAutoDestroy(true);
+}
+
+void AUSDFLaserProjectileBase::BeginDestroy()
+{
+	Super::BeginDestroy();
 }
 
 // Called every frame

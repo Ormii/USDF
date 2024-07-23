@@ -21,7 +21,17 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	virtual void BeginDestroy() override;
+protected:
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
 protected:
 	void BoxCollisionActivate();
-	void BoxCollisionDeActivate();
+
+protected:
+	UPROPERTY()
+	FTimerHandle TimerHandle;
+
+	bool bBoxCollisionActivate;
+	float ActivateTime;
 };

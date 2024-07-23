@@ -13,6 +13,8 @@
 #include "AI/USDFAIController.h"
 #include "Perception/AISense_Damage.h"
 #include "Damage/USDFDamageSystemComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "AI/USDFPatrolRoute.h"
 
 AUSDFCharacterNormalMonster::AUSDFCharacterNormalMonster()
 {
@@ -46,6 +48,18 @@ void AUSDFCharacterNormalMonster::PostInitializeComponents()
 
 	DamageSystem->OnDeath.BindUObject(this, &AUSDFCharacterNormalMonster::OnDeath);
 	DamageSystem->OnDamageResponse.BindUObject(this, &AUSDFCharacterNormalMonster::OnDamageResponse);
+}
+
+void AUSDFCharacterNormalMonster::BeginPlay()
+{
+	Super::BeginPlay();
+
+	AActor* Route = UGameplayStatics::GetActorOfClass(this, AUSDFPatrolRoute::StaticClass());
+	if (Route != nullptr)
+	{
+		PatrolRoute = Cast<AUSDFPatrolRoute>(Route);
+	}
+	
 }
 
 void AUSDFCharacterNormalMonster::Tick(float DeltaSeconds)

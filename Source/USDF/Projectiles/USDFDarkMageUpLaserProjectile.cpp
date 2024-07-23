@@ -16,45 +16,63 @@ AUSDFDarkMageUpLaserProjectile::AUSDFDarkMageUpLaserProjectile()
 
 	BoxCollision->SetRelativeLocation(FVector(0.0f, 0.0f, 755.0f));
 	BoxCollision->SetBoxExtent(FVector(85.0f, 85.0f, 760.0f));
+
+	bBoxCollisionActivate = false;
+	ActivateTime = 0.0f;
 }
 
 void AUSDFDarkMageUpLaserProjectile::BeginPlay()
 {
 	Super::BeginPlay();
 	BoxCollision->SetGenerateOverlapEvents(false);
-	BoxCollision->SetVisibility(false);
-	FTimerHandle TimerHandle;
+
 	FTimerDelegate TimerDelegate;
 	TimerDelegate.BindLambda([&]() {
-		BoxCollision->SetVisibility(true);
 		BoxCollisionActivate();
 	});
 
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, 1.1f, false);
 }
 
-void AUSDFDarkMageUpLaserProjectile::BoxCollisionActivate()
+void AUSDFDarkMageUpLaserProjectile::BeginDestroy()
 {
-	BoxCollision->SetGenerateOverlapEvents(true);
-	FTimerHandle TimerHandle;
-	FTimerDelegate TimerDelegate;
-	TimerDelegate.BindLambda([&]() {
-		BoxCollisionDeActivate();
-	});
+	UWorld* World = GetWorld();
+	if (World)
+	{
+		World->GetTimerManager().ClearTimer(TimerHandle);
+	}
 
-	GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, 0.75f, false);
+	Super::BeginDestroy();
 }
 
-void AUSDFDarkMageUpLaserProjectile::BoxCollisionDeActivate()
+void AUSDFDarkMageUpLaserProjectile::Tick(float DeltaTime)
 {
-	BoxCollision->SetVisibility(false);
-	BoxCollision->SetGenerateOverlapEvents(false);
+	Super::Tick(DeltaTime);
 
-	FTimerHandle TimerHandle;
-	FTimerDelegate TimerDelegate;
-	TimerDelegate.BindLambda([&]() {
-		Destroy();
-	});
+	if (bBoxCollisionActivate)
+	{
+		ActivateTime += DeltaTime;
+		if (ActivateTime >= 0.75f)
+		{
+			bBoxCollisionActivate = false;
+			ActivateTime = 0.0f;
+			BoxCollision->SetGenerateOverlapEvents(false);
 
-	GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, 1.4f, false);
+			FTimerDelegate TimerDelegate;
+			TimerDelegate.BindLambda([&]() {
+				Destroy();
+			});
+
+			if (GetWorld() != nullptr)
+			{
+				GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, 1.4f, false);
+			}
+		}
+	}
+}
+
+void AUSDFDarkMageUpLaserProjectile::BoxCollisionActivate()
+{
+	bBoxCollisionActivate = true;
+	BoxCollision->SetGenerateOverlapEvents(true);
 }

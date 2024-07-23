@@ -14,10 +14,11 @@ class USDF_API AUSDFDarkMageEyeCube : public AActor
 public:	
 	// Sets default values for this actor's properties
 	AUSDFDarkMageEyeCube();
-
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
+	virtual void BeginDestroy() override;
 
 public:	
 	// Called every frame
@@ -25,9 +26,23 @@ public:
 
 
 protected:
+	UPROPERTY(VisibleAnywhere, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class USceneComponent> Scene;
+
 	UPROPERTY(VisibleAnywhere, Category = Mesh, Meta = (AllowPrivateAccess= "true"))
 	TObjectPtr<class UStaticMeshComponent> Mesh;
 
 	UPROPERTY(VisibleAnywhere, Category = Effect, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UNiagaraComponent> BaseEffect;
+
+protected:
+	UPROPERTY(VisibleAnywhere, Category = Spawner, Meta = (AllowPrivateAccess = "true"))
+	TArray<TObjectPtr<class AUSDFDarkMageEyeCubeSpawner>> Spawners;
+
+	UPROPERTY()
+	FTimerHandle TimerHandle;
+
+public:
+	void PrepareSpawn(int32 SpawnFlag);
+	void Spawn();
 };

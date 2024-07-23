@@ -36,6 +36,17 @@ void AUSDFProjectileBase::BeginPlay()
 	BaseEffect->Activate();
 }
 
+void AUSDFProjectileBase::BeginDestroy()
+{
+	UWorld* World = GetWorld();
+	if (World)
+	{
+		World->GetTimerManager().ClearTimer(TimerHandle);
+	}
+
+	Super::BeginDestroy();
+}
+
 // Called every frame
 void AUSDFProjectileBase::Tick(float DeltaTime)
 {
@@ -45,6 +56,9 @@ void AUSDFProjectileBase::Tick(float DeltaTime)
 
 void AUSDFProjectileBase::OnComponentHitFunc(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
+	if (GetWorld() == nullptr)
+		return;
+
 	IUSDFDamageableInterface* Damageable = Cast<IUSDFDamageableInterface>(OtherActor);
 	if (Damageable)
 	{
@@ -72,7 +86,6 @@ void AUSDFProjectileBase::OnComponentHitFunc(UPrimitiveComponent* HitComponent, 
 	Mesh->SetSimulatePhysics(false);
 	Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-	FTimerHandle TimerHandle{};
 	FTimerDelegate TimerCallback;
 	TimerCallback.BindLambda([&]() {Destroy(); });
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle,TimerCallback, 4.0f, false);

@@ -29,12 +29,23 @@ void AUSDFProjectileSpawnerBase::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	FTimerHandle TimerHandle;
+	
 	FTimerDelegate TimerDelegate{};
 	TimerDelegate.BindUObject(this, &AUSDFProjectileSpawnerBase::SpawnProjectile);
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, SpawnDelayTime, false);
 
 	SpawnEffect->Activate();
+}
+
+void AUSDFProjectileSpawnerBase::BeginDestroy()
+{
+	UWorld* World = GetWorld();
+	if (World)
+	{
+		World->GetTimerManager().ClearTimer(TimerHandle);
+	}
+
+	Super::BeginDestroy();
 }
 
 // Called every frame
@@ -46,6 +57,9 @@ void AUSDFProjectileSpawnerBase::Tick(float DeltaTime)
 
 void AUSDFProjectileSpawnerBase::SpawnProjectile()
 {
+	if (GetWorld() == nullptr)
+		return;
+
 	AUSDFProjectileBase* Projectile = GetWorld()->SpawnActor<AUSDFProjectileBase>(ProjectileClass,FTransform::Identity);
 	if (Projectile)
 	{
@@ -57,7 +71,6 @@ void AUSDFProjectileSpawnerBase::SpawnProjectile()
 
 		Projectile->SetAttackDamage(AttackDamage);
 
-		FTimerHandle TimerHandle;
 		FTimerDelegate TimerDelegate{};
 		
 		TimerDelegate.BindLambda([&]() {

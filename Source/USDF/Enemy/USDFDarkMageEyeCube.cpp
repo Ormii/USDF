@@ -5,6 +5,9 @@
 #include "Components/StaticMeshComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraComponent.h"
+#include "Physics/USDFCollision.h"
+#include "Kismet/GameplayStatics.h"
+#include "Enemy/USDFDarkMageEyeCubeSpawner.h"
 
 // Sets default values
 AUSDFDarkMageEyeCube::AUSDFDarkMageEyeCube()
@@ -13,6 +16,7 @@ AUSDFDarkMageEyeCube::AUSDFDarkMageEyeCube()
 	PrimaryActorTick.bCanEverTick = true;
 
 	// CDO
+	Scene = CreateDefaultSubobject<USceneComponent>(TEXT("Scene"));
 	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
 
 	BaseEffect = CreateDefaultSubobject<UNiagaraComponent>(TEXT("BaseEffect"));
@@ -28,10 +32,15 @@ AUSDFDarkMageEyeCube::AUSDFDarkMageEyeCube()
 		BaseEffect->SetAsset(EffectRef.Object);
 	}
 
-	RootComponent = Mesh;
-	BaseEffect->SetupAttachment(RootComponent);
+	RootComponent = Scene;
+	Mesh->SetupAttachment(RootComponent);
+	BaseEffect->SetupAttachment(Mesh);
 	BaseEffect->SetRelativeScale3D(FVector(0.4f, 0.4f, 0.4f));
+
+	Mesh->SetCollisionProfileName(CPROFILE_USDF_NONPLAYER_CAPSULE);
 }
+
+
 
 // Called when the game starts or when spawned
 void AUSDFDarkMageEyeCube::BeginPlay()
@@ -39,6 +48,29 @@ void AUSDFDarkMageEyeCube::BeginPlay()
 	Super::BeginPlay();
 	BaseEffect->Activate(true);
 	
+	TArray<AActor*> Result;
+	UGameplayStatics::GetAllActorsOfClass(this, AUSDFDarkMageEyeCubeSpawner::StaticClass(), Result);
+
+	for (auto& Spawner : Result)
+		Spawners.Add(Cast<AUSDFDarkMageEyeCubeSpawner>(Spawner));
+
+	FTimerDelegate TimerDelegate;
+	TimerDelegate.BindLambda([&]() {
+		PrepareSpawn(1);
+	});
+
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, 3.0f, false);
+}
+
+void AUSDFDarkMageEyeCube::BeginDestroy()
+{
+	UWorld* World = GetWorld();
+	if (World)
+	{
+		World->GetTimerManager().ClearTimer(TimerHandle);
+	}
+	
+	Super::BeginDestroy();
 }
 
 // Called every frame
@@ -49,3 +81,24 @@ void AUSDFDarkMageEyeCube::Tick(float DeltaTime)
 	Mesh->AddWorldRotation(FRotator(1.0f, 0.4f, 0.1f));
 }
 
+void AUSDFDarkMageEyeCube::PrepareSpawn(int32 SpawnFlag)
+{
+	if (GetWorld() == nullptr)
+		return;
+
+	for (int32 i = 0; i < Spawners.Num(); ++i)
+		Spawners[i]->PrepareSpawn(SpawnFlag);
+
+	FTimerDelegate TimerDelegate;
+	TimerDelegate.BindLambda([&]() {
+		Spawn();
+	});
+
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, 3.0f, false);
+}
+
+void AUSDFDarkMageEyeCube::Spawn()
+{
+	for (int32 i = 0; i < Spawners.Num(); ++i)
+		Spawners[i]->BeginSpawn();
+}
