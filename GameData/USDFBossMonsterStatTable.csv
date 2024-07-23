@@ -1,2 +1,2 @@
 ﻿Name,MaxHP,DefaultAttack,Skill1,Skill2,Skill3,WalkSpeed,RunSpeed,AttackRange,EQSDefendRange,TurnRateSpeed
-DarkMage,2000,20,60,120,380,120,320,200,350,2
+DarkMage,2000,200,300,500,380,120,320,200,350,2

@@ -29,8 +29,6 @@ AUSDFCharacterPlayerWarrior::AUSDFCharacterPlayerWarrior()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	DetectSphere->SetSphereRadius(350.0f);
-
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> CharacterMeshRef(TEXT("/Game/ReferenceAsset/IdaFaber/Meshes/Girl/SK_CALISTA_01.SK_CALISTA_01"));
 	if (CharacterMeshRef.Succeeded())
 	{
@@ -55,7 +53,7 @@ AUSDFCharacterPlayerWarrior::AUSDFCharacterPlayerWarrior()
 		CombatEndMontage = CombatEndMontageRef.Object;
 	}
 
-	static ConstructorHelpers::FClassFinder<AUSDFItemWeapon> WeaponSwordClassRef(TEXT("/Game/Item/BP_USDFItemWeaponDarkSword.BP_USDFItemWeaponDarkSword_C"));
+	static ConstructorHelpers::FClassFinder<AUSDFItemWeapon> WeaponSwordClassRef(TEXT("/Game/Item/BP_USDFItemWeaponLightSword.BP_USDFItemWeaponLightSword_C"));
 	if (WeaponSwordClassRef.Class)
 	{
 		WeaponSwordClass = WeaponSwordClassRef.Class;
@@ -377,7 +375,6 @@ void AUSDFCharacterPlayerWarrior::PossessAttackMontage()
 			break;
 		case ELocomotionState::Run:
 			CurrentComboAttackType = EPlayerWarriorComboType::Dash;
-			DetectSphere->SetSphereRadius(800.0f);
 			break;
 		case ELocomotionState::Jumping:
 			break;

@@ -33,6 +33,7 @@ void AUSDFProjectileBase::BeginPlay()
 {
 	Super::BeginPlay();
 	Mesh->OnComponentHit.AddDynamic(this, &AUSDFProjectileBase::OnComponentHitFunc);
+	BaseEffect->Activate();
 }
 
 // Called every frame

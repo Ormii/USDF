@@ -30,7 +30,6 @@ AUSDFCharacterPlayer::AUSDFCharacterPlayer()
 	// CDO
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
-	DetectSphere = CreateDefaultSubobject<USphereComponent>(TEXT("DetectSphere"));
 
 	SpringArm->SetupAttachment(RootComponent);
 	Camera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);

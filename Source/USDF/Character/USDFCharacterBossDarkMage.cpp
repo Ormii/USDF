@@ -8,12 +8,16 @@
 #include "GameData/USDFGameSingleton.h"
 #include "CharacterStat/USDFBossMonsterStatComponent.h"
 #include "Projectiles/USDFEnemyProjectile.h"
+#include "Projectiles/USDFDarkMageMeteoSpawner.h"
+#include "Projectiles/USDFDarkMageUpLaserProjectile.h"
+#include "Projectiles/USDFDarkMageElectLaserProjectile.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Animation/USDFBossDarkMageAnimInstance.h"
 #include "AI/USDFAIController.h"
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "NavigationSystem.h"
 
 AUSDFCharacterBossDarkMage::AUSDFCharacterBossDarkMage()
 {
@@ -54,6 +58,24 @@ AUSDFCharacterBossDarkMage::AUSDFCharacterBossDarkMage()
 		DefaultAtkProjectileClass = DefaultAtkProjectileClassRef.Class;
 	}
 
+	static ConstructorHelpers::FClassFinder<AUSDFDarkMageMeteoSpawner> MeteoSpawnerClassRef(TEXT("/Game/Blueprint/Projectiles/BP_USDFDarkMageMeteoSpawner.BP_USDFDarkMageMeteoSpawner_C"));
+	if (MeteoSpawnerClassRef.Class)
+	{
+		MeteoSpawnerClass = MeteoSpawnerClassRef.Class;
+	}
+
+	static ConstructorHelpers::FClassFinder<AUSDFDarkMageUpLaserProjectile> UpLaserClassRef(TEXT("/Game/Blueprint/Projectiles/BP_USDFDarkMageUpLaserProjectile.BP_USDFDarkMageUpLaserProjectile_C"));
+	if (UpLaserClassRef.Class)
+	{
+		UpLaserClass = UpLaserClassRef.Class;
+	}
+
+	static ConstructorHelpers::FClassFinder<AUSDFDarkMageElectLaserProjectile> ElectLaserClassRef(TEXT("/Game/Blueprint/Projectiles/BP_USDFDarkMageElectLaser.BP_USDFDarkMageElectLaser_C"));
+	if (ElectLaserClassRef.Class)
+	{
+		ElectLaserClass = ElectLaserClassRef.Class;
+	}
+
 	static ConstructorHelpers::FObjectFinder<UAnimMontage> HitReactFrontMontageRef(TEXT("/Game/Animation/NonPlayer/BossDarkMage/BS_USDF_Boss_DarkMage_HitReact_Front.BS_USDF_Boss_DarkMage_HitReact_Front"));
 	if (HitReactFrontMontageRef.Object)
 	{
@@ -84,6 +106,18 @@ AUSDFCharacterBossDarkMage::AUSDFCharacterBossDarkMage()
 		AttackMontages.Add(EDarkMageAttackType::DefaultAttack, DefaultAttackMontageRef.Object);
 	}
 
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> MeteoAttackMontageRef(TEXT("/Game/Animation/NonPlayer/BossDarkMage/BS_USDF_Boss_DarkMage_Meteo.BS_USDF_Boss_DarkMage_Meteo"));
+	if (MeteoAttackMontageRef.Object)
+	{
+		AttackMontages.Add(EDarkMageAttackType::Meteo, MeteoAttackMontageRef.Object);
+	}
+
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> UpLaserAttackMontageRef(TEXT("/Game/Animation/NonPlayer/BossDarkMage/BS_USDF_Boss_DarkMage_UpLaser.BS_USDF_Boss_DarkMage_UpLaser"));
+	if (UpLaserAttackMontageRef.Object)
+	{
+		AttackMontages.Add(EDarkMageAttackType::UpLaser, UpLaserAttackMontageRef.Object);
+	}
+
 	static ConstructorHelpers::FObjectFinder<UNiagaraSystem> TeleportEffectRef(TEXT("/Game/ReferenceAsset/BlinkAndDashVFX/VFX_Niagara/NS_Dash_Vampire.NS_Dash_Vampire"));
 	if (TeleportEffectRef.Object)
 	{
@@ -106,16 +140,26 @@ void AUSDFCharacterBossDarkMage::AttackByAI(EAIAttackType InAIAttackType)
 {
 	switch (InAIAttackType)
 	{
-	case EAIAttackType::Range:
-	{
-		CurrentAttackType = EDarkMageAttackType::DefaultAttack;
-	}
-	break;
-	case EAIAttackType::Melee:
-	case EAIAttackType::Dash:
-		break;
-	default:
-		break;
+		case EAIAttackType::Range:
+		{
+			CurrentAttackType = EDarkMageAttackType::DefaultAttack;
+		}
+			break;
+		case EAIAttackType::Melee:
+		case EAIAttackType::Dash:
+			break;
+		case EAIAttackType::Attack1:
+		{
+			CurrentAttackType = EDarkMageAttackType::Meteo;
+		}
+			break;
+		case EAIAttackType::Attack2:
+		{
+			CurrentAttackType = EDarkMageAttackType::UpLaser;
+		}
+			break;
+		default:
+			break;
 	}
 
 	if (CurrentAttackType != EDarkMageAttackType::None)
@@ -174,7 +218,7 @@ void AUSDFCharacterBossDarkMage::AttackFire()
 	DefaultAtkProjectile->GetProjectileMovementComp()->Velocity = ForwardVector * 3000.0f;
 }
 
-void AUSDFCharacterBossDarkMage::SpawnOrb()
+void AUSDFCharacterBossDarkMage::SpawnProjectile()
 {
 	switch (CurrentAttackType)
 	{
@@ -186,6 +230,138 @@ void AUSDFCharacterBossDarkMage::SpawnOrb()
 				DefaultAtkProjectile->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, "default_orb_spawn_socket");
 				DefaultAtkProjectile->GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 				DefaultAtkProjectile->GetProjectileMovementComp()->bSimulationEnabled = false;
+			}
+		}
+			break;
+		case EDarkMageAttackType::Meteo:
+		{
+			AUSDFAIController* AIController = Cast<AUSDFAIController>(GetController());
+			if (AIController == nullptr)
+				break;
+
+			const AActor* Target = AIController->GetAttackTarget();
+
+			if (Target == nullptr)
+				break;
+
+			UNavigationSystemV1* Nav = UNavigationSystemV1::GetCurrent(GetWorld());
+			if (Nav == nullptr)
+				break;
+
+			int32 DefaultCount = 3;
+			int32 AddCount = static_cast<int32>((1.0f - Stat->GetCurrentHp() / Stat->GetMaxHp()) * 10.0f);
+
+			int32 TotCount = DefaultCount + AddCount;
+			for (int32 i = 0; i < TotCount; ++i)
+			{
+				float angle = 180.0f * (2*i+1) / (2 * TotCount );
+				float radius = 800.0f;
+
+				FVector RightVector = GetActorRightVector();
+				FVector SpawnerVector = RightVector.RotateAngleAxis(angle,GetActorForwardVector());
+				FVector SpawnerLocation = GetActorLocation() + SpawnerVector * radius;
+
+				AUSDFDarkMageMeteoSpawner* MeteoSpawner = GetWorld()->SpawnActor<AUSDFDarkMageMeteoSpawner>(MeteoSpawnerClass, FTransform::Identity);
+				if (MeteoSpawner)
+				{
+					MeteoSpawner->SetActorLocation(SpawnerLocation);
+					MeteoSpawner->SetAttackDamage(Stat->GetBossMonsterStat().Skill1);
+					
+					FVector TargetLocation = Target->GetActorLocation();
+					FNavLocation EndLocation = {};
+					if (Nav->GetRandomPointInNavigableRadius(TargetLocation, 500.0f, EndLocation))
+					{
+						TargetLocation = EndLocation.Location;
+					}
+
+					MeteoSpawner->SetActorRotation(FRotationMatrix::MakeFromX(TargetLocation - SpawnerLocation).Rotator());
+				}
+			}
+		}
+			break;
+		default:
+			break;
+	}
+}
+
+void AUSDFCharacterBossDarkMage::SpawnLaser(int32 InParam)
+{
+	AUSDFAIController* AIController = Cast<AUSDFAIController>(GetController());
+	if (AIController == nullptr)
+		return;
+
+	const AActor* Target = AIController->GetAttackTarget();
+
+	if (Target == nullptr)
+		return;
+
+	UNavigationSystemV1* Nav = UNavigationSystemV1::GetCurrent(GetWorld());
+	if (Nav == nullptr)
+		return;
+
+	switch (CurrentAttackType)
+	{
+		case EDarkMageAttackType::UpLaser:
+		{
+			switch (InParam)
+			{
+				case 0:
+				{
+					AUSDFDarkMageUpLaserProjectile* UpLaserProjectile = GetWorld()->SpawnActorDeferred<AUSDFDarkMageUpLaserProjectile>(UpLaserClass, FTransform::Identity);
+					if (UpLaserProjectile)
+					{
+						UpLaserProjectile->SetAttackDamage(Stat->GetBossMonsterStat().Skill2);
+
+						FVector TargetLocation = Target->GetActorLocation();
+						FNavLocation EndLocation = {};
+						if (Nav->GetRandomPointInNavigableRadius(TargetLocation, 300.0f, EndLocation))
+						{
+							TargetLocation = EndLocation.Location;
+						}
+
+						FTransform Transform = FTransform::Identity;
+						Transform.SetLocation(TargetLocation);
+						Transform.SetRotation(FRotationMatrix::Identity.ToQuat());
+
+						UpLaserProjectile->FinishSpawning(Transform);
+					}
+				}
+					break;
+				case 1:
+				{
+					for (int32 i = 0; i < 2; ++i)
+					{
+						AUSDFDarkMageElectLaserProjectile* ElectLaserProjectile = GetWorld()->SpawnActorDeferred<AUSDFDarkMageElectLaserProjectile>(ElectLaserClass, FTransform::Identity);
+						if (ElectLaserProjectile)
+						{
+							ElectLaserProjectile->SetAttackDamage(Stat->GetBossMonsterStat().Skill2);
+							float angle = 180.0f * (2*i+1)/ 4.0f;
+							float radius = 800.0f;
+
+							FVector SpawnVector = GetActorRightVector().RotateAngleAxis(angle, GetActorForwardVector());
+							FVector SpawnLocation = GetActorLocation() + SpawnVector * radius;
+
+							FVector TargetForwardVector = (Target->GetActorLocation() - SpawnLocation).GetSafeNormal();
+							float TargetDistance = (Target->GetActorLocation() - SpawnLocation).Length();
+							FVector NewRightVector = TargetForwardVector.Cross(FVector::UpVector);
+							FVector NewLookLocation = FVector(SpawnLocation.X, SpawnLocation.Y, Target->GetActorLocation().Z);
+							TargetForwardVector = FVector::UpVector.Cross(NewRightVector);
+
+							FVector ProjectileLookPosition = NewLookLocation + NewRightVector * TargetDistance * ((i == 0) ? 1 : -1) * (1.0f/FMath::Tan(PI / 3.0f));
+							FVector ProjectileForwardVector = (ProjectileLookPosition - SpawnLocation).GetSafeNormal();
+							FVector TempVector = (Target->GetActorLocation() - ProjectileLookPosition).GetSafeNormal();
+
+							FTransform Transform = FTransform::Identity;
+							Transform.SetLocation(SpawnLocation);
+							Transform.SetRotation(FRotationMatrix::MakeFromXY(ProjectileForwardVector,TempVector).ToQuat());
+
+							ElectLaserProjectile->FinishSpawning(Transform);
+						}
+					}
+				}
+					break;
+				default:
+					break;
 			}
 		}
 			break;

@@ -10,7 +10,7 @@
 
 DECLARE_DELEGATE(FAICharacterAttackFinished);
 
-UENUM()
+UENUM(BlueprintType)
 enum class EAIAttackType : uint8
 {
 	Melee,

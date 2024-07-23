@@ -11,8 +11,8 @@ enum class EDarkMageAttackType : uint8
 {
 	None,
 	DefaultAttack,
-	Attack1,
-	Attack2,
+	Meteo,
+	UpLaser,
 	Attack3,
 };
 
@@ -45,7 +45,8 @@ protected:
 	void AttackMontageEnded(UAnimMontage* TargetMontage, bool IsProperlyEnded);
 
 	virtual void AttackFire() override;
-	virtual void SpawnOrb() override;
+	virtual void SpawnProjectile() override;
+	virtual void SpawnLaser(int32 InParam) override;
 	virtual void TeleportStart() override;
 	virtual void TeleportEnd() override;
 
@@ -64,6 +65,15 @@ protected:
 
 	UPROPERTY()
 	TObjectPtr<class AUSDFEnemyProjectile> DefaultAtkProjectile;
+
+	UPROPERTY(VisibleAnywhere, Category = Attack, Meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<class AUSDFDarkMageMeteoSpawner> MeteoSpawnerClass;
+
+	UPROPERTY(VisibleAnywhere, Category = Attack, Meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<class AUSDFDarkMageUpLaserProjectile> UpLaserClass;
+
+	UPROPERTY(VisibleAnywhere, Category = Attack, Meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<class AUSDFDarkMageElectLaserProjectile> ElectLaserClass;
 
 
 	// Teleport Section
