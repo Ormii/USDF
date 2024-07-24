@@ -257,6 +257,11 @@ void AUSDFCharacterPlayer::ReleaseAttackRKey()
 	bAttackRKeyPress = false;
 }
 
+APlayerController* AUSDFCharacterPlayer::GetPlayerController()
+{
+	return Cast<APlayerController>(GetController());
+}
+
 bool AUSDFCharacterPlayer::IsSprintState()
 {
 	return bSprintKeyPress;

@@ -224,17 +224,5 @@ void AUSDFCharacterRangeMonster::AttackFire()
 void AUSDFCharacterRangeMonster::OnDeath()
 {
 	Super::OnDeath();
-
-
-	FTimerHandle TimerHandle;
-	GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateLambda(
-		[&]() {
-			Destroy();
-			IUSDFGameModeInterface* GameModeInterface = Cast<IUSDFGameModeInterface>(GetWorld()->GetAuthGameMode());
-			if (GameModeInterface)
-			{
-				GameModeInterface->UpdateCurrent(StaticClass());
-			}
-		}), 5.0f, false);
 }
 

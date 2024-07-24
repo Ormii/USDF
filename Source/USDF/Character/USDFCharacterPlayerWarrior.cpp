@@ -35,7 +35,7 @@ AUSDFCharacterPlayerWarrior::AUSDFCharacterPlayerWarrior()
 		GetMesh()->SetSkeletalMesh(CharacterMeshRef.Object);
 	}
 
-	static ConstructorHelpers::FClassFinder<UAnimInstance> AnimInstanceRef(TEXT("/Game/Animation/Player/ABP_USDF_PlayerWarrior_RM.ABP_USDF_PlayerWarrior_RM_C"));
+	static ConstructorHelpers::FClassFinder<UAnimInstance> AnimInstanceRef(TEXT("/Game/Animation/Player/ABP_USDF_PlayerWarrior.ABP_USDF_PlayerWarrior_C"));
 	if (AnimInstanceRef.Succeeded())
 	{
 		GetMesh()->SetAnimInstanceClass(AnimInstanceRef.Class);
@@ -62,44 +62,24 @@ AUSDFCharacterPlayerWarrior::AUSDFCharacterPlayerWarrior()
 	static ConstructorHelpers::FObjectFinder<UUSDFComboActionData> DefaultComboAttackDataRef(TEXT("/Game/CharacterAction/USDF_ComboAttackData"));
 	if (DefaultComboAttackDataRef.Object)
 	{
-		FComboAttackDelegate NewComboAttackDelegate;
-		NewComboAttackDelegate.BindUObject(this, &AUSDFCharacterPlayerWarrior::DefaultComboAttack);
-
-		FComboAttackDelegateWrapper Wrapper(NewComboAttackDelegate);
-		ComboAttackDelegateManager.Add(EPlayerWarriorComboType::Default, Wrapper);
 		ComboAttackDataManager.Add(EPlayerWarriorComboType::Default, DefaultComboAttackDataRef.Object);
 	}
 
 	static ConstructorHelpers::FObjectFinder<UUSDFComboActionData> UpperAttackDataRef(TEXT("/Game/CharacterAction/USDF_UpperAttackData.USDF_UpperAttackData"));
 	if (UpperAttackDataRef.Object)
 	{
-		FComboAttackDelegate NewComboAttackDelegate;
-		NewComboAttackDelegate.BindUObject(this, &AUSDFCharacterPlayerWarrior::UpperAttack);
-
-		FComboAttackDelegateWrapper Wrapper(NewComboAttackDelegate);
-		ComboAttackDelegateManager.Add(EPlayerWarriorComboType::UpperCut, Wrapper);
 		ComboAttackDataManager.Add(EPlayerWarriorComboType::UpperCut, UpperAttackDataRef.Object);
 	}
 
 	static ConstructorHelpers::FObjectFinder<UUSDFComboActionData> DashAttackDataRef(TEXT("/Game/CharacterAction/USDF_DashAttackData.USDF_DashAttackData"));
 	if (DashAttackDataRef.Object)
 	{
-		FComboAttackDelegate NewComboAttackDelegate;
-		NewComboAttackDelegate.BindUObject(this, &AUSDFCharacterPlayerWarrior::DashAttack);
-
-		FComboAttackDelegateWrapper Wrapper(NewComboAttackDelegate);
-		ComboAttackDelegateManager.Add(EPlayerWarriorComboType::Dash, Wrapper);
 		ComboAttackDataManager.Add(EPlayerWarriorComboType::Dash, DashAttackDataRef.Object);
 	}
 
 	static ConstructorHelpers::FObjectFinder<UUSDFComboActionData> PowerAttackDataRef(TEXT("/Game/CharacterAction/USDF_PowerAttackData.USDF_PowerAttackData"));
 	if (PowerAttackDataRef.Object)
 	{
-		FComboAttackDelegate NewComboAttackDelegate;
-		NewComboAttackDelegate.BindUObject(this, &AUSDFCharacterPlayerWarrior::PowerAttack);
-
-		FComboAttackDelegateWrapper Wrapper(NewComboAttackDelegate);
-		ComboAttackDelegateManager.Add(EPlayerWarriorComboType::Power, Wrapper);
 		ComboAttackDataManager.Add(EPlayerWarriorComboType::Power, PowerAttackDataRef.Object);
 	}
 
@@ -124,6 +104,38 @@ void AUSDFCharacterPlayerWarrior::BeginPlay()
 	WeaponSword = GetWorld()->SpawnActor<AUSDFItemWeapon>(WeaponSwordClass, FTransform::Identity);
 	WeaponSword->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, "weapon_socket");
 	WeaponSword->GetMesh()->SetCollisionProfileName("NoCollision");
+
+	{
+		FComboAttackDelegate NewComboAttackDelegate;
+		NewComboAttackDelegate.BindUObject(this, &AUSDFCharacterPlayerWarrior::DefaultComboAttack);
+
+		FComboAttackDelegateWrapper Wrapper(NewComboAttackDelegate);
+		ComboAttackDelegateManager.Add(EPlayerWarriorComboType::Default, Wrapper);
+	}
+
+	{
+		FComboAttackDelegate NewComboAttackDelegate;
+		NewComboAttackDelegate.BindUObject(this, &AUSDFCharacterPlayerWarrior::UpperAttack);
+
+		FComboAttackDelegateWrapper Wrapper(NewComboAttackDelegate);
+		ComboAttackDelegateManager.Add(EPlayerWarriorComboType::UpperCut, Wrapper);
+	}
+
+	{
+		FComboAttackDelegate NewComboAttackDelegate;
+		NewComboAttackDelegate.BindUObject(this, &AUSDFCharacterPlayerWarrior::DashAttack);
+
+		FComboAttackDelegateWrapper Wrapper(NewComboAttackDelegate);
+		ComboAttackDelegateManager.Add(EPlayerWarriorComboType::Dash, Wrapper);
+	}
+
+	{
+		FComboAttackDelegate NewComboAttackDelegate;
+		NewComboAttackDelegate.BindUObject(this, &AUSDFCharacterPlayerWarrior::PowerAttack);
+
+		FComboAttackDelegateWrapper Wrapper(NewComboAttackDelegate);
+		ComboAttackDelegateManager.Add(EPlayerWarriorComboType::Power, Wrapper);
+	}
 
 	LandedDelegate.AddDynamic(this,&AUSDFCharacterPlayerWarrior::OnWarriorLanded);
 }

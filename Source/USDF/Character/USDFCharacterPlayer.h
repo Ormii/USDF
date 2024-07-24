@@ -105,6 +105,10 @@ protected:
 	bool bAttackEKeyPress;
 	bool bAttackRKeyPress;
 
+	//Player Section
+protected:
+	virtual APlayerController* GetPlayerController() override;
+
 // Character Movement Section
 protected:
 	UPROPERTY(Transient, VisibleAnywhere, Category = Animation, Meta = (AllowPrivateAccess = "true"))

@@ -63,14 +63,16 @@ protected:
 	UFUNCTION()
 	void OnHitReactMontageBlendOut(UAnimMontage* TargetMontage, bool bInterrupted);
 
+	virtual void OnDeath() override;
+	virtual void OnDamageResponse(FDamageInfo DamageInfo) override;
+
+public:
 	virtual float GetCurrentHealth() override;
 	virtual float GetMaxHealth() override;
 	virtual void Heal(float HealAmount) override;
 	virtual void TakeDamage(FDamageInfo DamageInfo) override;
 	virtual bool IsDead() override;
 
-	virtual void OnDeath() override;
-	virtual void OnDamageResponse(FDamageInfo DamageInfo) override;
 
 	// Hit React Section
 protected:

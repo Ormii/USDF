@@ -47,33 +47,11 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	// GameStage Section
 protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = GameStage, Meta = (AllowPrivateAccess = "true"))
-	EGameStageState CurrentGameStage;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Sequence, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class ULevelSequencePlayer> SequencePlayer;
 
-	UPROPERTY(VisibleAnywhere, Category = GameGoal, Meta = (AllowPrivateAccess = "true"))
-	TMap<EGameStageState, FGameStageChangeWrapper> GameStageChangeManager;
-
-	int CurrentStageNumber;
-
-	UPROPERTY(EditAnywhere, Category = StageNumber, Meta = (AllowPrivateAccess= "true"))
-	int MaxStageNumber;
-
-
-
-	void PrepareGameStage();
-	void BattleGameStage();
-	void EndGameStage();
-	void CompleteGoal();
-
-public:
-	void SetGameStageState(EGameStageState NewGameStageState);
-	FORCEINLINE int GetCurrentStageNumber() const { return CurrentStageNumber; }
-	FORCEINLINE int GetMaxStageNumber() const { return MaxStageNumber; }
-	// AISpawner Section
-protected:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = AISpawner, Meta = (AllowPrivateAccess = "true"))
-	TArray<TObjectPtr<class AUSDFAISpawner>> AISpawners;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Sequence, Meta = (AllowPrivateAccess = "true"))
+	class ALevelSequenceActor* LevelSequenceActor;
 
 };

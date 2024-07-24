@@ -106,6 +106,7 @@ void AUSDFDarkMageEyeCubeSpawner::Spawn(const FDarkMageEyeCubeSpawnOrder& SpawnO
 	FTransform Transform = FTransform::Identity;
 	Transform.SetLocation(GetActorLocation());
 	Transform.SetRotation(GetActorRotation().Quaternion());
+	Transform.SetScale3D(FVector(0.7f,0.7f,0.7f));
 	NonPlayer->FinishSpawning(Transform);
 
 	AUSDFAIController* PreController = Cast<AUSDFAIController>(NonPlayer->GetController());
