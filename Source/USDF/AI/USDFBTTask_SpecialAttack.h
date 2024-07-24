@@ -18,6 +18,6 @@ class USDF_API UUSDFBTTask_SpecialAttack : public UBTTaskNode
 protected:
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite ,Category = AttackType, Meta = (AllowPrivateAccess = "true"))
-	EAIAttackType AttackType;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite ,Category = ActionType, Meta = (AllowPrivateAccess = "true"))
+	EAIActionType ActionType;
 };

@@ -38,10 +38,10 @@ public:
 
 	// AI Section
 protected:
-	virtual void SetAIAttackDelegate(const FAICharacterAttackFinished& InOnAttackFinished)override;
+	virtual void SetAIActionDelegate(const FAICharacterActionFinished& InOnActionFinished)override;
 
-	FAICharacterAttackFinished OnAttackFinished;
-	virtual void AttackFinished();
+	FAICharacterActionFinished OnActionFinished;
+	virtual void ActionFinished();
 	virtual void SetLocomotionState(ELocomotionState NewLocomotionState) override;
 	virtual void SetAIState(EAIState NewAIState, FAISensedParam InParam) override;
 

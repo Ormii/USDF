@@ -44,5 +44,7 @@ protected:
 
 public:
 	void PrepareSpawn(int32 SpawnFlag);
+
+protected:
 	void Spawn();
 };

@@ -24,14 +24,14 @@ EBTNodeResult::Type UUSDFBTTask_SpecialAttack::ExecuteTask(UBehaviorTreeComponen
 	if (AIPawn == nullptr)
 		return EBTNodeResult::Failed;
 
-	FAICharacterAttackFinished OnAttackFinished;
+	FAICharacterActionFinished OnAttackFinished;
 	OnAttackFinished.BindLambda([&]() {
 
 		FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
 		});
 
-	AIPawn->SetAIAttackDelegate(OnAttackFinished);
-	AIPawn->AttackByAI(AttackType);
+	AIPawn->SetAIActionDelegate(OnAttackFinished);
+	AIPawn->ActionByAI(ActionType);
 
 	return EBTNodeResult::InProgress;
 }

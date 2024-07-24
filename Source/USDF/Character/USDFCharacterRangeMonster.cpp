@@ -87,13 +87,13 @@ AUSDFCharacterRangeMonster::AUSDFCharacterRangeMonster()
 	static ConstructorHelpers::FObjectFinder<UAnimMontage> WeakAttackMontageRef(TEXT("/Game/Animation/NonPlayer/RangeMonster/AM_USDF_RangeMonster_WeakAttack.AM_USDF_RangeMonster_WeakAttack"));
 	if (WeakAttackMontageRef.Object)
 	{
-		AttackMontages.Add(ERangeMonsterAttackType::WeakAttack, WeakAttackMontageRef.Object);
+		ActionMontages.Add(ERangeMonsterActionType::WeakAttack, WeakAttackMontageRef.Object);
 	}
 
 	static ConstructorHelpers::FObjectFinder<UAnimMontage> StrongAttackMontageRef(TEXT("/Game/Animation/NonPlayer/RangeMonster/AM_USDF_RangeMonster_StrongAttack.AM_USDF_RangeMonster_StrongAttack"));
 	if (StrongAttackMontageRef.Object)
 	{
-		AttackMontages.Add(ERangeMonsterAttackType::StrongAttack, StrongAttackMontageRef.Object);
+		ActionMontages.Add(ERangeMonsterActionType::StrongAttack, StrongAttackMontageRef.Object);
 	}
 
 	for (int i = 0; i < 3; ++i)
@@ -116,53 +116,53 @@ void AUSDFCharacterRangeMonster::PostInitializeComponents()
 	GetCharacterMovement()->MaxWalkSpeed = Stat->GetNormalMonsterStat().RunSpeed;
 }
 
-void AUSDFCharacterRangeMonster::AttackByAI(EAIAttackType InAIAttackType)
+void AUSDFCharacterRangeMonster::ActionByAI(EAIActionType InAIAttackType)
 {
 	UE_LOG(LogTemp, Display, TEXT("AI AttackStart"));
 	switch (InAIAttackType)
 	{
-		case EAIAttackType::Range:
+		case EAIActionType::Range:
 		{
 			int32 RandValue = FMath::RandRange(0, 100);
 			if (RandValue >= 80)
-				CurrentAttackType = ERangeMonsterAttackType::StrongAttack;
+				CurrentActionType = ERangeMonsterActionType::StrongAttack;
 			else
-				CurrentAttackType = ERangeMonsterAttackType::WeakAttack;
+				CurrentActionType = ERangeMonsterActionType::WeakAttack;
 		}
 			break;
-		case EAIAttackType::Melee:
-		case EAIAttackType::Dash:
+		case EAIActionType::Melee:
+		case EAIActionType::Dash:
 			break;
 		default:
 			break;
 	}
 
-	if (CurrentAttackType != ERangeMonsterAttackType::None)
+	if (CurrentActionType != ERangeMonsterActionType::None)
 	{
 		UUSDFRangeMonsterAnimInstance* AnimInstance = Cast<UUSDFRangeMonsterAnimInstance>(GetMesh()->GetAnimInstance());
 		if (AnimInstance)
 		{
-			UAnimMontage* PlayAttackMontage = AttackMontages[CurrentAttackType];
+			UAnimMontage* PlayAttackMontage = ActionMontages[CurrentActionType];
 
 			AnimInstance->StopAllMontages(0.0f);
 			AnimInstance->Montage_Play(PlayAttackMontage);
 
 			FOnMontageEnded OnMontageEnded;
-			OnMontageEnded.BindUObject(this, &AUSDFCharacterRangeMonster::AttackMontageEnded);
+			OnMontageEnded.BindUObject(this, &AUSDFCharacterRangeMonster::ActionMontageEnded);
 			AnimInstance->Montage_SetEndDelegate(OnMontageEnded, PlayAttackMontage);
 		}
 	}
 }
 
-void AUSDFCharacterRangeMonster::AttackFinished()
+void AUSDFCharacterRangeMonster::ActionFinished()
 {
-	Super::AttackFinished();
+	Super::ActionFinished();
 }
 
-void AUSDFCharacterRangeMonster::AttackMontageEnded(UAnimMontage* TargetMontage, bool IsProperlyEnded)
+void AUSDFCharacterRangeMonster::ActionMontageEnded(UAnimMontage* TargetMontage, bool IsProperlyEnded)
 {
-	AttackFinished();
-	CurrentAttackType = ERangeMonsterAttackType::None;
+	ActionFinished();
+	CurrentActionType = ERangeMonsterActionType::None;
 }
 
 void AUSDFCharacterRangeMonster::AttackFire()

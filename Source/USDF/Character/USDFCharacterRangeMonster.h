@@ -7,7 +7,7 @@
 #include "USDFCharacterRangeMonster.generated.h"
 
 UENUM()
-enum class ERangeMonsterAttackType : uint8
+enum class ERangeMonsterActionType : uint8
 {
 	None,
 	WeakAttack,
@@ -31,23 +31,23 @@ protected:
 
 	// AI Section
 protected:
-	virtual void AttackByAI(EAIAttackType InAIAttackType) override;
-	virtual void AttackFinished();
+	virtual void ActionByAI(EAIActionType InAIAttackType) override;
+	virtual void ActionFinished()override;
 
 	// Animation Section
 protected:
 	UPROPERTY(VisibleAnywhere, Category = Animation, Meta = (AllowPrivateAccess = "true"))
-	TMap<ERangeMonsterAttackType, TObjectPtr<class UAnimMontage>> AttackMontages;
+	TMap<ERangeMonsterActionType, TObjectPtr<class UAnimMontage>> ActionMontages;
 
 	UFUNCTION()
-	void AttackMontageEnded(UAnimMontage* TargetMontage, bool IsProperlyEnded);
+	void ActionMontageEnded(UAnimMontage* TargetMontage, bool IsProperlyEnded);
 
 	virtual void AttackFire() override;
 
 	// Combat Section
 protected:
 	UPROPERTY(VisibleAnywhere, Category = Combat, Meta = (AllowPrivateAccess = "true"))
-	ERangeMonsterAttackType CurrentAttackType;
+	ERangeMonsterActionType CurrentActionType;
 
 	// Attack Hit Section
 protected:

@@ -53,13 +53,6 @@ void AUSDFDarkMageEyeCube::BeginPlay()
 
 	for (auto& Spawner : Result)
 		Spawners.Add(Cast<AUSDFDarkMageEyeCubeSpawner>(Spawner));
-
-	FTimerDelegate TimerDelegate;
-	TimerDelegate.BindLambda([&]() {
-		PrepareSpawn(1);
-	});
-
-	GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, 3.0f, false);
 }
 
 void AUSDFDarkMageEyeCube::BeginDestroy()

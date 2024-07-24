@@ -78,13 +78,13 @@ AUSDFCharacterMeleeMonster::AUSDFCharacterMeleeMonster()
 	static ConstructorHelpers::FObjectFinder<UAnimMontage> WeakAttackMontageRef(TEXT("/Game/Animation/NonPlayer/MeleeMonster/BS_USDF_MeleeMonsterWeakAttack.BS_USDF_MeleeMonsterWeakAttack"));
 	if (WeakAttackMontageRef.Object)
 	{
-		AttackMontages.Add(EMeleeMonsterAttackType::WeakAttack, WeakAttackMontageRef.Object);
+		ActionMontages.Add(EMeleeMonsterActionType::WeakAttack, WeakAttackMontageRef.Object);
 	}
 
 	static ConstructorHelpers::FObjectFinder<UAnimMontage> StrongAttackMontageRef(TEXT("/Game/Animation/NonPlayer/MeleeMonster/BS_USDF_MeleeMonster_StrongAttack.BS_USDF_MeleeMonster_StrongAttack"));
 	if (StrongAttackMontageRef.Object)
 	{
-		AttackMontages.Add(EMeleeMonsterAttackType::StrongAttack, StrongAttackMontageRef.Object);
+		ActionMontages.Add(EMeleeMonsterActionType::StrongAttack, StrongAttackMontageRef.Object);
 	}
 
 
@@ -97,7 +97,7 @@ AUSDFCharacterMeleeMonster::AUSDFCharacterMeleeMonster()
 		}
 	}
 
-	CurrentAttackType = EMeleeMonsterAttackType::None;
+	CurrentActionType = EMeleeMonsterActionType::None;
 }
 
 void AUSDFCharacterMeleeMonster::PostInitializeComponents()
@@ -110,32 +110,31 @@ void AUSDFCharacterMeleeMonster::PostInitializeComponents()
 	GetCharacterMovement()->MaxWalkSpeed = Stat->GetNormalMonsterStat().RunSpeed;
 }
 
-void AUSDFCharacterMeleeMonster::AttackByAI(EAIAttackType InAIAttackType)
+void AUSDFCharacterMeleeMonster::ActionByAI(EAIActionType InAIActionType)
 {
-	UE_LOG(LogTemp, Display, TEXT("AI AttackStart"));
-	switch (InAIAttackType)
+	switch (InAIActionType)
 	{
-		case EAIAttackType::Melee:
+		case EAIActionType::Melee:
 		{
 			int32 RandValue = FMath::RandRange(0, 100);
 			if (RandValue >= 80)
-				CurrentAttackType = EMeleeMonsterAttackType::StrongAttack;
+				CurrentActionType = EMeleeMonsterActionType::StrongAttack;
 			else
-				CurrentAttackType = EMeleeMonsterAttackType::WeakAttack;
+				CurrentActionType = EMeleeMonsterActionType::WeakAttack;
 		}
 			break;
-		case EAIAttackType::Range:
+		case EAIActionType::Range:
 			break;
-		case EAIAttackType::Dash:
+		case EAIActionType::Dash:
 			break;
 	}
 
-	if (CurrentAttackType != EMeleeMonsterAttackType::None)
+	if (CurrentActionType != EMeleeMonsterActionType::None)
 	{
 		UUSDFMeleeMonsterAnimInstance* AnimInstance = Cast<UUSDFMeleeMonsterAnimInstance>(GetMesh()->GetAnimInstance());
 		if (AnimInstance)
 		{
-			UAnimMontage* PlayAttackMontage = AttackMontages[CurrentAttackType];
+			UAnimMontage* PlayAttackMontage = ActionMontages[CurrentActionType];
 
 			HitCharaters.Empty();
 			AnimInstance->StopAllMontages(0.0f);
@@ -148,21 +147,21 @@ void AUSDFCharacterMeleeMonster::AttackByAI(EAIAttackType InAIAttackType)
 	}
 }
 
-void AUSDFCharacterMeleeMonster::AttackFinished()
+void AUSDFCharacterMeleeMonster::ActionFinished()
 {
-	Super::AttackFinished();
-	CurrentAttackType = EMeleeMonsterAttackType::None;
+	Super::ActionFinished();
+	CurrentActionType = EMeleeMonsterActionType::None;
 	HitCharaters.Empty();
 }
 
 void AUSDFCharacterMeleeMonster::AttackHitCheck()
 {
-	switch (CurrentAttackType)
+	switch (CurrentActionType)
 	{
-		case EMeleeMonsterAttackType::WeakAttack:
+		case EMeleeMonsterActionType::WeakAttack:
 			WeakAttackHitCheck();
 			break;
-		case EMeleeMonsterAttackType::StrongAttack:
+		case EMeleeMonsterActionType::StrongAttack:
 			StrongAttackHitCheck();
 			break;
 	}
@@ -171,7 +170,7 @@ void AUSDFCharacterMeleeMonster::AttackHitCheck()
 
 void AUSDFCharacterMeleeMonster::AttackMontageEnded(UAnimMontage* TargetMontage, bool IsProperlyEnded)
 {
-	AttackFinished();
+	ActionFinished();
 }
 
 void AUSDFCharacterMeleeMonster::WeakAttackHitCheck()

@@ -32,14 +32,14 @@ AUSDFCharacterNonPlayer::AUSDFCharacterNonPlayer()
 	AIStateManager.Add(EAIState::Dead, FOnChangeAIState::CreateUObject(this, &AUSDFCharacterNonPlayer::SetAIStateDead));
 }
 
-void AUSDFCharacterNonPlayer::SetAIAttackDelegate(const FAICharacterAttackFinished& InOnAttackFinished)
+void AUSDFCharacterNonPlayer::SetAIActionDelegate(const FAICharacterActionFinished& InOnActionFinished)
 {
-	OnAttackFinished = InOnAttackFinished;
+	OnActionFinished = InOnActionFinished;
 }
 
-void AUSDFCharacterNonPlayer::AttackFinished()
+void AUSDFCharacterNonPlayer::ActionFinished()
 {
-	OnAttackFinished.ExecuteIfBound();
+	OnActionFinished.ExecuteIfBound();
 }
 
 void AUSDFCharacterNonPlayer::SetLocomotionState(ELocomotionState NewLocomotionState)

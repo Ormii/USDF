@@ -10,7 +10,7 @@
 DECLARE_DELEGATE(FOnMeleeMonsterAttackCheckDelegate)
 
 UENUM()
-enum class EMeleeMonsterAttackType : uint8
+enum class EMeleeMonsterActionType : uint8
 {
 	None,
 	WeakAttack,
@@ -33,13 +33,13 @@ protected:
 
 	// AI Section
 protected:
-	virtual void AttackByAI(EAIAttackType InAIAttackType) override;
-	virtual void AttackFinished();
+	virtual void ActionByAI(EAIActionType InAIActionType) override;
+	virtual void ActionFinished() override;
 
 	// Animation Section
 public:
 	UPROPERTY(VisibleAnywhere, Category = Animation, Meta = (AllowPrivateAccess= "true"))
-	TMap<EMeleeMonsterAttackType, TObjectPtr<class UAnimMontage>> AttackMontages;
+	TMap<EMeleeMonsterActionType, TObjectPtr<class UAnimMontage>> ActionMontages;
 
 	virtual void AttackHitCheck() override;
 
@@ -50,7 +50,7 @@ private:
 	// Combat Section
 protected:
 	UPROPERTY(VisibleAnywhere, Category = Combat, Meta = (AllowPrivateAccess= "true"))
-	EMeleeMonsterAttackType CurrentAttackType;
+	EMeleeMonsterActionType CurrentActionType;
 
 	void WeakAttackHitCheck();
 	void StrongAttackHitCheck();

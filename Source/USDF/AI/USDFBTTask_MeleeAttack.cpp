@@ -28,14 +28,14 @@ EBTNodeResult::Type UUSDFBTTask_MeleeAttack::ExecuteTask(UBehaviorTreeComponent&
 	if(AIPawn == nullptr)
 		return EBTNodeResult::Failed;
 
-	FAICharacterAttackFinished OnAttackFinished;
-	OnAttackFinished.BindLambda([&]() {
+	FAICharacterActionFinished OnActionFinished;
+	OnActionFinished.BindLambda([&]() {
 
 		FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
 		});
 
-	AIPawn->SetAIAttackDelegate(OnAttackFinished);
-	AIPawn->AttackByAI(EAIAttackType::Melee);
+	AIPawn->SetAIActionDelegate(OnActionFinished);
+	AIPawn->ActionByAI(EAIActionType::Melee);
 
 	return EBTNodeResult::InProgress;
 }

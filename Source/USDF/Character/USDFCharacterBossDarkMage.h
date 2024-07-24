@@ -7,13 +7,13 @@
 #include "USDFCharacterBossDarkMage.generated.h"
 
 UENUM()
-enum class EDarkMageAttackType : uint8
+enum class EDarkMageActionType : uint8
 {
 	None,
 	DefaultAttack,
 	Meteo,
 	UpLaser,
-	Attack3,
+	OrderSpawn,
 };
 
 
@@ -31,29 +31,35 @@ public:
 protected:
 	virtual void PostInitializeComponents() override;
 
+protected:
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
+
+
 	// AI Section
 protected:
-	virtual void AttackByAI(EAIAttackType InAIAttackType) override;
-	virtual void AttackFinished();
+	virtual void ActionByAI(EAIActionType InAIAttackType) override;
+	virtual void ActionFinished() override;
 
 	// Animation Section
 protected:
 	UPROPERTY(VisibleAnywhere, Category = Animation, Meta = (AllowPrivateAccess = "true"))
-	TMap<EDarkMageAttackType, TObjectPtr<class UAnimMontage>> AttackMontages;
+	TMap<EDarkMageActionType, TObjectPtr<class UAnimMontage>> ActionMontages;
 
 	UFUNCTION()
-	void AttackMontageEnded(UAnimMontage* TargetMontage, bool IsProperlyEnded);
+	void ActionMontageEnded(UAnimMontage* TargetMontage, bool IsProperlyEnded);
 
 	virtual void AttackFire() override;
 	virtual void SpawnProjectile() override;
 	virtual void SpawnLaser(int32 InParam) override;
+	virtual void BuffAction() override;
 	virtual void TeleportStart() override;
 	virtual void TeleportEnd() override;
 
 	// Combat Section
 protected:
 	UPROPERTY(VisibleAnywhere, Category = Combat, Meta = (AllowPrivateAccess = "true"))
-	EDarkMageAttackType CurrentAttackType;
+	EDarkMageActionType CurrentActionType;
 
 	// Damage Section
 protected:
@@ -83,4 +89,9 @@ protected:
 
 	float SaveMaxFlySpeed;
 	float SaveMaxAcceleration;
+
+	//EyeCube
+protected:
+	UPROPERTY(VisibleAnywhere, Category = Additional, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class AUSDFDarkMageEyeCube> DarkMageEyeCube;
 };

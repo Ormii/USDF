@@ -17,7 +17,9 @@
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "Kismet/GameplayStatics.h"
 #include "NavigationSystem.h"
+#include "Enemy/USDFDarkMageEyeCube.h"
 
 AUSDFCharacterBossDarkMage::AUSDFCharacterBossDarkMage()
 {
@@ -103,19 +105,25 @@ AUSDFCharacterBossDarkMage::AUSDFCharacterBossDarkMage()
 	static ConstructorHelpers::FObjectFinder<UAnimMontage> DefaultAttackMontageRef(TEXT("/Game/Animation/NonPlayer/BossDarkMage/BS_USDF_Boss_DarkMage_DefaultAtk.BS_USDF_Boss_DarkMage_DefaultAtk"));
 	if (DefaultAttackMontageRef.Object)
 	{
-		AttackMontages.Add(EDarkMageAttackType::DefaultAttack, DefaultAttackMontageRef.Object);
+		ActionMontages.Add(EDarkMageActionType::DefaultAttack, DefaultAttackMontageRef.Object);
 	}
 
 	static ConstructorHelpers::FObjectFinder<UAnimMontage> MeteoAttackMontageRef(TEXT("/Game/Animation/NonPlayer/BossDarkMage/BS_USDF_Boss_DarkMage_Meteo.BS_USDF_Boss_DarkMage_Meteo"));
 	if (MeteoAttackMontageRef.Object)
 	{
-		AttackMontages.Add(EDarkMageAttackType::Meteo, MeteoAttackMontageRef.Object);
+		ActionMontages.Add(EDarkMageActionType::Meteo, MeteoAttackMontageRef.Object);
 	}
 
 	static ConstructorHelpers::FObjectFinder<UAnimMontage> UpLaserAttackMontageRef(TEXT("/Game/Animation/NonPlayer/BossDarkMage/BS_USDF_Boss_DarkMage_UpLaser.BS_USDF_Boss_DarkMage_UpLaser"));
 	if (UpLaserAttackMontageRef.Object)
 	{
-		AttackMontages.Add(EDarkMageAttackType::UpLaser, UpLaserAttackMontageRef.Object);
+		ActionMontages.Add(EDarkMageActionType::UpLaser, UpLaserAttackMontageRef.Object);
+	}
+
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> OrderSpawnActionMontageRef(TEXT("/Game/Animation/NonPlayer/BossDarkMage/BS_USDF_Boss_DarkMage_OrderSpawn.BS_USDF_Boss_DarkMage_OrderSpawn"));
+	if (OrderSpawnActionMontageRef.Object)
+	{
+		ActionMontages.Add(EDarkMageActionType::OrderSpawn, OrderSpawnActionMontageRef.Object);
 	}
 
 	static ConstructorHelpers::FObjectFinder<UNiagaraSystem> TeleportEffectRef(TEXT("/Game/ReferenceAsset/BlinkAndDashVFX/VFX_Niagara/NS_Dash_Vampire.NS_Dash_Vampire"));
@@ -136,58 +144,71 @@ void AUSDFCharacterBossDarkMage::PostInitializeComponents()
 
 }
 
-void AUSDFCharacterBossDarkMage::AttackByAI(EAIAttackType InAIAttackType)
+void AUSDFCharacterBossDarkMage::BeginPlay()
 {
-	switch (InAIAttackType)
+	Super::BeginPlay();
+
+	AActor* FindActor = UGameplayStatics::GetActorOfClass(this, AUSDFDarkMageEyeCube::StaticClass());
+	if (FindActor != nullptr)
 	{
-		case EAIAttackType::Range:
+		DarkMageEyeCube = Cast<AUSDFDarkMageEyeCube>(FindActor);
+	}
+}
+
+void AUSDFCharacterBossDarkMage::ActionByAI(EAIActionType InAIActionType)
+{
+	switch (InAIActionType)
+	{
+		case EAIActionType::Range:
 		{
-			CurrentAttackType = EDarkMageAttackType::DefaultAttack;
+			CurrentActionType = EDarkMageActionType::DefaultAttack;
 		}
 			break;
-		case EAIAttackType::Melee:
-		case EAIAttackType::Dash:
-			break;
-		case EAIAttackType::Attack1:
+		case EAIActionType::Attack1:
 		{
-			CurrentAttackType = EDarkMageAttackType::Meteo;
+			CurrentActionType = EDarkMageActionType::Meteo;
 		}
 			break;
-		case EAIAttackType::Attack2:
+		case EAIActionType::Attack2:
 		{
-			CurrentAttackType = EDarkMageAttackType::UpLaser;
+			CurrentActionType = EDarkMageActionType::UpLaser;
+		}
+			break;
+		case EAIActionType::Buff1:
+		{
+			CurrentActionType = EDarkMageActionType::OrderSpawn;
 		}
 			break;
 		default:
 			break;
 	}
 
-	if (CurrentAttackType != EDarkMageAttackType::None)
+	if (CurrentActionType != EDarkMageActionType::None)
 	{
 		UUSDFBossDarkMageAnimInstance* AnimInstance = Cast<UUSDFBossDarkMageAnimInstance>(GetMesh()->GetAnimInstance());
 		if (AnimInstance)
 		{
-			UAnimMontage* PlayAttackMontage = AttackMontages[CurrentAttackType];
+			UAnimMontage* PlayAttackMontage = ActionMontages[CurrentActionType];
 
 			AnimInstance->StopAllMontages(0.0f);
 			AnimInstance->Montage_Play(PlayAttackMontage);
 
 			FOnMontageEnded OnMontageEnded;
-			OnMontageEnded.BindUObject(this, &AUSDFCharacterBossDarkMage::AttackMontageEnded);
+			OnMontageEnded.BindUObject(this, &AUSDFCharacterBossDarkMage::ActionMontageEnded);
 			AnimInstance->Montage_SetEndDelegate(OnMontageEnded, PlayAttackMontage);
 		}
 	}
 }
 
-void AUSDFCharacterBossDarkMage::AttackFinished()
+void AUSDFCharacterBossDarkMage::ActionFinished()
 {
-	Super::AttackFinished();
+	Super::ActionFinished();
 }
 
-void AUSDFCharacterBossDarkMage::AttackMontageEnded(UAnimMontage* TargetMontage, bool IsProperlyEnded)
+void AUSDFCharacterBossDarkMage::ActionMontageEnded(UAnimMontage* TargetMontage, bool IsProperlyEnded)
 {
-	AttackFinished();
-	CurrentAttackType = EDarkMageAttackType::None;
+	ActionFinished();
+	CurrentActionType = EDarkMageActionType::None;
 }
 
 void AUSDFCharacterBossDarkMage::AttackFire()
@@ -220,9 +241,9 @@ void AUSDFCharacterBossDarkMage::AttackFire()
 
 void AUSDFCharacterBossDarkMage::SpawnProjectile()
 {
-	switch (CurrentAttackType)
+	switch (CurrentActionType)
 	{
-		case EDarkMageAttackType::DefaultAttack:
+		case EDarkMageActionType::DefaultAttack:
 		{
 			DefaultAtkProjectile = GetWorld()->SpawnActor<AUSDFEnemyProjectile>(DefaultAtkProjectileClass, FTransform::Identity);
 			if (DefaultAtkProjectile != nullptr)
@@ -233,7 +254,7 @@ void AUSDFCharacterBossDarkMage::SpawnProjectile()
 			}
 		}
 			break;
-		case EDarkMageAttackType::Meteo:
+		case EDarkMageActionType::Meteo:
 		{
 			AUSDFAIController* AIController = Cast<AUSDFAIController>(GetController());
 			if (AIController == nullptr)
@@ -299,9 +320,9 @@ void AUSDFCharacterBossDarkMage::SpawnLaser(int32 InParam)
 	if (Nav == nullptr)
 		return;
 
-	switch (CurrentAttackType)
+	switch (CurrentActionType)
 	{
-		case EDarkMageAttackType::UpLaser:
+		case EDarkMageActionType::UpLaser:
 		{
 			switch (InParam)
 			{
@@ -366,6 +387,21 @@ void AUSDFCharacterBossDarkMage::SpawnLaser(int32 InParam)
 		}
 			break;
 		default:
+			break;
+	}
+}
+
+void AUSDFCharacterBossDarkMage::BuffAction()
+{
+	switch (CurrentActionType)
+	{
+		case EDarkMageActionType::OrderSpawn:
+		{
+			if (DarkMageEyeCube == nullptr)
+				break;
+			
+			DarkMageEyeCube->PrepareSpawn(1);
+		}
 			break;
 	}
 }

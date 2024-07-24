@@ -8,10 +8,10 @@
 #include "AI/USDFAICommon.h"
 #include "USDFCharacterAIInterface.generated.h"
 
-DECLARE_DELEGATE(FAICharacterAttackFinished);
+DECLARE_DELEGATE(FAICharacterActionFinished);
 
 UENUM(BlueprintType)
-enum class EAIAttackType : uint8
+enum class EAIActionType : uint8
 {
 	Melee,
 	Range,
@@ -19,6 +19,11 @@ enum class EAIAttackType : uint8
 	Attack1,
 	Attack2,
 	Attack3,
+	Attack4,
+	Attack5,
+	Attack6,
+
+	Buff1,
 };
 
 // This class does not need to be modified.
@@ -48,6 +53,6 @@ public:
 	virtual void SetLocomotionState(ELocomotionState NewLocomotionState) = 0;
 	virtual void SetAIState(EAIState NewAIState, FAISensedParam InParam) = 0;
 
-	virtual void SetAIAttackDelegate(const FAICharacterAttackFinished& InOnAttackFinished){};
-	virtual void AttackByAI(EAIAttackType InAIAttackType) {}
+	virtual void SetAIActionDelegate(const FAICharacterActionFinished& InOnAttackFinished){};
+	virtual void ActionByAI(EAIActionType InAIAttackType) {}
 };

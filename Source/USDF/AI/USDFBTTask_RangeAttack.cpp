@@ -24,14 +24,14 @@ EBTNodeResult::Type UUSDFBTTask_RangeAttack::ExecuteTask(UBehaviorTreeComponent&
 	if (AIPawn == nullptr)
 		return EBTNodeResult::Failed;
 
-	FAICharacterAttackFinished OnAttackFinished;
-	OnAttackFinished.BindLambda([&]() {
+	FAICharacterActionFinished OnActionFinished;
+	OnActionFinished.BindLambda([&]() {
 
 		FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
 		});
 
-	AIPawn->SetAIAttackDelegate(OnAttackFinished);
-	AIPawn->AttackByAI(EAIAttackType::Range);
+	AIPawn->SetAIActionDelegate(OnActionFinished);
+	AIPawn->ActionByAI(EAIActionType::Range);
 
 	return EBTNodeResult::InProgress;
 }
