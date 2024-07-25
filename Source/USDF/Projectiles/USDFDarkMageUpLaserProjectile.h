@@ -26,12 +26,14 @@ protected:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 protected:
-	void BoxCollisionActivate();
+	void CollisionActivate();
 
 protected:
 	UPROPERTY()
 	FTimerHandle TimerHandle;
 
-	bool bBoxCollisionActivate;
+	bool bCollisionActivate;
 	float ActivateTime;
+
+	float LaserLength;
 };

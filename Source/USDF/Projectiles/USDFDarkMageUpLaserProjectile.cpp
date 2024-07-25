@@ -5,6 +5,8 @@
 #include "Components/BoxComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraComponent.h"
+#include "Physics/USDFCollision.h"
+#include "Interface/USDFDamageableInterface.h"
 
 AUSDFDarkMageUpLaserProjectile::AUSDFDarkMageUpLaserProjectile()
 {
@@ -14,21 +16,19 @@ AUSDFDarkMageUpLaserProjectile::AUSDFDarkMageUpLaserProjectile()
 		BaseEffect->SetAsset(BaseEffectRef.Object);
 	}
 
-	BoxCollision->SetRelativeLocation(FVector(0.0f, 0.0f, 755.0f));
-	BoxCollision->SetBoxExtent(FVector(85.0f, 85.0f, 760.0f));
 
-	bBoxCollisionActivate = false;
+	bCollisionActivate = false;
 	ActivateTime = 0.0f;
+	LaserLength = 760.0f;
 }
 
 void AUSDFDarkMageUpLaserProjectile::BeginPlay()
 {
 	Super::BeginPlay();
-	BoxCollision->SetGenerateOverlapEvents(false);
 
 	FTimerDelegate TimerDelegate;
 	TimerDelegate.BindLambda([&]() {
-		BoxCollisionActivate();
+		CollisionActivate();
 	});
 
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, 1.1f, false);
@@ -49,15 +49,13 @@ void AUSDFDarkMageUpLaserProjectile::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (bBoxCollisionActivate)
+	if (bCollisionActivate)
 	{
 		ActivateTime += DeltaTime;
 		if (ActivateTime >= 0.75f)
 		{
-			bBoxCollisionActivate = false;
+			bCollisionActivate = false;
 			ActivateTime = 0.0f;
-			BoxCollision->SetGenerateOverlapEvents(false);
-
 			FTimerDelegate TimerDelegate;
 			TimerDelegate.BindLambda([&]() {
 				Destroy();
@@ -68,11 +66,41 @@ void AUSDFDarkMageUpLaserProjectile::Tick(float DeltaTime)
 				GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, 1.4f, false);
 			}
 		}
+
+		FCollisionQueryParams Params(SCENE_QUERY_STAT(LaserHit), false, this);
+		FHitResult HitResult;
+		FVector StartPoint = GetActorLocation();
+		FVector EndPoint = StartPoint + GetActorUpVector() * LaserLength;
+		float Radius = 120.0f;
+		bool bHitted = GetWorld()->SweepSingleByChannel(HitResult, StartPoint, EndPoint, FQuat::Identity, CCHANNEL_USDF_NONPLAYERACTION, FCollisionShape::MakeSphere(40.0f), Params);
+		
+		if (bHitted)
+		{
+			if (HitCharacters.Find(HitResult.GetActor()) != nullptr)
+				return;
+
+			IUSDFDamageableInterface* Damageable = Cast<IUSDFDamageableInterface>(HitResult.GetActor());
+			if (Damageable == nullptr)
+				return;
+
+			FDamageInfo DamageInfo{};
+			DamageInfo.DamageAmount = AttackDamage;
+			DamageInfo.DamageCauser = GetOwner();
+			DamageInfo.DamageType = EDamageType::HitDefault;
+
+			Damageable->TakeDamage(DamageInfo);
+
+			HitCharacters.Add(HitResult.GetActor());
+		}
+
+#if ENABLE_DRAW_DEBUG
+		FColor Color = (bHitted == true) ? FColor::Green : FColor::Red;
+		DrawDebugCapsule(GetWorld(), (StartPoint + EndPoint) / 2, LaserLength * 0.5, Radius, FQuat::Identity, Color, false, 0.1f);
+#endif
 	}
 }
 
-void AUSDFDarkMageUpLaserProjectile::BoxCollisionActivate()
+void AUSDFDarkMageUpLaserProjectile::CollisionActivate()
 {
-	bBoxCollisionActivate = true;
-	BoxCollision->SetGenerateOverlapEvents(true);
+	bCollisionActivate = true;
 }

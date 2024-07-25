@@ -24,7 +24,6 @@ AUSDFDarkMageElectLaserProjectile::AUSDFDarkMageElectLaserProjectile()
 void AUSDFDarkMageElectLaserProjectile::BeginPlay()
 {
 	Super::BeginPlay();
-	BoxCollision->SetVisibility(false);
 
 	FTimerDelegate TimerDelegate;
 	TimerDelegate.BindLambda([&]() {

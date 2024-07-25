@@ -31,9 +31,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = Projectile, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UNiagaraComponent> BaseEffect;
 
-	UPROPERTY(VisibleAnywhere, Category = Projectile, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class UBoxComponent> BoxCollision;
-
 	// Damage Section
 protected:
 	UPROPERTY(EditAnywhere, Category = Damage, Meta = (AllowPrivateAccess = "true"))
@@ -47,7 +44,4 @@ public:
 	FORCEINLINE float GetAttackDamage() { return AttackDamage; }
 
 protected:
-
-	UFUNCTION()
-	void OnOverlapBeginFunc(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 };

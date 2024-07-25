@@ -12,9 +12,5 @@ AUSDFEnemyLaserProjectile::AUSDFEnemyLaserProjectile()
 	Mesh->SetCollisionProfileName(CPROFILE_USDF_NONPLAYER_CAPSULE);
 	Mesh->SetCollisionObjectType(CCHANNEL_USDF_NON_PLAYER_CHARACTER);
 
-	BoxCollision->SetCollisionProfileName(CPROFILE_USDF_NONPLAYER_CAPSULE);
-	BoxCollision->SetCollisionObjectType(CCHANNEL_USDF_NON_PLAYER_CHARACTER);
-
 	Mesh->SetCollisionResponseToChannel(CCHANNEL_USDF_PLAYER_CHARACTER, ECollisionResponse::ECR_Overlap);
-	BoxCollision->SetCollisionResponseToChannel(CCHANNEL_USDF_PLAYER_CHARACTER, ECollisionResponse::ECR_Overlap);
 }
