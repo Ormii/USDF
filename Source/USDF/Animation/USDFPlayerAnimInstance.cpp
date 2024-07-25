@@ -119,10 +119,7 @@ void UUSDFPlayerAnimInstance::FindLocomotionState()
 			LocomotionState = ELocomotionState::Falling;
 		else if (MovementInputValue.Length() > 0.1f)
 		{
-			if (PlayerAnimInterface->IsSprintState() == false)
-				LocomotionState = ELocomotionState::Walk;
-			else if (PlayerAnimInterface->IsSprintState() == true)
-				LocomotionState = ELocomotionState::Run;
+			LocomotionState = ELocomotionState::Walk;
 		}
 		else
 		{

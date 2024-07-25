@@ -6,8 +6,8 @@
 #include "UObject/Interface.h"
 #include "USDFGameStageInterface.generated.h"
 
-UENUM()
-enum class EGameStagePhase
+UENUM(BlueprintType)
+enum class EGameStagePhase : uint8
 {
 	EGameStagePhase_Intro,
 	EGameStagePhase_Phase1,

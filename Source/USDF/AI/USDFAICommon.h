@@ -9,6 +9,7 @@
 #define BBKEY_ATTACK_TARGET TEXT("AttackTarget")
 #define BBKEY_EQS_TARGET_RADIUS TEXT("EQSTargetRadius")
 #define BBKEY_EQS_DEFEND_RADIUS TEXT("EQSDefendRadius")
+#define BBKEY_GAME_STAGE_PHASE TEXT("GameStagePhase")
 
 struct FAISensedParam;
 

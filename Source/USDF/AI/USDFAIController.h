@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "AIController.h"
 #include "AI/USDFAICommon.h"
+#include "Interface/USDFGameStageInterface.h"
 #include "USDFAIController.generated.h"
 
 
@@ -32,6 +33,7 @@ public:
 	void HandleSensedDamage(AActor* InActor);
 
 	void SetCurrentAIState(EAIState NewState, FAISensedParam Param);
+	void SetCurrentPhase(EGameStagePhase NewGameStagePhase);
 	EAIState GetCurrentAIState();
 	const AActor* GetAttackTarget() const;
 

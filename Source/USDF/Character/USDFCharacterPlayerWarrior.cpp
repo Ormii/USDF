@@ -108,6 +108,60 @@ AUSDFCharacterPlayerWarrior::AUSDFCharacterPlayerWarrior()
 		HitReactAnimMontage.Add(EHitReactDirection::Left, HitReactLeftMontageRef.Object);
 	}
 
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> DodgeLeftMontageRef(TEXT("/Game/Animation/Player/Warrior/AM_USDF_PlayerWarrior_Dodge_Left.AM_USDF_PlayerWarrior_Dodge_Left"));
+	if (DodgeLeftMontageRef.Object)
+	{
+		DodgeAnimMontage.Add(EPlayerDodgeDirection::Left, DodgeLeftMontageRef.Object);
+	}
+
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> DodgeRightMontageRef(TEXT("/Game/Animation/Player/Warrior/AM_USDF_PlayerWarrior_Dodge_Right.AM_USDF_PlayerWarrior_Dodge_Right"));
+	if (DodgeRightMontageRef.Object)
+	{
+		DodgeAnimMontage.Add(EPlayerDodgeDirection::Right, DodgeRightMontageRef.Object);
+	}
+
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> DodgeFrontMontageRef(TEXT("/Game/Animation/Player/Warrior/AM_USDF_PlayerWarrior_Dodge_Front.AM_USDF_PlayerWarrior_Dodge_Front"));
+	if (DodgeFrontMontageRef.Object)
+	{
+		DodgeAnimMontage.Add(EPlayerDodgeDirection::Front, DodgeFrontMontageRef.Object);
+	}
+
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> DodgeBackMontageRef(TEXT("/Game/Animation/Player/Warrior/AM_USDF_PlayerWarrior_Dodge_Back.AM_USDF_PlayerWarrior_Dodge_Back"));
+	if (DodgeBackMontageRef.Object)
+	{
+		DodgeAnimMontage.Add(EPlayerDodgeDirection::Back, DodgeBackMontageRef.Object);
+	}
+
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> DodgeFrontLeftMontageRef(TEXT("/Game/Animation/Player/Warrior/AM_USDF_PlayerWarrior_Dodge_FrontLeft.AM_USDF_PlayerWarrior_Dodge_FrontLeft"));
+	if (DodgeFrontLeftMontageRef.Object)
+	{
+		DodgeAnimMontage.Add(EPlayerDodgeDirection::Front_Left, DodgeFrontLeftMontageRef.Object);
+	}
+
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> DodgeFrontRightMontageRef(TEXT("/Game/Animation/Player/Warrior/AM_USDF_PlayerWarrior_Dodge_FrontRight.AM_USDF_PlayerWarrior_Dodge_FrontRight"));
+	if (DodgeFrontRightMontageRef.Object)
+	{
+		DodgeAnimMontage.Add(EPlayerDodgeDirection::Front_Right, DodgeFrontRightMontageRef.Object);
+	}
+
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> DodgeBackLeftMontageRef(TEXT("/Game/Animation/Player/Warrior/AM_USDF_PlayerWarrior_Dodge_BackLeft.AM_USDF_PlayerWarrior_Dodge_BackLeft"));
+	if (DodgeBackLeftMontageRef.Object)
+	{
+		DodgeAnimMontage.Add(EPlayerDodgeDirection::Back_Left, DodgeBackLeftMontageRef.Object);
+	}
+
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> DodgeBackRightMontageRef(TEXT("/Game/Animation/Player/Warrior/AM_USDF_PlayerWarrior_Dodge_BackRight.AM_USDF_PlayerWarrior_Dodge_BackRight"));
+	if (DodgeBackRightMontageRef.Object)
+	{
+		DodgeAnimMontage.Add(EPlayerDodgeDirection::Back_Right, DodgeBackRightMontageRef.Object);
+	}
+
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> HitReactKnockBackMontageRef(TEXT("/Game/Animation/Player/Warrior/AM_USDF_PlayerWarrior_Knockback.AM_USDF_PlayerWarrior_Knockback"));
+	if (HitReactKnockBackMontageRef.Object)
+	{
+		HitReactKnockBackMontage = HitReactKnockBackMontageRef.Object;
+	}
+
 	for (int i = 0; i < 3; ++i)
 	{
 		static ConstructorHelpers::FObjectFinder<UNiagaraSystem> AttackHitEffectRef(*FString::Printf(TEXT("/Game/ReferenceAsset/RealisticBlood/Slash/Niagara/NS_Slash_%d.NS_Slash_%d"),i,i));
@@ -221,6 +275,8 @@ void AUSDFCharacterPlayerWarrior::SetupPlayerInputComponent(UInputComponent* Pla
 	EnhancedInputComponent->BindAction(AttackRKeyAction, ETriggerEvent::Completed, this, &AUSDFCharacterPlayerWarrior::ReleaseAttackRKey);
 	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AUSDFCharacterPlayerWarrior::WarriorJump);
 	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AUSDFCharacterPlayerWarrior::WarriorStopJumping);
+	EnhancedInputComponent->BindAction(DodgeAction, ETriggerEvent::Started, this, &AUSDFCharacterPlayerWarrior::Dodge);
+	EnhancedInputComponent->BindAction(DodgeAction, ETriggerEvent::Completed, this, &AUSDFCharacterPlayerWarrior::StopDodge);
 }
 
 void AUSDFCharacterPlayerWarrior::Attack()
@@ -263,6 +319,10 @@ void AUSDFCharacterPlayerWarrior::AttackQKey()
 			case ELocomotionState::Walk:
 			{
 				CurrentComboAttackType = EPlayerWarriorComboType::UpperCut;
+				FRotator ControllerRotation = GetControlRotation();
+				FRotator NewRotation(0.0f, ControllerRotation.Yaw, 0.0f);
+				SetActorRotation(NewRotation);
+
 				const FComboAttackDelegateWrapper& Wrapper = ComboAttackDelegateManager[CurrentComboAttackType];
 				const UUSDFComboActionData* ComboActionData = ComboAttackDataManager[CurrentComboAttackType];
 				if (!AnimInstance->Montage_IsPlaying(ComboActionData->ComboAttackMontage))
@@ -302,6 +362,21 @@ void AUSDFCharacterPlayerWarrior::AttackEKey()
 			{
 			case ELocomotionState::Idle:
 			case ELocomotionState::Walk:
+			{
+				CurrentComboAttackType = EPlayerWarriorComboType::Dash;
+				FRotator ControllerRotation = GetControlRotation();
+				FRotator NewRotation(0.0f, ControllerRotation.Yaw, 0.0f);
+				SetActorRotation(NewRotation);
+
+				const FComboAttackDelegateWrapper& Wrapper = ComboAttackDelegateManager[CurrentComboAttackType];
+				const UUSDFComboActionData* ComboActionData = ComboAttackDataManager[CurrentComboAttackType];
+				if (!AnimInstance->Montage_IsPlaying(ComboActionData->ComboAttackMontage))
+				{
+					bAttackState = true;
+					Wrapper.OnComboAttackDelegate.ExecuteIfBound();
+					ResetCombatStateTime();
+				}
+			}
 				break;
 			case ELocomotionState::Run:
 				break;
@@ -334,6 +409,10 @@ void AUSDFCharacterPlayerWarrior::AttackRKey()
 			case ELocomotionState::Walk:
 			{
 				CurrentComboAttackType = EPlayerWarriorComboType::Power;
+				FRotator ControllerRotation = GetControlRotation();
+				FRotator NewRotation(0.0f, ControllerRotation.Yaw, 0.0f);
+				SetActorRotation(NewRotation);
+
 				const FComboAttackDelegateWrapper& Wrapper = ComboAttackDelegateManager[CurrentComboAttackType];
 				const UUSDFComboActionData* ComboActionData = ComboAttackDataManager[CurrentComboAttackType];
 				if (!AnimInstance->Montage_IsPlaying(ComboActionData->ComboAttackMontage))
@@ -352,6 +431,68 @@ void AUSDFCharacterPlayerWarrior::AttackRKey()
 			}
 		}
 	}
+}
+
+void AUSDFCharacterPlayerWarrior::Dodge()
+{
+	Super::Dodge();
+
+	UUSDFPlayerWarriorAnimInstance* WarriorAnimInstance = Cast<UUSDFPlayerWarriorAnimInstance>(GetMesh()->GetAnimInstance());
+
+
+
+	if (WarriorAnimInstance)
+	{
+		if (bDamagedState)
+			return;
+
+		if (bAttackState)
+			return;
+
+		EPlayerDodgeDirection Direction = EPlayerDodgeDirection::None;
+
+		float X = MovementInputValue.X, Y = MovementInputValue.Y;
+
+		if (X > 0.5f)
+		{
+			Direction = EPlayerDodgeDirection::Front;
+			if (Y < -0.5f)
+				Direction = EPlayerDodgeDirection::Front_Left;
+			else if (Y > 0.5f)
+				Direction = EPlayerDodgeDirection::Front_Right;
+		}
+		else if (X < -0.5f)
+		{
+			Direction = EPlayerDodgeDirection::Back;
+			if (Y < -0.5f)
+				Direction = EPlayerDodgeDirection::Back_Left;
+			else if (Y > 0.5f)
+				Direction = EPlayerDodgeDirection::Back_Right;
+		}
+		else if (Y < -0.5f)
+			Direction = EPlayerDodgeDirection::Left;
+		else if (Y > 0.5f)
+			Direction = EPlayerDodgeDirection::Right;
+
+		
+
+		if (Direction != EPlayerDodgeDirection::None)
+		{
+			if (DodgeAnimMontage.Find(Direction) != nullptr && DodgeAnimMontage[Direction])
+			{
+				FRotator ControllerRotation = GetControlRotation();
+				FRotator NewRotation(0.0f, ControllerRotation.Yaw, 0.0f);
+				SetActorRotation(NewRotation);
+
+				WarriorAnimInstance->Montage_Play(DodgeAnimMontage[Direction]);
+			}
+		}
+	}
+}
+
+void AUSDFCharacterPlayerWarrior::StopDodge()
+{
+	Super::StopDodge();
 }
 
 void AUSDFCharacterPlayerWarrior::WarriorJump()
@@ -426,7 +567,6 @@ void AUSDFCharacterPlayerWarrior::PossessAttackMontage()
 			CurrentComboAttackType = EPlayerWarriorComboType::Default;
 			break;
 		case ELocomotionState::Run:
-			CurrentComboAttackType = EPlayerWarriorComboType::Dash;
 			break;
 		case ELocomotionState::Jumping:
 			break;
@@ -435,6 +575,10 @@ void AUSDFCharacterPlayerWarrior::PossessAttackMontage()
 
 	if (CurrentComboAttackType == EPlayerWarriorComboType::None)
 		return;
+
+	FRotator ControllerRotation = GetControlRotation();
+	FRotator NewRotation(0.0f, ControllerRotation.Yaw, 0.0f);
+	SetActorRotation(NewRotation);
 
 	const FComboAttackDelegateWrapper& Wrapper = ComboAttackDelegateManager[CurrentComboAttackType];
 	const UUSDFComboActionData* ComboActionData = ComboAttackDataManager[CurrentComboAttackType];

@@ -36,13 +36,16 @@ bool UUSDFBTDecorator_CanSeeTarget::CalculateRawConditionValue(UBehaviorTreeComp
 	float Radius = 40.0f;
 
 	bool bHitted = GetWorld()->SweepSingleByChannel(HitResult, StartLocation, EndLocation, FQuat::Identity, ECC_Visibility, FCollisionShape::MakeSphere(Radius), Params);
-	bool bTargetHit = false;
+	bool bTargetHit = true;
 	if (bHitted)
 	{
 		if (Target == HitResult.GetActor())
 			bTargetHit = true;
 		else
+		{ 
 			bTargetHit = false;
+			UE_LOG(LogTemp, Display, TEXT("Hit Target Name: %s"), *HitResult.GetActor()->GetName());
+		}
 	}
 	else
 	{
@@ -50,9 +53,9 @@ bool UUSDFBTDecorator_CanSeeTarget::CalculateRawConditionValue(UBehaviorTreeComp
 	}
 
 #if ENABLE_DRAW_DEBUG
-	FColor Color = (bTargetHit == true) ? FColor::Green : FColor::Red;
-	FVector TargetFowardVector = EndLocation - StartLocation;
-	DrawDebugCapsule(GetWorld(), (StartLocation + EndLocation) / 2, TargetFowardVector.Length() * 0.5f, Radius, FRotationMatrix::MakeFromZ(TargetFowardVector).ToQuat(), Color, false, 0.1f);
+	//FColor Color = (bTargetHit == true) ? FColor::Green : FColor::Red;
+	//FVector TargetFowardVector = EndLocation - StartLocation;
+	//DrawDebugCapsule(GetWorld(), (StartLocation + EndLocation) / 2, TargetFowardVector.Length() * 0.5f, Radius, FRotationMatrix::MakeFromZ(TargetFowardVector).ToQuat(), Color, false, 3.1f);
 #endif
 
 	return bTargetHit;

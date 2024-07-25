@@ -18,6 +18,20 @@ enum class ECharacterPlayerControlType : uint8
 	Preview,
 };
 
+UENUM()
+enum class EPlayerDodgeDirection
+{
+	None,
+	Front,
+	Front_Right,
+	Front_Left,
+	Back,
+	Back_Right,
+	Back_Left,
+	Right,
+	Left,
+};
+
 /**
  * 
  */
@@ -70,7 +84,7 @@ protected:
 	TObjectPtr<class UInputAction> JumpAction;
 
 	UPROPERTY(VisibleAnywhere, Category = Input, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class UInputAction> SprintAction;
+	TObjectPtr<class UInputAction> DodgeAction;
 
 	UPROPERTY(VisibleAnywhere, Category = Input, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UInputAction> AttackAction;
@@ -89,8 +103,8 @@ protected:
 	void Move(const FInputActionValue& Value);
 	void ReleaseMove(const FInputActionValue& value);
 	void Look(const FInputActionValue& Value);
-	void Sprint();
-	void StopSprint();
+	virtual void Dodge();
+	virtual void StopDodge();
 	virtual void Attack();
 	virtual void ReleaseAttack();
 	virtual void AttackQKey();
@@ -112,17 +126,25 @@ protected:
 // Character Movement Section
 protected:
 	UPROPERTY(Transient, VisibleAnywhere, Category = Animation, Meta = (AllowPrivateAccess = "true"))
-	uint8 bSprintKeyPress : 1;
+	uint8 bDodgeKeyPress : 1;
 
 	FVector2D MovementInputValue;
 
 // Animation Section
 public:
-	virtual bool IsSprintState() override;
 	virtual FVector2D GetMovementInputValue() override;
 
 	virtual bool IsAttackState() override;
 	virtual bool IsDeadState() override;
+
+	UPROPERTY()
+	TObjectPtr<class UAnimMontage> DodgeLeft;
+
+	UPROPERTY()
+	TObjectPtr<class UAnimMontage> DodgeRight;
+
+	UPROPERTY()
+	TMap<EPlayerDodgeDirection, TObjectPtr<class UAnimMontage>> DodgeAnimMontage;
 
 protected:
 	UPROPERTY(Transient, VisibleAnywhere, Category = Animation, Meta = (AllowPrivateAccess = "true"))
@@ -152,6 +174,9 @@ protected:
 protected:
 	UPROPERTY()
 	TMap<EHitReactDirection, TObjectPtr<class UAnimMontage>> HitReactAnimMontage;
+
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<class UAnimMontage> HitReactKnockBackMontage;
 
 	UPROPERTY()
 	uint8 bDamagedState : 1;

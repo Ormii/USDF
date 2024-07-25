@@ -79,10 +79,10 @@ AUSDFCharacterPlayer::AUSDFCharacterPlayer()
 		JumpAction = JumpActionRef.Object;
 	}
 
-	static ConstructorHelpers::FObjectFinder<UInputAction> SprintActionRef(TEXT("/Game/Input/Actions/IA_Sprint.IA_Sprint"));
-	if (SprintActionRef.Object)
+	static ConstructorHelpers::FObjectFinder<UInputAction> DodgeActionRef(TEXT("/Game/Input/Actions/IA_Dodge.IA_Dodge"));
+	if (DodgeActionRef.Object)
 	{
-		SprintAction = SprintActionRef.Object;
+		DodgeAction = DodgeActionRef.Object;
 	}
 
 	static ConstructorHelpers::FObjectFinder<UInputAction> AttackActionRef(TEXT("/Game/Input/Actions/IA_Attack.IA_Attack"));
@@ -140,8 +140,6 @@ void AUSDFCharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AUSDFCharacterPlayer::Move);
 	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Completed, this, &AUSDFCharacterPlayer::ReleaseMove);
 	EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AUSDFCharacterPlayer::Look);
-	EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Started, this, &AUSDFCharacterPlayer::Sprint);
-	EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &AUSDFCharacterPlayer::StopSprint);
 }
 
 void AUSDFCharacterPlayer::SetCharacterControl(ECharacterPlayerControlType NewCharacterControlType)
@@ -209,14 +207,14 @@ void AUSDFCharacterPlayer::Look(const FInputActionValue& Value)
 	AddControllerPitchInput(-LookAxisVector.Y * 45 *GetWorld()->GetDeltaSeconds());
 }
 
-void AUSDFCharacterPlayer::Sprint()
+void AUSDFCharacterPlayer::Dodge()
 {
-	bSprintKeyPress = true;
+	bDodgeKeyPress = true;
 }
 
-void AUSDFCharacterPlayer::StopSprint()
+void AUSDFCharacterPlayer::StopDodge()
 {
-	bSprintKeyPress = false;
+	bDodgeKeyPress = false;
 }
 
 void AUSDFCharacterPlayer::Attack()
@@ -262,11 +260,6 @@ void AUSDFCharacterPlayer::ReleaseAttackRKey()
 APlayerController* AUSDFCharacterPlayer::GetPlayerController()
 {
 	return Cast<APlayerController>(GetController());
-}
-
-bool AUSDFCharacterPlayer::IsSprintState()
-{
-	return bSprintKeyPress;
 }
 
 FVector2D AUSDFCharacterPlayer::GetMovementInputValue()
@@ -363,40 +356,63 @@ void AUSDFCharacterPlayer::OnDamageResponse(FDamageInfo DamageInfo)
 
 	PlayerAnimInstance->StopAllMontages(0.0f);
 
-	FVector ActorForwardVector = GetActorForwardVector();
-	FVector ActorRightVector = GetActorRightVector();
-	FVector HitActorForwardVector = HitCauser->GetActorForwardVector();
-
-	float ForwardDotProduct = ActorForwardVector.Dot(HitActorForwardVector);
-	float RightDotProduct = ActorRightVector.Dot(HitActorForwardVector);
-
-	UAnimMontage* HitReactMontage = nullptr;
-	if (ForwardDotProduct >= 0.5f)
+	switch (DamageInfo.DamageType)
 	{
-		HitReactMontage = HitReactAnimMontage[EHitReactDirection::Front];
-	}
-	else if (ForwardDotProduct <= -0.5f)
-	{
-		HitReactMontage = HitReactAnimMontage[EHitReactDirection::Back];
-	}
-	else if (RightDotProduct >= 0.0f)
-	{
-		HitReactMontage = HitReactAnimMontage[EHitReactDirection::Right];
-	}
-	else
-	{
-		HitReactMontage = HitReactAnimMontage[EHitReactDirection::Left];
-	}
+		case EDamageType::HitDefault:
+		{
+			FVector ActorForwardVector = GetActorForwardVector();
+			FVector ActorRightVector = GetActorRightVector();
+			FVector HitActorForwardVector = HitCauser->GetActorForwardVector();
 
-	if (HitReactMontage)
-	{
-		bDamagedState = true;
-		PlayerAnimInstance->Montage_Play(HitReactMontage);
+			float ForwardDotProduct = ActorForwardVector.Dot(HitActorForwardVector);
+			float RightDotProduct = ActorRightVector.Dot(HitActorForwardVector);
 
-		FOnMontageBlendingOutStarted BlendOutDelegate;
-		BlendOutDelegate.BindUObject(this, &AUSDFCharacterPlayer::OnHitReactMontageBlendOut);
+			UAnimMontage* HitReactMontage = nullptr;
+			if (ForwardDotProduct >= 0.5f)
+			{
+				HitReactMontage = HitReactAnimMontage[EHitReactDirection::Front];
+			}
+			else if (ForwardDotProduct <= -0.5f)
+			{
+				HitReactMontage = HitReactAnimMontage[EHitReactDirection::Back];
+			}
+			else if (RightDotProduct >= 0.0f)
+			{
+				HitReactMontage = HitReactAnimMontage[EHitReactDirection::Right];
+			}
+			else
+			{
+				HitReactMontage = HitReactAnimMontage[EHitReactDirection::Left];
+			}
 
-		PlayerAnimInstance->Montage_SetBlendingOutDelegate(BlendOutDelegate, HitReactMontage);
+			if (HitReactMontage)
+			{
+				bDamagedState = true;
+				PlayerAnimInstance->Montage_Play(HitReactMontage);
+
+				FOnMontageBlendingOutStarted BlendOutDelegate;
+				BlendOutDelegate.BindUObject(this, &AUSDFCharacterPlayer::OnHitReactMontageBlendOut);
+
+				PlayerAnimInstance->Montage_SetBlendingOutDelegate(BlendOutDelegate, HitReactMontage);
+			}
+		}
+			break;
+		case EDamageType::HitKnockback:
+		{
+			if (HitReactKnockBackMontage)
+			{
+				bDamagedState = true;
+				PlayerAnimInstance->Montage_Play(HitReactKnockBackMontage);
+
+				FOnMontageBlendingOutStarted BlendOutDelegate;
+				BlendOutDelegate.BindUObject(this, &AUSDFCharacterPlayer::OnHitReactMontageBlendOut);
+
+				PlayerAnimInstance->Montage_SetBlendingOutDelegate(BlendOutDelegate, HitReactKnockBackMontage);
+			}
+		}
+			break;
+		default:
+			break;
 	}
 }
 

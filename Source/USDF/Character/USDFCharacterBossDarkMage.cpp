@@ -20,6 +20,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "NavigationSystem.h"
 #include "Enemy/USDFDarkMageEyeCube.h"
+#include "Physics/USDFCollision.h"
+#include "Interface/USDFDamageableInterface.h"
 
 AUSDFCharacterBossDarkMage::AUSDFCharacterBossDarkMage()
 {
@@ -126,6 +128,12 @@ AUSDFCharacterBossDarkMage::AUSDFCharacterBossDarkMage()
 		ActionMontages.Add(EDarkMageActionType::OrderSpawn, OrderSpawnActionMontageRef.Object);
 	}
 
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> PushBackActionMontageRef(TEXT("/Game/Animation/NonPlayer/BossDarkMage/BS_USDF_Boss_DarkMage_PushBack.BS_USDF_Boss_DarkMage_PushBack"));
+	if (PushBackActionMontageRef.Object)
+	{
+		ActionMontages.Add(EDarkMageActionType::PushBack, PushBackActionMontageRef.Object);
+	}
+
 	static ConstructorHelpers::FObjectFinder<UNiagaraSystem> TeleportEffectRef(TEXT("/Game/ReferenceAsset/BlinkAndDashVFX/VFX_Niagara/NS_Dash_Vampire.NS_Dash_Vampire"));
 	if (TeleportEffectRef.Object)
 	{
@@ -172,6 +180,11 @@ void AUSDFCharacterBossDarkMage::ActionByAI(EAIActionType InAIActionType)
 		case EAIActionType::Attack2:
 		{
 			CurrentActionType = EDarkMageActionType::UpLaser;
+		}
+			break;
+		case EAIActionType::Attack3:
+		{
+			CurrentActionType = EDarkMageActionType::PushBack;
 		}
 			break;
 		case EAIActionType::Buff1:
@@ -389,6 +402,50 @@ void AUSDFCharacterBossDarkMage::SpawnLaser(int32 InParam)
 				default:
 					break;
 			}
+		}
+			break;
+		default:
+			break;
+	}
+}
+
+void AUSDFCharacterBossDarkMage::PushBackAction()
+{
+	switch (CurrentActionType)
+	{
+		case EDarkMageActionType::PushBack:
+		{
+			FCollisionQueryParams Params(SCENE_QUERY_STAT(PushBack), false, this);
+			FHitResult HitResult;
+
+			FVector StartPoint = GetActorLocation();
+			FVector EndPoint = GetActorLocation() + GetActorForwardVector() * 700.0f;
+
+			float Radius = 100.0f;
+			bool bHitted = GetWorld()->SweepSingleByChannel(HitResult, StartPoint, EndPoint, FQuat::Identity, CCHANNEL_USDF_NONPLAYERACTION, FCollisionShape::MakeSphere(Radius), Params);
+			if (bHitted)
+			{
+				FVector TargetForwardVector = -GetActorForwardVector();
+				FRotator Rotation = FRotationMatrix::MakeFromX(TargetForwardVector).Rotator();
+				FRotator NewRotation = FRotator(0.0f, Rotation.Yaw, 0.0f);
+
+				HitResult.GetActor()->SetActorRotation(NewRotation);
+
+				IUSDFDamageableInterface* Damageable = Cast<IUSDFDamageableInterface>(HitResult.GetActor());
+				if (Damageable)
+				{
+					FDamageInfo DamageInfo;
+					DamageInfo.DamageAmount = Stat->GetBossMonsterStat().Skill3;
+					DamageInfo.DamageCauser = this;
+					DamageInfo.DamageType = EDamageType::HitKnockback;
+
+					Damageable->TakeDamage(DamageInfo);
+				}
+			}
+#if ENABLE_DRAW_DEBUG
+			FColor Color = (bHitted) ? FColor::Green : FColor::Red;
+			DrawDebugCapsule(GetWorld(), (StartPoint + EndPoint) / 2, 350.0f, Radius, FRotationMatrix::MakeFromZ(GetActorForwardVector()).ToQuat(), Color, false, 3.0f);
+#endif
 		}
 			break;
 		default:

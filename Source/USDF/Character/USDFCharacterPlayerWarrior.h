@@ -19,6 +19,7 @@ enum class EPlayerWarriorComboType
 	Power,
 };
 
+
 DECLARE_DELEGATE(FComboAttackDelegate);
 
 USTRUCT()
@@ -67,6 +68,9 @@ public:
 	virtual void AttackQKey()override;
 	virtual void AttackEKey()override;
 	virtual void AttackRKey()override;
+
+	virtual void Dodge()override;
+	virtual void StopDodge()override;
 
 	void WarriorJump();
 	void WarriorStopJumping();

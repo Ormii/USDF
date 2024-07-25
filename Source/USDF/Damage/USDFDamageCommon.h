@@ -6,7 +6,8 @@
 UENUM()
 enum class EDamageType : uint8
 {
-	HitDefault
+	HitDefault,
+	HitKnockback,
 };
 
 USTRUCT()

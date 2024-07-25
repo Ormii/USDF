@@ -12,6 +12,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Character/USDFCharacterPlayer.h"
 #include "Character/USDFCharacterBossDarkMage.h"
+#include "Enemy/USDFDarkMageDotDamageZone.h"
 
 AUSDFBossDarkMageGameStage::AUSDFBossDarkMageGameStage()
 {
@@ -36,7 +37,6 @@ AUSDFBossDarkMageGameStage::AUSDFBossDarkMageGameStage()
 	}
 
 	CurrentDarkMageStagePhase = EDarkMageStagePhase::EDarkMageStagePhase_Intro;
-
 }
 
 void AUSDFBossDarkMageGameStage::PostInitializeComponents()
@@ -239,6 +239,12 @@ void AUSDFBossDarkMageGameStage::OnPhase2SeqFinished()
 	AUSDFPlayerController* PlayerController = Cast<AUSDFPlayerController>(PlayerCharacter->GetController());
 	PlayerCharacter->EnableInput(PlayerController);
 	RunAIAll();
+
+	AUSDFAIController* AIController = Cast<AUSDFAIController>(BossDarkMage->GetController());
+	if (AIController)
+	{
+		AIController->SetCurrentPhase(EGameStagePhase::EGameStagePhase_Phase2);
+	}
 
 }
 

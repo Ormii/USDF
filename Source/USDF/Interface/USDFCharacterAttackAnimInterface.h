@@ -26,6 +26,7 @@ public:
 	virtual void AttackFire() {}
 	virtual void SpawnProjectile() {}
 	virtual void SpawnLaser(int32 InParam) {}
+	virtual void PushBackAction() {}
 	virtual void BuffAction() {}
 	virtual void TeleportStart() {}
 	virtual void TeleportEnd() {}

@@ -14,6 +14,7 @@ enum class EDarkMageActionType : uint8
 	Meteo,
 	UpLaser,
 	OrderSpawn,
+	PushBack,
 };
 
 
@@ -52,6 +53,7 @@ protected:
 	virtual void AttackFire() override;
 	virtual void SpawnProjectile() override;
 	virtual void SpawnLaser(int32 InParam) override;
+	virtual void PushBackAction()override;
 	virtual void BuffAction() override;
 	virtual void TeleportStart() override;
 	virtual void TeleportEnd() override;
