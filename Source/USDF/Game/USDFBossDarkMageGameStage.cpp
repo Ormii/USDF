@@ -77,7 +77,7 @@ void AUSDFBossDarkMageGameStage::BeginPlay()
 	FDarkMageStagePhaseWrapper(FOnDarkMageStagePhaseChange::CreateUObject(this, &AUSDFBossDarkMageGameStage::DarkMageStagePhase_ChangeEnding),
 		FOnDarkMageStagePhaseUpdate::CreateUObject(this, &AUSDFBossDarkMageGameStage::DarkMageStagePhase_UpdateEnding)) });
 
-	SetDarkMageStagePhase(EDarkMageStagePhase::EDarkMageStagePhase_Phase1);
+	SetDarkMageStagePhase(EDarkMageStagePhase::EDarkMageStagePhase_Intro);
 
 }
 
@@ -86,6 +86,34 @@ void AUSDFBossDarkMageGameStage::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	DarkMageStagePhaseManager[CurrentDarkMageStagePhase].OnDarkMageStagePhaseUpdate.ExecuteIfBound(DeltaTime);
+}
+
+void AUSDFBossDarkMageGameStage::SetGameStage(EGameStagePhase NewGameStagePhase)
+{
+	switch (NewGameStagePhase)
+	{
+		case EGameStagePhase::EGameStagePhase_Intro:
+			SetDarkMageStagePhase(EDarkMageStagePhase::EDarkMageStagePhase_Intro);
+			break;
+		case EGameStagePhase::EGameStagePhase_Phase1:
+			SetDarkMageStagePhase(EDarkMageStagePhase::EDarkMageStagePhase_Phase1);
+			break;
+
+		case EGameStagePhase::EGameStagePhase_Phase2:
+			SetDarkMageStagePhase(EDarkMageStagePhase::EDarkMageStagePhase_Phase2);
+			break;
+
+		case EGameStagePhase::EGameStagePhase_Phase3:
+			SetDarkMageStagePhase(EDarkMageStagePhase::EDarkMageStagePhase_Phase3);
+			break;
+
+		case EGameStagePhase::EGameStagePhase_Ending:
+			SetDarkMageStagePhase(EDarkMageStagePhase::EDarkMageStagePhase_Ending);
+			break;
+
+		default:
+			break;
+	}
 }
 
 void AUSDFBossDarkMageGameStage::DarkMageStagePhase_ChangeIntro()
@@ -109,6 +137,7 @@ void AUSDFBossDarkMageGameStage::DarkMageStagePhase_ChangePhase1()
 
 	AUSDFPlayerController* PlayerController = Cast<AUSDFPlayerController>(PlayerCharacter->GetController());
 	PlayerCharacter->DisableInput(PlayerController);
+	StopAIAll();
 
 	SequencePlayer->Play();
 }
@@ -129,6 +158,7 @@ void AUSDFBossDarkMageGameStage::DarkMageStagePhase_ChangePhase2()
 
 	AUSDFPlayerController* PlayerController = Cast<AUSDFPlayerController>(PlayerCharacter->GetController());
 	PlayerCharacter->DisableInput(PlayerController);
+	StopAIAll();
 
 	SequencePlayer->Play();
 }
@@ -149,6 +179,7 @@ void AUSDFBossDarkMageGameStage::DarkMageStagePhase_ChangePhase3()
 
 	AUSDFPlayerController* PlayerController = Cast<AUSDFPlayerController>(PlayerCharacter->GetController());
 	PlayerCharacter->DisableInput(PlayerController);
+	StopAIAll();
 
 	SequencePlayer->Play();
 }
@@ -160,6 +191,7 @@ void AUSDFBossDarkMageGameStage::DarkMageStagePhase_ChangeEnding()
 
 void AUSDFBossDarkMageGameStage::DarkMageStagePhase_UpdateIntro(float DeltaTime)
 {
+
 }
 
 void AUSDFBossDarkMageGameStage::DarkMageStagePhase_UpdatePhase1(float DeltaTime)
@@ -193,6 +225,7 @@ void AUSDFBossDarkMageGameStage::OnPhase1SeqFinished()
 {
 	AUSDFPlayerController* PlayerController = Cast<AUSDFPlayerController>(PlayerCharacter->GetController());
 	PlayerCharacter->EnableInput(PlayerController);
+	RunAIAll();
 
 	IUSDFGameModeInterface* GameModeInterface = Cast<IUSDFGameModeInterface>(GetWorld()->GetAuthGameMode());
 	if (GameModeInterface)
@@ -205,10 +238,14 @@ void AUSDFBossDarkMageGameStage::OnPhase2SeqFinished()
 {
 	AUSDFPlayerController* PlayerController = Cast<AUSDFPlayerController>(PlayerCharacter->GetController());
 	PlayerCharacter->EnableInput(PlayerController);
+	RunAIAll();
+
 }
 
 void AUSDFBossDarkMageGameStage::OnPhase3SeqFinished()
 {
 	AUSDFPlayerController* PlayerController = Cast<AUSDFPlayerController>(PlayerCharacter->GetController());
 	PlayerCharacter->EnableInput(PlayerController);
+	RunAIAll();
+
 }

@@ -184,6 +184,12 @@ void AUSDFAIController::HandleSensedDamage(AActor* InActor)
 void AUSDFAIController::SetCurrentAIState(EAIState NewState, FAISensedParam Param)
 {
 	Blackboard->SetValueAsEnum(BBKEY_AISTATE, static_cast<uint8>(NewState));
+	UBehaviorTreeComponent* BTComponent = Cast<UBehaviorTreeComponent>(BrainComponent);
+	if (BTComponent)
+	{
+		BTComponent->RestartTree();
+	}
+
 	switch (NewState)
 	{
 		case EAIState::Attacking:

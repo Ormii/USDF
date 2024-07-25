@@ -141,6 +141,7 @@ protected:
 	void ApplyDamagePowerAttack();
 
 	void ExecuteDefaultHitCheck();
+	void ExecuteDashHitCheck();
 	void ResetCombatStateTime();
 
 // Attack Hit Section

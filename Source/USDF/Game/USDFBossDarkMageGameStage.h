@@ -59,6 +59,8 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+public:
+	virtual void SetGameStage(EGameStagePhase NewGameStagePhase)override;
 
 protected:
 	UPROPERTY(VisibleAnywhere, Category = Characters, Meta = (AllowPrivateAccess = "true"))

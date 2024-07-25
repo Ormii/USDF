@@ -31,17 +31,29 @@ bool UUSDFBTDecorator_CanSeeTarget::CalculateRawConditionValue(UBehaviorTreeComp
 
 	FHitResult HitResult{};
 	FCollisionQueryParams Params(SCENE_QUERY_STAT(SeeTarget), false, Owner);
-	Params.AddIgnoredActor(Target);
-	Params.AddIgnoredActor(Owner);
-
 	FVector StartLocation = Owner->GetMesh()->GetSocketLocation("eye_socket");
+	FVector EndLocation = Target->GetActorLocation();
+	float Radius = 40.0f;
 
-	bool bHitted = GetWorld()->LineTraceSingleByChannel(HitResult, StartLocation, Target->GetActorLocation(), CCHANNEL_USDF_NON_PLAYER_CHARACTER, Params);
-	if(bHitted)
-		UE_LOG(LogTemp, Display, TEXT("HitResult : %s"), *HitResult.GetActor()->GetName());
-	
-	FColor Color = (bHitted == true) ? FColor::Green : FColor::Red;
-	DrawDebugLine(GetWorld(), StartLocation, Target->GetActorLocation(), Color, false, 0.2f);
+	bool bHitted = GetWorld()->SweepSingleByChannel(HitResult, StartLocation, EndLocation, FQuat::Identity, ECC_Visibility, FCollisionShape::MakeSphere(Radius), Params);
+	bool bTargetHit = false;
+	if (bHitted)
+	{
+		if (Target == HitResult.GetActor())
+			bTargetHit = true;
+		else
+			bTargetHit = false;
+	}
+	else
+	{
+		bTargetHit = false;
+	}
 
-	return !bHitted;
+#if ENABLE_DRAW_DEBUG
+	FColor Color = (bTargetHit == true) ? FColor::Green : FColor::Red;
+	FVector TargetFowardVector = EndLocation - StartLocation;
+	DrawDebugCapsule(GetWorld(), (StartLocation + EndLocation) / 2, TargetFowardVector.Length() * 0.5f, Radius, FRotationMatrix::MakeFromZ(TargetFowardVector).ToQuat(), Color, false, 0.1f);
+#endif
+
+	return bTargetHit;
 }

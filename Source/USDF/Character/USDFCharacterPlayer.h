@@ -146,4 +146,17 @@ protected:
 	virtual void TakeDamage(FDamageInfo) override;
 	virtual bool IsDead() override;
 	virtual void OnDeath() override;
+
+
+	// HitReact Section
+protected:
+	UPROPERTY()
+	TMap<EHitReactDirection, TObjectPtr<class UAnimMontage>> HitReactAnimMontage;
+
+	UPROPERTY()
+	uint8 bDamagedState : 1;
+
+	UFUNCTION()
+	void OnHitReactMontageBlendOut(UAnimMontage* TargetMontage, bool bInterrupted);
+	virtual void OnDamageResponse(FDamageInfo DamageInfo) override;
 };

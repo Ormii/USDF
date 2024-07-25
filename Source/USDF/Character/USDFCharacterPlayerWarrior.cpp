@@ -24,6 +24,7 @@
 #include "Item/USDFWeaponItemData.h"
 #include "Perception/AISense_Damage.h"
 #include "Damage/USDFDamageSystemComponent.h"
+#include "Components/CapsuleComponent.h"
 
 AUSDFCharacterPlayerWarrior::AUSDFCharacterPlayerWarrior()
 {
@@ -81,6 +82,30 @@ AUSDFCharacterPlayerWarrior::AUSDFCharacterPlayerWarrior()
 	if (PowerAttackDataRef.Object)
 	{
 		ComboAttackDataManager.Add(EPlayerWarriorComboType::Power, PowerAttackDataRef.Object);
+	}
+
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> HitReactFrontMontageRef(TEXT("/Game/Animation/Player/Warrior/AM_USDF_PlayerWarrior_HitReact_Front.AM_USDF_PlayerWarrior_HitReact_Front"));
+	if (HitReactFrontMontageRef.Object)
+	{
+		HitReactAnimMontage.Add(EHitReactDirection::Front, HitReactFrontMontageRef.Object);
+	}
+
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> HitReactBackMontageRef(TEXT("/Game/Animation/Player/Warrior/AM_USDF_PlayerWarrior_HitReact_Back.AM_USDF_PlayerWarrior_HitReact_Back"));
+	if (HitReactBackMontageRef.Object)
+	{
+		HitReactAnimMontage.Add(EHitReactDirection::Back, HitReactBackMontageRef.Object);
+	}
+
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> HitReactRightMontageRef(TEXT("/Game/Animation/Player/Warrior/AM_USDF_PlayerWarrior_HitReact_Right.AM_USDF_PlayerWarrior_HitReact_Right"));
+	if (HitReactRightMontageRef.Object)
+	{
+		HitReactAnimMontage.Add(EHitReactDirection::Right, HitReactRightMontageRef.Object);
+	}
+
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> HitReactLeftMontageRef(TEXT("/Game/Animation/Player/Warrior/AM_USDF_PlayerWarrior_HitReact_Left.AM_USDF_PlayerWarrior_HitReact_Left"));
+	if (HitReactLeftMontageRef.Object)
+	{
+		HitReactAnimMontage.Add(EHitReactDirection::Left, HitReactLeftMontageRef.Object);
 	}
 
 	for (int i = 0; i < 3; ++i)
@@ -202,6 +227,9 @@ void AUSDFCharacterPlayerWarrior::Attack()
 {
 	Super::Attack();
 
+	if (bDamagedState)
+		return;
+
 	if (PossessCombatStartMontage())
 	{
 		PossessAttackMontage();
@@ -216,6 +244,9 @@ void AUSDFCharacterPlayerWarrior::ReleaseAttack()
 void AUSDFCharacterPlayerWarrior::AttackQKey()
 {
 	Super::AttackQKey();
+
+	if (bDamagedState)
+		return;
 
 	if (bCombatState == false)
 		return;
@@ -255,6 +286,9 @@ void AUSDFCharacterPlayerWarrior::AttackEKey()
 {
 	Super::AttackEKey();
 
+	if (bDamagedState)
+		return;
+
 	if (bCombatState == false)
 		return;
 
@@ -281,6 +315,9 @@ void AUSDFCharacterPlayerWarrior::AttackEKey()
 void AUSDFCharacterPlayerWarrior::AttackRKey()
 {
 	Super::AttackRKey();
+
+	if (bDamagedState)
+		return;
 
 	if (bCombatState == false)
 		return;
@@ -319,6 +356,9 @@ void AUSDFCharacterPlayerWarrior::AttackRKey()
 
 void AUSDFCharacterPlayerWarrior::WarriorJump()
 {
+	if (bDamagedState)
+		return;
+
 	UUSDFPlayerWarriorAnimInstance* WarriorAnimInstance = Cast<UUSDFPlayerWarriorAnimInstance>(GetMesh()->GetAnimInstance());
 
 	if (WarriorAnimInstance)
@@ -580,6 +620,8 @@ void AUSDFCharacterPlayerWarrior::DashAttack()
 	const FComboAttackDelegateWrapper& Wrapper = ComboAttackDelegateManager[EPlayerWarriorComboType::Dash];
 	const UUSDFComboActionData* ComboActionData = ComboAttackDataManager[EPlayerWarriorComboType::Dash];
 
+	GetCapsuleComponent()->SetCollisionProfileName(CPROFILE_USDF_NONPLAYER_CAPSULE);
+
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 	HitCharaters.Empty();
 	AnimInstance->Montage_Play(ComboActionData->ComboAttackMontage);
@@ -617,7 +659,7 @@ void AUSDFCharacterPlayerWarrior::UpperAttackHitCheck()
 
 void AUSDFCharacterPlayerWarrior::DashAttackHitCheck()
 {
-	ExecuteDefaultHitCheck();
+	ExecuteDashHitCheck();
 }
 
 void AUSDFCharacterPlayerWarrior::ApplyDamagePowerAttack()
@@ -761,6 +803,73 @@ void AUSDFCharacterPlayerWarrior::ExecuteDefaultHitCheck()
 	}
 }
 
+void AUSDFCharacterPlayerWarrior::ExecuteDashHitCheck()
+{
+	bool bOverlapped = false;
+	TArray<FOverlapResult> OutOverlapResults;
+	FCollisionQueryParams Params(SCENE_QUERY_STAT(Attack), false, this);
+
+	float Radius = 120.0f;
+	bOverlapped = GetWorld()->OverlapMultiByChannel(OutOverlapResults, GetActorLocation(), FQuat::Identity, CCHANNEL_USDF_PLAYERACTION, FCollisionShape::MakeSphere(Radius), Params);
+#if ENABLE_DRAW_DEBUG
+
+	FColor DrawColor = bOverlapped ? FColor::Green : FColor::Red;
+
+	DrawDebugSphere(GetWorld(), GetActorLocation(), Radius, 20, DrawColor, false, 5.0f);
+
+#endif
+
+	if (bOverlapped)
+	{
+		for (auto& OverlapResult : OutOverlapResults)
+		{
+			bool bIsExist = false;
+			for (TWeakObjectPtr<AUSDFCharacterBase>& Obj : HitCharaters)
+			{
+				if (!Obj.IsValid())
+					continue;
+
+				if (Obj.Get() == OverlapResult.GetActor())
+				{
+					bIsExist = true;
+					break;
+				}
+			}
+
+			AUSDFCharacterBase* HitCharacter = Cast<AUSDFCharacterBase>(OverlapResult.GetActor());
+			IUSDFDamageableInterface* DamageableTarget = Cast<IUSDFDamageableInterface>(HitCharacter);
+
+			if (HitCharacter && DamageableTarget && bIsExist == false)
+			{
+				float DamageAmount = Stat->GetPlayerStat().DefaultAttack;
+
+				FDamageInfo DamageInfo = {};
+				DamageInfo.DamageAmount = DamageAmount;
+				DamageInfo.DamageCauser = this;
+				DamageInfo.DamageType = EDamageType::HitDefault;
+
+				DamageableTarget->TakeDamage(DamageInfo);
+
+				FVector BoneLocation = FVector::ZeroVector;
+				HitCharacter->GetMesh()->FindClosestBone(OverlapResult.GetActor()->GetActorLocation(), &BoneLocation);
+				FVector ImpactNormal = (OverlapResult.GetActor()->GetActorLocation() - BoneLocation).GetSafeNormal();
+
+				int32 AttackHitEffectIndex = FMath::RandRange(0, 2);
+				if (AttackHitEffects[AttackHitEffectIndex] != nullptr)
+				{
+					UNiagaraComponent* pNiagaraCompo = UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), AttackHitEffects[AttackHitEffectIndex], BoneLocation, FRotationMatrix::MakeFromZ(ImpactNormal).Rotator());
+					if (pNiagaraCompo != nullptr)
+					{
+						pNiagaraCompo->Activate();
+					}
+				}
+
+				HitCharaters.Add(HitCharacter);
+			}
+		}
+	}
+}
+
 void AUSDFCharacterPlayerWarrior::ResetCombatStateTime()
 {
 	CombatStateTime = 10;
@@ -774,6 +883,7 @@ void AUSDFCharacterPlayerWarrior::OnDamageResponse(FDamageInfo DamageInfo)
 
 void AUSDFCharacterPlayerWarrior::ComboActionEnded(UAnimMontage* TargetMontage, bool IsProperlyEnded)
 {
+	GetCapsuleComponent()->SetCollisionProfileName(CPROFILE_USDF_PlAYER_CAPSULE);
 	UE_LOG(LogTemp, Display, TEXT("Montage End"));
 	HasNextComboCommand = false;
 	IgnoreComboCommand = false;

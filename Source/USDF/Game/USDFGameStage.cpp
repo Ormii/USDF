@@ -4,7 +4,9 @@
 #include "Game/USDFGameStage.h"
 #include "GameFramework/GameModeBase.h"
 #include "Interface/USDFGameModeInterface.h"
-#include "AI/USDFAISpawner.h"
+#include "Character/USDFCharacterNonPlayer.h"
+#include "AI/USDFAIController.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 AUSDFGameStage::AUSDFGameStage()
@@ -30,4 +32,42 @@ void AUSDFGameStage::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+}
+
+void AUSDFGameStage::StopAIAll()
+{
+	TArray<AActor*> TargetAIs;
+	UGameplayStatics::GetAllActorsOfClass(this, AUSDFCharacterNonPlayer::StaticClass(), TargetAIs);
+
+	for (int32 i = 0; i < TargetAIs.Num(); ++i)
+	{
+		AUSDFCharacterNonPlayer* NonPlayerCharacter = Cast<AUSDFCharacterNonPlayer>(TargetAIs[i]);
+		if (NonPlayerCharacter == nullptr)
+			continue;
+
+		AUSDFAIController* AIController = Cast<AUSDFAIController>(NonPlayerCharacter->GetController());
+		if (AIController == nullptr)
+			continue;
+
+		AIController->StopAI();
+	}
+}
+
+void AUSDFGameStage::RunAIAll()
+{
+	TArray<AActor*> TargetAIs;
+	UGameplayStatics::GetAllActorsOfClass(this, AUSDFCharacterNonPlayer::StaticClass(), TargetAIs);
+
+	for (int32 i = 0; i < TargetAIs.Num(); ++i)
+	{
+		AUSDFCharacterNonPlayer* NonPlayerCharacter = Cast<AUSDFCharacterNonPlayer>(TargetAIs[i]);
+		if (NonPlayerCharacter == nullptr)
+			continue;
+
+		AUSDFAIController* AIController = Cast<AUSDFAIController>(NonPlayerCharacter->GetController());
+		if (AIController == nullptr)
+			continue;
+
+		AIController->RunAI();
+	}
 }

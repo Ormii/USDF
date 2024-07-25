@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Interface/USDFGamestageInterface.h"
 #include "USDFGameStage.generated.h"
 
 DECLARE_DELEGATE(FOnGameStageChange)
@@ -29,7 +30,7 @@ struct FGameStageChangeWrapper
 
 
 UCLASS()
-class USDF_API AUSDFGameStage : public AActor
+class USDF_API AUSDFGameStage : public AActor, public IUSDFGameStageInterface
 {
 	GENERATED_BODY()
 	
@@ -46,6 +47,13 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+public:
+	virtual void SetGameStage(EGameStagePhase NewGameStagePhase) {};
+
+protected:
+	virtual void StopAIAll();
+	virtual void RunAIAll();
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Sequence, Meta = (AllowPrivateAccess = "true"))

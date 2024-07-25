@@ -251,6 +251,7 @@ void AUSDFCharacterBossDarkMage::SpawnProjectile()
 				DefaultAtkProjectile->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, "default_orb_spawn_socket");
 				DefaultAtkProjectile->GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 				DefaultAtkProjectile->GetProjectileMovementComp()->bSimulationEnabled = false;
+				DefaultAtkProjectile->SetOwner(this);
 			}
 		}
 			break;
@@ -287,6 +288,7 @@ void AUSDFCharacterBossDarkMage::SpawnProjectile()
 				{
 					MeteoSpawner->SetActorLocation(SpawnerLocation);
 					MeteoSpawner->SetAttackDamage(Stat->GetBossMonsterStat().Skill1);
+					MeteoSpawner->SetOwner(this);
 					
 					FVector TargetLocation = Target->GetActorLocation();
 					FNavLocation EndLocation = {};
@@ -332,6 +334,7 @@ void AUSDFCharacterBossDarkMage::SpawnLaser(int32 InParam)
 					if (UpLaserProjectile)
 					{
 						UpLaserProjectile->SetAttackDamage(Stat->GetBossMonsterStat().Skill2);
+						UpLaserProjectile->SetOwner(this);
 
 						FVector TargetLocation = Target->GetActorLocation();
 						FNavLocation EndLocation = {};
@@ -356,6 +359,8 @@ void AUSDFCharacterBossDarkMage::SpawnLaser(int32 InParam)
 						if (ElectLaserProjectile)
 						{
 							ElectLaserProjectile->SetAttackDamage(Stat->GetBossMonsterStat().Skill2);
+							ElectLaserProjectile->SetOwner(this);
+
 							float angle = 180.0f * (2*i+1)/ 4.0f;
 							float radius = 800.0f;
 
