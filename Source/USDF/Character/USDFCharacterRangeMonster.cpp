@@ -211,13 +211,13 @@ void AUSDFCharacterRangeMonster::AttackFire()
 
 
 #if ENABLE_DRAW_DEBUG
-	FColor Color = (bCharacterHit) ? FColor::Green : FColor::Red;
-	DrawDebugLine(GetWorld(), StartLocation, EndLocation, Color, false, 0.2f);
+	///FColor Color = (bCharacterHit) ? FColor::Green : FColor::Red;
+	//DrawDebugLine(GetWorld(), StartLocation, EndLocation, Color, false, 0.2f);
 
-	if (bCharacterHit)
-	{
-		DrawDebugPoint(GetWorld(), HitResult.Location, 10.0f, Color, false, 0.2f);
-	}
+	//if (bCharacterHit)
+	//{
+		//DrawDebugPoint(GetWorld(), HitResult.Location, 10.0f, Color, false, 0.2f);
+	//}
 #endif
 }
 

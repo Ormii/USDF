@@ -25,6 +25,10 @@
 
 AUSDFCharacterBossDarkMage::AUSDFCharacterBossDarkMage()
 {
+	//CDO
+	FuryEffect = CreateDefaultSubobject<UNiagaraComponent>(TEXT("FuryEffect"));
+	FuryEffect->SetupAttachment(GetMesh());
+
 	//Transform
 	SetActorScale3D(FVector(1.7f, 1.7f, 1.7f));
 
@@ -54,6 +58,12 @@ AUSDFCharacterBossDarkMage::AUSDFCharacterBossDarkMage()
 	if (AnimInstanceRef.Succeeded())
 	{
 		GetMesh()->SetAnimInstanceClass(AnimInstanceRef.Class);
+	}
+
+	static ConstructorHelpers::FObjectFinder<UNiagaraSystem> FuryEffectRef(TEXT("/Game/ReferenceAsset/DarkMagicFX/Niagara/NS_StaticMesh_DarkMagic.NS_StaticMesh_DarkMagic"));
+	if (FuryEffectRef.Object)
+	{
+		FuryEffect->SetAsset(FuryEffectRef.Object);
 	}
 
 	static ConstructorHelpers::FClassFinder<AUSDFEnemyProjectile> DefaultAtkProjectileClassRef(TEXT("/Game/Blueprint/Projectiles/BP_USDFDarkMageDefaultProjectile.BP_USDFDarkMageDefaultProjectile_C"));
@@ -161,6 +171,18 @@ void AUSDFCharacterBossDarkMage::BeginPlay()
 	{
 		DarkMageEyeCube = Cast<AUSDFDarkMageEyeCube>(FindActor);
 	}
+
+	DeActivateFuryEffect();
+}
+
+void AUSDFCharacterBossDarkMage::ActivateFuryEffect()
+{
+	FuryEffect->Activate();
+}
+
+void AUSDFCharacterBossDarkMage::DeActivateFuryEffect()
+{
+	FuryEffect->Deactivate();
 }
 
 void AUSDFCharacterBossDarkMage::ActionByAI(EAIActionType InAIActionType)
@@ -443,8 +465,8 @@ void AUSDFCharacterBossDarkMage::PushBackAction()
 				}
 			}
 #if ENABLE_DRAW_DEBUG
-			FColor Color = (bHitted) ? FColor::Green : FColor::Red;
-			DrawDebugCapsule(GetWorld(), (StartPoint + EndPoint) / 2, 350.0f, Radius, FRotationMatrix::MakeFromZ(GetActorForwardVector()).ToQuat(), Color, false, 3.0f);
+			//FColor Color = (bHitted) ? FColor::Green : FColor::Red;
+			//DrawDebugCapsule(GetWorld(), (StartPoint + EndPoint) / 2, 350.0f, Radius, FRotationMatrix::MakeFromZ(GetActorForwardVector()).ToQuat(), Color, false, 3.0f);
 #endif
 		}
 			break;
@@ -512,4 +534,22 @@ void AUSDFCharacterBossDarkMage::TeleportEnd()
 
 void AUSDFCharacterBossDarkMage::OnDeath()
 {
+	Super::OnDeath();
+
+	UUSDFNonPlayerAnimInstance* NonPlayerAnimInstance = Cast<UUSDFNonPlayerAnimInstance>(GetMesh()->GetAnimInstance());
+
+	if (NonPlayerAnimInstance && DeadAnimMontage)
+	{
+		NonPlayerAnimInstance->StopAllMontages(0.0f);
+		NonPlayerAnimInstance->Montage_Play(DeadAnimMontage);
+	}
+
+	AUSDFAIController* AIController = Cast<AUSDFAIController>(GetController());
+	if (AIController)
+	{
+		AIController->SetCurrentAIState(EAIState::Dead, FAISensedParam{});
+		AIController->StopAI();
+		AIController->UnPossess();
+	}
+
 }

@@ -26,6 +26,7 @@ public:
 	virtual bool IsAttackState() = 0;
 	virtual bool IsDeadState() = 0;
 	virtual FVector2D GetMovementInputValue() = 0;
+	virtual bool GetBondLayeredBlendEnable() { return true; }
 
 	virtual void EquipWeapon() {};
 	virtual void UnEquipWeapon() {};

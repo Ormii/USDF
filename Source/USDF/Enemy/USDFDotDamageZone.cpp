@@ -12,10 +12,10 @@ AUSDFDotDamageZone::AUSDFDotDamageZone()
 
 	// CDO
 	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
-	DetectZone = CreateDefaultSubobject<USphereComponent>(TEXT("DetectZone"));
+	SphereCollision = CreateDefaultSubobject<USphereComponent>(TEXT("SphereCollision"));
 
 	RootComponent = Mesh;
-	DetectZone->SetupAttachment(RootComponent);
+	SphereCollision->SetupAttachment(RootComponent);
 
 	DotInterval = 1.0f;
 	DotDamage = 0.0f;
@@ -25,7 +25,6 @@ AUSDFDotDamageZone::AUSDFDotDamageZone()
 void AUSDFDotDamageZone::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 // Called every frame

@@ -863,7 +863,7 @@ void AUSDFCharacterPlayerWarrior::ApplyDamagePowerAttack()
 	}
 
 #if ENABLE_DRAW_DEBUG
-	DrawDebugSphere(GetWorld(), PowerAttackAreaLocation, Radius, 20.0f, FColor::Red, false, 5.0f);
+	//DrawDebugSphere(GetWorld(), PowerAttackAreaLocation, Radius, 20.0f, FColor::Red, false, 5.0f);
 #endif
 }
 
@@ -957,9 +957,9 @@ void AUSDFCharacterPlayerWarrior::ExecuteDashHitCheck()
 	bOverlapped = GetWorld()->OverlapMultiByChannel(OutOverlapResults, GetActorLocation(), FQuat::Identity, CCHANNEL_USDF_PLAYERACTION, FCollisionShape::MakeSphere(Radius), Params);
 #if ENABLE_DRAW_DEBUG
 
-	FColor DrawColor = bOverlapped ? FColor::Green : FColor::Red;
+	//FColor DrawColor = bOverlapped ? FColor::Green : FColor::Red;
 
-	DrawDebugSphere(GetWorld(), GetActorLocation(), Radius, 20, DrawColor, false, 5.0f);
+	//DrawDebugSphere(GetWorld(), GetActorLocation(), Radius, 20, DrawColor, false, 5.0f);
 
 #endif
 

@@ -24,7 +24,7 @@ AUSDFCharacterNormalMonster::AUSDFCharacterNormalMonster()
 	// CDO
 	HpBarWidget = CreateDefaultSubobject<UUSDFWidgetComponent>(TEXT("HpBarWidget"));
 	HpBarWidget->SetupAttachment(GetMesh());
-	HpBarWidget->SetRelativeLocation(FVector(0.0f, 0.0f, 180.0f));
+	HpBarWidget->SetRelativeLocation(FVector(0.0f, 0.0f, 200.0f));
 
 	Stat = CreateDefaultSubobject<UUSDFNormalMonsterStatComponent>(TEXT("Stat"));
 
@@ -37,7 +37,7 @@ AUSDFCharacterNormalMonster::AUSDFCharacterNormalMonster()
 	{
 		HpBarWidget->SetWidgetClass(EnemyHpBarWidgetClassRef.Class);
 		HpBarWidget->SetWidgetSpace(EWidgetSpace::Screen);
-		HpBarWidget->SetDrawSize(FVector2D(200.0f, 15.0f));
+		HpBarWidget->SetDrawSize(FVector2D(80.0f, 15.0f));
 		HpBarWidget->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
 }

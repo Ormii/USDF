@@ -6,6 +6,8 @@
 #include "GameFramework/Actor.h"
 #include "USDFDotDamageZone.generated.h"
 
+DECLARE_DELEGATE(FOnHitEventAccur);
+
 UCLASS()
 class USDF_API AUSDFDotDamageZone : public AActor
 {
@@ -23,17 +25,27 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+public:
+	FOnHitEventAccur OnHitEventAccur;
+
+public:
+	FORCEINLINE void SetDotDamage(float NewDotDamage) { DotDamage = NewDotDamage; }
+	FORCEINLINE void SetDotInterval(float NewDotInterval) { DotInterval = NewDotInterval; }
+	FORCEINLINE void SetDotRange(float NewDotRange) { DotRange = NewDotRange; }
 
 protected:
-	UPROPERTY(VisibleAnywhere, Category = Mesh, Meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, Category = Mesh, Meta= (AllowPrivateAccess = "true"))
 	TObjectPtr<class UStaticMeshComponent> Mesh;
 
 	UPROPERTY(VisibleAnywhere, Category = Detect, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class USphereComponent> DetectZone;
+	TObjectPtr<class USphereComponent> SphereCollision;
 
 	UPROPERTY(EditAnywhere, Category = DotInfo, Meta = (AllowPrivateAccess = "true"))
 	float DotInterval;
 
 	UPROPERTY(EditAnywhere, Category = DotInfo, Meta = (AllowPrivateAccess = "true"))
 	float DotDamage;
+
+	UPROPERTY(EditAnywhere, Category = DotInfo, Meta = (AllowPrivateAccess = "true"))
+	float DotRange;
 };

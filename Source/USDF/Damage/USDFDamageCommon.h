@@ -8,6 +8,7 @@ enum class EDamageType : uint8
 {
 	HitDefault,
 	HitKnockback,
+	DotDamage,
 };
 
 USTRUCT()

@@ -21,7 +21,6 @@ protected:
 	virtual void NativeInitializeAnimation() override;
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 
-
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
 	uint8 bIsWalk : 1;
 
@@ -46,6 +45,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
 	uint8 bIsDead : 1;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
+	uint8 bBondLayeredBlendEnable : 1;
+
 	FVector2D MovementInputValue;
 
 protected:
@@ -53,4 +55,7 @@ protected:
 	float CalculateTurnDotProductValue();
 
 	void FindLocomotionState();
+
+public:
+	void SetBondLayeredBlendEnable(bool NewBondLayeredBlendEnable) { bBondLayeredBlendEnable = NewBondLayeredBlendEnable; }
 };

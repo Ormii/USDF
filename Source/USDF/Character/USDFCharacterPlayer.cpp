@@ -120,6 +120,8 @@ void AUSDFCharacterPlayer::BeginPlay()
 
 	DamageSystem->OnDeath.BindUObject(this, &AUSDFCharacterPlayer::OnDeath);
 	DamageSystem->OnDamageResponse.BindUObject(this, &AUSDFCharacterPlayer::OnDamageResponse);
+
+	bBoneLayeredBlendEnable = true;
 }
 
 void AUSDFCharacterPlayer::PostInitializeComponents()
@@ -275,6 +277,17 @@ bool AUSDFCharacterPlayer::IsAttackState()
 bool AUSDFCharacterPlayer::IsDeadState()
 {
 	return Stat->GetCurrentHp() <= 0.0f;
+}
+
+void AUSDFCharacterPlayer::SetBoneLayeredBlendEnable(bool NewBoneLayeredBlendEnable)
+{
+	bBoneLayeredBlendEnable = NewBoneLayeredBlendEnable; 
+	
+	UUSDFPlayerAnimInstance* AnimInstance = Cast<UUSDFPlayerAnimInstance>(GetMesh()->GetAnimInstance());
+	if (AnimInstance)
+	{
+		AnimInstance->SetBondLayeredBlendEnable(bBoneLayeredBlendEnable);
+	}
 }
 
 

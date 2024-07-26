@@ -12,11 +12,18 @@
 #include "Kismet/GameplayStatics.h"
 #include "Character/USDFCharacterPlayer.h"
 #include "Character/USDFCharacterBossDarkMage.h"
+#include "Character/USDFCharacterNormalMonster.h"
 #include "Enemy/USDFDarkMageDotDamageZone.h"
+#include "GameFramework/ProjectileMovementComponent.h"
+#include "Decal/USDFDarkMageDecal.h"
+#include "LegacyCameraShake.h"
+#include "Sound/SoundCue.h"
+#include "Components/AudioComponent.h"
 
 AUSDFBossDarkMageGameStage::AUSDFBossDarkMageGameStage()
 {
 	// CDO
+	Audio = CreateDefaultSubobject<UAudioComponent>(TEXT("Audio"));
 
 	static ConstructorHelpers::FObjectFinder<ULevelSequence> Phase1SeqAssetRef(TEXT("/Game/Cinematics/BossIntro/BossIntro.BossIntro"));
 	if (Phase1SeqAssetRef.Object)
@@ -30,13 +37,63 @@ AUSDFBossDarkMageGameStage::AUSDFBossDarkMageGameStage()
 		Phase2SeqAsset = Phase2SeqAssetRef.Object;
 	}
 
-	static ConstructorHelpers::FObjectFinder<ULevelSequence> Phase3SeqAssetRef(TEXT(""));
+	static ConstructorHelpers::FObjectFinder<ULevelSequence> Phase3SeqAssetRef(TEXT("/Game/Cinematics/BossFinalPhase/BossFinalPhase.BossFinalPhase"));
 	if (Phase3SeqAssetRef.Object)
 	{
 		Phase3SeqAsset = Phase3SeqAssetRef.Object;
 	}
 
+	static ConstructorHelpers::FObjectFinder<ULevelSequence> PhaseEndingSeqAssetRef(TEXT("/Game/Cinematics/EndingPhase/EndingPhase.EndingPhase"));
+	if (PhaseEndingSeqAssetRef.Object)
+	{
+		PhaseEndingSeqAsset = PhaseEndingSeqAssetRef.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<USoundCue> IntroSoundCueRef(TEXT("/Game/ReferenceAsset/cplomedia_CinematicVol5/Cues/Cue_Lost_Cue.Cue_Lost_Cue"));
+	if(IntroSoundCueRef.Object)
+	{
+		DarkMageBGMManager.Add({ EDarkMageStagePhase::EDarkMageStagePhase_Intro, IntroSoundCueRef.Object });
+	}
+
+	static ConstructorHelpers::FObjectFinder<USoundCue> Phase1SoundCueRef(TEXT("/Game/ReferenceAsset/cplomedia_CinematicVol5/Cues/Cue_Hero_Cue.Cue_Hero_Cue"));
+	if (Phase1SoundCueRef.Object)
+	{
+		DarkMageBGMManager.Add({ EDarkMageStagePhase::EDarkMageStagePhase_Phase1, Phase1SoundCueRef.Object });
+	}
+
+	static ConstructorHelpers::FObjectFinder<USoundCue> Phase2SoundCueRef(TEXT("/Game/ReferenceAsset/cplomedia_CinematicVol5/Cues/Cue_Allin_Cue.Cue_Allin_Cue"));
+	if (Phase2SoundCueRef.Object)
+	{
+		DarkMageBGMManager.Add({ EDarkMageStagePhase::EDarkMageStagePhase_Phase2, Phase2SoundCueRef.Object });
+	}
+
+	static ConstructorHelpers::FObjectFinder<USoundCue> Phase3SoundCueRef(TEXT("/Game/ReferenceAsset/cplomedia_CinematicVol5/Cues/Cue_Freedom_Cue.Cue_Freedom_Cue"));
+	if (Phase3SoundCueRef.Object)
+	{
+		DarkMageBGMManager.Add({ EDarkMageStagePhase::EDarkMageStagePhase_Phase3, Phase3SoundCueRef.Object });
+	}
+
+	static ConstructorHelpers::FObjectFinder<USoundCue> EndingSoundCueRef(TEXT("/Game/ReferenceAsset/cplomedia_CinematicVol5/Cues/Cue_Wind_Cue.Cue_Wind_Cue"));
+	if (EndingSoundCueRef.Object)
+	{
+		DarkMageBGMManager.Add({ EDarkMageStagePhase::EDarkMageStagePhase_Ending, EndingSoundCueRef.Object });
+	}
+
+	static ConstructorHelpers::FClassFinder<AUSDFDarkMageDotDamageZone> DarkMageDotDamageZoneClassRef(TEXT("/Game/Blueprint/Enemy/BP_USDFDarkMageDotDamageZone.BP_USDFDarkMageDotDamageZone_C"));
+	if (DarkMageDotDamageZoneClassRef.Class)
+	{
+		DarkMageDotDamageZoneClass = DarkMageDotDamageZoneClassRef.Class;
+	}
+	
+	static ConstructorHelpers::FClassFinder<ULegacyCameraShake> DotDamageZoneCameraShakeClassRef(TEXT("/Game/Blueprint/Camera/BP_DotDamageZoneCameraShake.BP_DotDamageZoneCameraShake_C"));
+	if (DotDamageZoneCameraShakeClassRef.Class)
+	{
+		DotDamageZoneCameraShakeClass = DotDamageZoneCameraShakeClassRef.Class;
+	}
+
 	CurrentDarkMageStagePhase = EDarkMageStagePhase::EDarkMageStagePhase_Intro;
+	DotDamageZoneCurrentTag = 0;
+	bSceneChanging = false;
 }
 
 void AUSDFBossDarkMageGameStage::PostInitializeComponents()
@@ -56,6 +113,9 @@ void AUSDFBossDarkMageGameStage::BeginPlay()
 	BossDarkMage = Cast<AUSDFCharacterBossDarkMage>(Boss);
 	check(BossDarkMage);
 
+	AActor* Decal = UGameplayStatics::GetActorOfClass(this, AUSDFDarkMageDecal::StaticClass());
+	DarkMageDecal = Cast<AUSDFDarkMageDecal>(Decal);
+	check(DarkMageDecal);
 
 	DarkMageStagePhaseManager.Add({ EDarkMageStagePhase::EDarkMageStagePhase_Intro,
 		FDarkMageStagePhaseWrapper(FOnDarkMageStagePhaseChange::CreateUObject(this, &AUSDFBossDarkMageGameStage::DarkMageStagePhase_ChangeIntro),
@@ -79,6 +139,7 @@ void AUSDFBossDarkMageGameStage::BeginPlay()
 
 	SetDarkMageStagePhase(EDarkMageStagePhase::EDarkMageStagePhase_Intro);
 
+	DarkMageDecal->SetActorHiddenInGame(true);
 }
 
 void AUSDFBossDarkMageGameStage::Tick(float DeltaTime)
@@ -118,16 +179,24 @@ void AUSDFBossDarkMageGameStage::SetGameStage(EGameStagePhase NewGameStagePhase)
 
 void AUSDFBossDarkMageGameStage::DarkMageStagePhase_ChangeIntro()
 {
-	
+	if (Audio)
+		Audio->Stop();
+
+	Audio = UGameplayStatics::SpawnSound2D(this, DarkMageBGMManager[EDarkMageStagePhase::EDarkMageStagePhase_Intro]);
 }
 
 void AUSDFBossDarkMageGameStage::DarkMageStagePhase_ChangePhase1()
 {
+	bSceneChanging = true;
 	if (SequencePlayer != nullptr && SequencePlayer->IsPlaying())
 		SequencePlayer->Stop();
 
 	if (Phase1SeqAsset == nullptr)
+	{
+		bSceneChanging = false;
+		OnPhase1SeqFinished();
 		return;
+	}
 	
 	SequencePlayer = ULevelSequencePlayer::CreateLevelSequencePlayer(GetWorld(), Phase1SeqAsset, FMovieSceneSequencePlaybackSettings(), LevelSequenceActor);
 
@@ -139,16 +208,26 @@ void AUSDFBossDarkMageGameStage::DarkMageStagePhase_ChangePhase1()
 	PlayerCharacter->DisableInput(PlayerController);
 	StopAIAll();
 
+	
+	if (Audio)
+		Audio->Stop();
+
+	Audio = UGameplayStatics::SpawnSound2D(this, DarkMageBGMManager[EDarkMageStagePhase::EDarkMageStagePhase_Phase1]);
 	SequencePlayer->Play();
 }
 
 void AUSDFBossDarkMageGameStage::DarkMageStagePhase_ChangePhase2()
 {
+	bSceneChanging = true;
 	if (SequencePlayer != nullptr && SequencePlayer->IsPlaying())
 		SequencePlayer->Stop();
 
 	if (Phase2SeqAsset == nullptr)
+	{
+		bSceneChanging = false;
+		OnPhase2SeqFinished();
 		return;
+	}
 		
 	SequencePlayer = ULevelSequencePlayer::CreateLevelSequencePlayer(GetWorld(), Phase2SeqAsset, FMovieSceneSequencePlaybackSettings(), LevelSequenceActor);
 
@@ -160,16 +239,26 @@ void AUSDFBossDarkMageGameStage::DarkMageStagePhase_ChangePhase2()
 	PlayerCharacter->DisableInput(PlayerController);
 	StopAIAll();
 
+
+	if (Audio)
+		Audio->Stop();
+
+	Audio = UGameplayStatics::SpawnSound2D(this, DarkMageBGMManager[EDarkMageStagePhase::EDarkMageStagePhase_Phase2]);
 	SequencePlayer->Play();
 }
 
 void AUSDFBossDarkMageGameStage::DarkMageStagePhase_ChangePhase3()
 {
+	bSceneChanging = true;
 	if (SequencePlayer != nullptr && SequencePlayer->IsPlaying())
 		SequencePlayer->Stop();
 
 	if (Phase3SeqAsset == nullptr)
+	{
+		bSceneChanging = false;
+		OnPhase3SeqFinished();
 		return;
+	}
 
 	SequencePlayer = ULevelSequencePlayer::CreateLevelSequencePlayer(GetWorld(), Phase3SeqAsset, FMovieSceneSequencePlaybackSettings(), LevelSequenceActor);
 
@@ -181,22 +270,72 @@ void AUSDFBossDarkMageGameStage::DarkMageStagePhase_ChangePhase3()
 	PlayerCharacter->DisableInput(PlayerController);
 	StopAIAll();
 
+	if (Audio)
+		Audio->Stop();
+
+	Audio = UGameplayStatics::SpawnSound2D(this, DarkMageBGMManager[EDarkMageStagePhase::EDarkMageStagePhase_Phase3]);
 	SequencePlayer->Play();
 }
 
 void AUSDFBossDarkMageGameStage::DarkMageStagePhase_ChangeEnding()
 {
+	bSceneChanging = true;
+	if (SequencePlayer != nullptr && SequencePlayer->IsPlaying())
+		SequencePlayer->Stop();
 
+	if (PhaseEndingSeqAsset == nullptr)
+	{
+		bSceneChanging = false;
+		OnPhaseEndingSeqFinished();
+		return;
+	}
+
+	SequencePlayer = ULevelSequencePlayer::CreateLevelSequencePlayer(GetWorld(), PhaseEndingSeqAsset, FMovieSceneSequencePlaybackSettings(), LevelSequenceActor);
+
+	FScriptDelegate ScriptDelegate;
+	ScriptDelegate.BindUFunction(this, "OnPhaseEndingSeqFinished");
+	SequencePlayer->OnFinished.AddUnique(ScriptDelegate);
+
+	AUSDFPlayerController* PlayerController = Cast<AUSDFPlayerController>(PlayerCharacter->GetController());
+	PlayerCharacter->DisableInput(PlayerController);
+	PlayerCharacter->SetBoneLayeredBlendEnable(false);
+	BossDarkMage->DeActivateFuryEffect();
+	
+	StopAIAll();
+
+	TArray<AActor*> NormalMonsters;
+	UGameplayStatics::GetAllActorsOfClass(this, AUSDFCharacterNormalMonster::StaticClass(), NormalMonsters);
+	for (int32 i = 0; i < NormalMonsters.Num(); ++i)
+	{
+		IUSDFDamageableInterface* Damageable = Cast<IUSDFDamageableInterface>(NormalMonsters[i]);
+		if (Damageable == nullptr)
+			continue;
+		
+		FDamageInfo DamageInfo{};
+		DamageInfo.DamageAmount = 100000;
+		DamageInfo.DamageCauser = PlayerCharacter;
+		DamageInfo.DamageType = EDamageType::HitDefault;
+		Damageable->TakeDamage(DamageInfo);
+	}
+
+	if (Audio)
+		Audio->Stop();
+
+	Audio = UGameplayStatics::SpawnSound2D(this, DarkMageBGMManager[EDarkMageStagePhase::EDarkMageStagePhase_Ending]);
+	SequencePlayer->Play();
 }
 
 void AUSDFBossDarkMageGameStage::DarkMageStagePhase_UpdateIntro(float DeltaTime)
 {
-
+	
 }
 
 void AUSDFBossDarkMageGameStage::DarkMageStagePhase_UpdatePhase1(float DeltaTime)
 {
-	if (BossDarkMage->GetCurrentHealth() / BossDarkMage->GetMaxHealth() <= 0.5f)
+	if (bSceneChanging)
+		return;
+
+	if (BossDarkMage->GetCurrentHealth() / BossDarkMage->GetMaxHealth() <= 0.7f)
 	{
 		SetDarkMageStagePhase(EDarkMageStagePhase::EDarkMageStagePhase_Phase2);
 		return;
@@ -205,14 +344,54 @@ void AUSDFBossDarkMageGameStage::DarkMageStagePhase_UpdatePhase1(float DeltaTime
 
 void AUSDFBossDarkMageGameStage::DarkMageStagePhase_UpdatePhase2(float DeltaTime)
 {
+	if (bSceneChanging)
+		return;
+
+	if (BossDarkMage->GetCurrentHealth() / BossDarkMage->GetMaxHealth() <= 0.4f)
+	{
+		SetDarkMageStagePhase(EDarkMageStagePhase::EDarkMageStagePhase_Phase3);
+		return;
+	}
 }
 
 void AUSDFBossDarkMageGameStage::DarkMageStagePhase_UpdatePhase3(float DeltaTime)
 {
+	if (bSceneChanging)
+		return;
+
+	if (BossDarkMage->GetCurrentHealth() / BossDarkMage->GetMaxHealth() <= 0.0f)
+	{
+		SetDarkMageStagePhase(EDarkMageStagePhase::EDarkMageStagePhase_Ending);
+		return;
+	}
+
+	DropDotDamageZoneTime -= DeltaTime;
+
+	if (DropDotDamageZoneTime <= 1000.0f)
+	{
+		DarkMageDecal->SetActorHiddenInGame(false);
+		DarkMageDecal->SetActorLocation(PlayerCharacter->GetActorLocation());
+		if (DropDotDamageZoneTime <= 0.0f)
+		{
+			AUSDFDarkMageDotDamageZone* DarkMageDotDamageZone = GetWorld()->SpawnActorDeferred<AUSDFDarkMageDotDamageZone>(DarkMageDotDamageZoneClass, FTransform::Identity);
+			if (DarkMageDotDamageZone != nullptr)
+			{
+				FTransform Transform = FTransform::Identity;
+				Transform.SetLocation(PlayerCharacter->GetActorLocation() + FVector::UpVector * 3000.0f);
+				DarkMageDotDamageZone->OnHitEventAccur.BindUFunction(this, "HitCameraShake");
+				DarkMageDotDamageZone->FinishSpawning(Transform);
+			}
+			DarkMageDecal->SetActorHiddenInGame(true);
+			DropDotDamageZoneTime = FMath::RandRange(1000.0f, 2000.0f);
+		}
+	}
+
 }
 
 void AUSDFBossDarkMageGameStage::DarkMageStagePhase_UpdateEnding(float DeltaTime)
 {
+	if (bSceneChanging)
+		return;
 }
 
 void AUSDFBossDarkMageGameStage::SetDarkMageStagePhase(EDarkMageStagePhase NewStagePhase)
@@ -226,6 +405,7 @@ void AUSDFBossDarkMageGameStage::OnPhase1SeqFinished()
 	AUSDFPlayerController* PlayerController = Cast<AUSDFPlayerController>(PlayerCharacter->GetController());
 	PlayerCharacter->EnableInput(PlayerController);
 	RunAIAll();
+	bSceneChanging = false;
 
 	IUSDFGameModeInterface* GameModeInterface = Cast<IUSDFGameModeInterface>(GetWorld()->GetAuthGameMode());
 	if (GameModeInterface)
@@ -239,6 +419,7 @@ void AUSDFBossDarkMageGameStage::OnPhase2SeqFinished()
 	AUSDFPlayerController* PlayerController = Cast<AUSDFPlayerController>(PlayerCharacter->GetController());
 	PlayerCharacter->EnableInput(PlayerController);
 	RunAIAll();
+	bSceneChanging = false;
 
 	AUSDFAIController* AIController = Cast<AUSDFAIController>(BossDarkMage->GetController());
 	if (AIController)
@@ -253,5 +434,36 @@ void AUSDFBossDarkMageGameStage::OnPhase3SeqFinished()
 	AUSDFPlayerController* PlayerController = Cast<AUSDFPlayerController>(PlayerCharacter->GetController());
 	PlayerCharacter->EnableInput(PlayerController);
 	RunAIAll();
+	bSceneChanging = false;
 
+	AUSDFAIController* AIController = Cast<AUSDFAIController>(BossDarkMage->GetController());
+	if (AIController)
+	{
+		AIController->SetCurrentPhase(EGameStagePhase::EGameStagePhase_Phase3);
+	}
+
+	BossDarkMage->ActivateFuryEffect();
+
+	DropDotDamageZoneTime = FMath::RandRange(1000.0f, 2000.0f);
+}
+
+void AUSDFBossDarkMageGameStage::OnPhaseEndingSeqFinished()
+{
+	AUSDFPlayerController* PlayerController = Cast<AUSDFPlayerController>(PlayerCharacter->GetController());
+	PlayerCharacter->EnableInput(PlayerController);
+	PlayerCharacter->SetBoneLayeredBlendEnable(true);
+
+	bSceneChanging = false;
+
+	IUSDFGameModeInterface* GameModeInterface = Cast<IUSDFGameModeInterface>(GetWorld()->GetAuthGameMode());
+	if (GameModeInterface)
+	{
+		GameModeInterface->OnBossDead(BossDarkMage);
+	}
+}
+
+void AUSDFBossDarkMageGameStage::HitCameraShake()
+{
+	AUSDFPlayerController* PlayerController = Cast<AUSDFPlayerController>(PlayerCharacter->GetController());
+	PlayerController->ClientStartCameraShake(DotDamageZoneCameraShakeClass);
 }

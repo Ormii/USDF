@@ -37,6 +37,14 @@ protected:
 	virtual void BeginPlay() override;
 
 
+protected:
+	UPROPERTY(VisibleAnywhere, Category = Effect, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UNiagaraComponent> FuryEffect;
+
+public:
+	void ActivateFuryEffect();
+	void DeActivateFuryEffect();
+
 	// AI Section
 protected:
 	virtual void ActionByAI(EAIActionType InAIAttackType) override;

@@ -235,11 +235,11 @@ void AUSDFCharacterMeleeMonster::WeakAttackHitCheck()
 	}
 
 #if ENABLE_DRAW_DEBUG
-	FVector CapsuleOrigin = AttackBase + (AttackTip - AttackBase) * 0.5f;
-	float CapsuleHalfHeight = (AttackTip - AttackBase).Length() * 0.5f;
-	FColor DrawColor = HitDetected ? FColor::Green : FColor::Red;
+	//FVector CapsuleOrigin = AttackBase + (AttackTip - AttackBase) * 0.5f;
+	//float CapsuleHalfHeight = (AttackTip - AttackBase).Length() * 0.5f;
+	//FColor DrawColor = HitDetected ? FColor::Green : FColor::Red;
 
-	DrawDebugCapsule(GetWorld(), CapsuleOrigin, CapsuleHalfHeight, 15.0f, FRotationMatrix::MakeFromZ(AttackTip - AttackBase).ToQuat(), DrawColor, false, 5.0f);
+	//DrawDebugCapsule(GetWorld(), CapsuleOrigin, CapsuleHalfHeight, 15.0f, FRotationMatrix::MakeFromZ(AttackTip - AttackBase).ToQuat(), DrawColor, false, 5.0f);
 #endif
 }
 

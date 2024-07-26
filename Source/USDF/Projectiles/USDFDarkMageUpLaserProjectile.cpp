@@ -94,8 +94,10 @@ void AUSDFDarkMageUpLaserProjectile::Tick(float DeltaTime)
 		}
 
 #if ENABLE_DRAW_DEBUG
-		FColor Color = (bHitted == true) ? FColor::Green : FColor::Red;
-		DrawDebugCapsule(GetWorld(), (StartPoint + EndPoint) / 2, LaserLength * 0.5, Radius, FQuat::Identity, Color, false, 0.1f);
+		/*
+			FColor Color = (bHitted == true) ? FColor::Green : FColor::Red;
+			DrawDebugCapsule(GetWorld(), (StartPoint + EndPoint) / 2, LaserLength * 0.5, Radius, FQuat::Identity, Color, false, 0.1f);
+		*/
 #endif
 	}
 }

@@ -136,6 +136,11 @@ public:
 
 	virtual bool IsAttackState() override;
 	virtual bool IsDeadState() override;
+	virtual bool GetBondLayeredBlendEnable()override { return bBoneLayeredBlendEnable; };
+	void SetBoneLayeredBlendEnable(bool NewBoneLayeredBlendEnable);
+
+	bool bBoneLayeredBlendEnable;
+
 
 	UPROPERTY()
 	TObjectPtr<class UAnimMontage> DodgeLeft;

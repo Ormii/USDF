@@ -69,9 +69,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = Characters, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class AUSDFCharacterBossDarkMage> BossDarkMage;
 
-protected:
-	UPROPERTY(VisibleAnywhere, Category = Characters, Meta = (AllowPrivateAccess = "true"))
-	TArray<TObjectPtr<class AUSDFCharacterNormalMonster>> NormalMonsters;
 
 protected:
 	UPROPERTY(VisibleAnywhere, Category = StagePhase, Meta = (AllowPrivateAccess = "true"))
@@ -97,7 +94,7 @@ protected:
 
 public:
 	void SetDarkMageStagePhase(EDarkMageStagePhase NewStagePhase);
-
+	bool bSceneChanging;
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Sequence, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class ULevelSequence> Phase1SeqAsset;
@@ -108,6 +105,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Sequence, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class ULevelSequence> Phase3SeqAsset;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Sequence, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class ULevelSequence> PhaseEndingSeqAsset;
+
 	UFUNCTION()
 	void OnPhase1SeqFinished();
 	
@@ -116,4 +116,31 @@ protected:
 	
 	UFUNCTION()
 	void OnPhase3SeqFinished();
+
+	UFUNCTION()
+	void OnPhaseEndingSeqFinished();
+
+protected:
+	UPROPERTY(VisibleAnywhere, Category = Sound, Meta = (AllowPrivateAccess = "true"))
+	TMap<EDarkMageStagePhase, TObjectPtr<class USoundCue>> DarkMageBGMManager;
+
+	UPROPERTY(VisibleAnywhere, Category = Sound, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UAudioComponent> Audio;
+
+protected:
+	UPROPERTY(VisibleAnywhere, Category = DotDamageZone, Meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<class AUSDFDarkMageDotDamageZone> DarkMageDotDamageZoneClass;
+
+	UPROPERTY(VisibleAnywhere, Category = DotDamageZone, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class AUSDFDarkMageDecal> DarkMageDecal;
+
+protected:
+	UPROPERTY(VisibleAnywhere, Category = CameraShake, Meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<class ULegacyCameraShake> DotDamageZoneCameraShakeClass;
+
+	int32 DotDamageZoneCurrentTag;
+	int32 DropDotDamageZoneTime;
+
+	UFUNCTION()
+	void HitCameraShake();
 };

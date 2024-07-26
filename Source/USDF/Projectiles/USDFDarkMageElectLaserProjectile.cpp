@@ -91,11 +91,13 @@ void AUSDFDarkMageElectLaserProjectile::Tick(float DeltaTime)
 
 #if ENABLE_DRAW_DEBUG
 
+	/*
 	FVector Position = (StartLocation + EndLocation) * 0.5f;
 	float Length = (EndLocation - StartLocation).Length() * 0.5f;
 
 	FColor Color = (bHitted == true) ? FColor::Green : FColor::Red;
 	DrawDebugCapsule(GetWorld(), Position, Length, Radius, FRotationMatrix::MakeFromZ(GetActorForwardVector()).ToQuat(), Color, false, 0.1f);
+	*/
 #endif
 
 }
