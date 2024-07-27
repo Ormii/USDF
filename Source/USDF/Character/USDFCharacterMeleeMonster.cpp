@@ -123,9 +123,7 @@ void AUSDFCharacterMeleeMonster::ActionByAI(EAIActionType InAIActionType)
 				CurrentActionType = EMeleeMonsterActionType::WeakAttack;
 		}
 			break;
-		case EAIActionType::Range:
-			break;
-		case EAIActionType::Dash:
+		default:
 			break;
 	}
 
@@ -165,7 +163,6 @@ void AUSDFCharacterMeleeMonster::AttackHitCheck()
 			StrongAttackHitCheck();
 			break;
 	}
-
 }
 
 void AUSDFCharacterMeleeMonster::AttackMontageEnded(UAnimMontage* TargetMontage, bool IsProperlyEnded)
@@ -187,7 +184,6 @@ void AUSDFCharacterMeleeMonster::WeakAttackHitCheck()
 	{
 		for (auto& HitResult : OutHitResults)
 		{
-
 			bool bIsExist = false;
 			for (TWeakObjectPtr<AUSDFCharacterBase>& Obj : HitCharaters)
 			{

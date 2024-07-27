@@ -45,8 +45,6 @@ void AUSDFCharacterNormalMonster::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
-	DamageSystem->OnDeath.BindUObject(this, &AUSDFCharacterNormalMonster::OnDeath);
-	DamageSystem->OnDamageResponse.BindUObject(this, &AUSDFCharacterNormalMonster::OnDamageResponse);
 }
 
 void AUSDFCharacterNormalMonster::BeginPlay()
@@ -59,6 +57,8 @@ void AUSDFCharacterNormalMonster::BeginPlay()
 		PatrolRoute = Cast<AUSDFPatrolRoute>(Route);
 	}
 	
+	DamageSystem->OnDeath.BindUObject(this, &AUSDFCharacterNormalMonster::OnDeath);
+	DamageSystem->OnDamageResponse.BindUObject(this, &AUSDFCharacterNormalMonster::OnDamageResponse);
 }
 
 void AUSDFCharacterNormalMonster::Tick(float DeltaSeconds)
@@ -197,7 +197,6 @@ void AUSDFCharacterNormalMonster::OnDeath()
 		AIController->UnPossess();
 	}
 
-
 	HpBarWidget->SetHiddenInGame(true);
 }
 
@@ -255,8 +254,6 @@ void AUSDFCharacterNormalMonster::OnDamageResponse(FDamageInfo DamageInfo)
 
 	if (HitReactMontage)
 	{
-		UE_LOG(LogTemp, Display, TEXT("Hit React"));
-
 		NonPlayerAnimInstance->Montage_Play(HitReactMontage);
 		AIController->StopMovement();
 

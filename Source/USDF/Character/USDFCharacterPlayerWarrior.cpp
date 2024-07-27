@@ -19,12 +19,12 @@
 #include "GameData/USDFGameSingleton.h"
 #include "USDFCharacterControlData.h"
 #include "Components/SphereComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "Animation/USDFLocomotionState.h"
 #include "Item/USDFItemWeaponDarkSword.h"
 #include "Item/USDFWeaponItemData.h"
 #include "Perception/AISense_Damage.h"
 #include "Damage/USDFDamageSystemComponent.h"
-#include "Components/CapsuleComponent.h"
 
 AUSDFCharacterPlayerWarrior::AUSDFCharacterPlayerWarrior()
 {
@@ -216,7 +216,9 @@ void AUSDFCharacterPlayerWarrior::BeginPlay()
 		ComboAttackDelegateManager.Add(EPlayerWarriorComboType::Power, Wrapper);
 	}
 
-	LandedDelegate.AddDynamic(this,&AUSDFCharacterPlayerWarrior::OnWarriorLanded);
+	{
+		DamageSystem->OnDamageResponse.BindUObject(this, &AUSDFCharacterPlayerWarrior::OnDamageResponse);
+	}
 }
 
 void AUSDFCharacterPlayerWarrior::PostInitializeComponents()
@@ -226,8 +228,6 @@ void AUSDFCharacterPlayerWarrior::PostInitializeComponents()
 	UUSDFGameSingleton* GameSingleton = Cast<UUSDFGameSingleton>(GEngine->GameSingleton.Get());
 
 	Stat->InitPlayerStat(GameSingleton->GetPlayerStat("PlayerWarrior"));
-
-	DamageSystem->OnDamageResponse.BindUObject(this, &AUSDFCharacterPlayerWarrior::OnDamageResponse);
 }
 
 void AUSDFCharacterPlayerWarrior::Tick(float DeltaSeconds)
@@ -241,21 +241,8 @@ void AUSDFCharacterPlayerWarrior::Tick(float DeltaSeconds)
 		if (CombatStateTime <= 0)
 		{
 			CombatStateTime = 0;
-			UE_LOG(LogTemp, Display, TEXT("CombateEndMontageStart"));
 			PossessCombatEndMontage();
 		}
-	}
-
-	if (bUpperHit == true)
-	{
-		SpringArm->TargetArmLength = FMath::FInterpTo(SpringArm->TargetArmLength, 1200, DeltaSeconds, 2.0f);
-		UpperHitStateTime -= DeltaSeconds;
-		if (UpperHitStateTime <= 0)
-			bUpperHit = false;
-	}
-	else
-	{
-		SpringArm->TargetArmLength = FMath::FInterpTo(SpringArm->TargetArmLength, CharacterControlManager[CurrentControlType]->TargetArmLength, DeltaSeconds, 2.0f);
 	}
 }
 
@@ -315,6 +302,7 @@ void AUSDFCharacterPlayerWarrior::AttackQKey()
 			{
 			case ELocomotionState::Idle:
 			case ELocomotionState::Walk:
+			case ELocomotionState::Run:
 			{
 				CurrentComboAttackType = EPlayerWarriorComboType::UpperCut;
 				FRotator ControllerRotation = GetControlRotation();
@@ -331,8 +319,6 @@ void AUSDFCharacterPlayerWarrior::AttackQKey()
 				}
 			}
 			break;
-			case ELocomotionState::Run:
-				break;
 			default:
 				break;
 			}
@@ -360,6 +346,7 @@ void AUSDFCharacterPlayerWarrior::AttackEKey()
 			{
 			case ELocomotionState::Idle:
 			case ELocomotionState::Walk:
+			case ELocomotionState::Run:
 			{
 				CurrentComboAttackType = EPlayerWarriorComboType::Dash;
 				FRotator ControllerRotation = GetControlRotation();
@@ -375,8 +362,6 @@ void AUSDFCharacterPlayerWarrior::AttackEKey()
 					ResetCombatStateTime();
 				}
 			}
-				break;
-			case ELocomotionState::Run:
 				break;
 			default:
 				break;
@@ -405,6 +390,7 @@ void AUSDFCharacterPlayerWarrior::AttackRKey()
 			{
 			case ELocomotionState::Idle:
 			case ELocomotionState::Walk:
+			case ELocomotionState::Run:
 			{
 				CurrentComboAttackType = EPlayerWarriorComboType::Power;
 				FRotator ControllerRotation = GetControlRotation();
@@ -421,8 +407,6 @@ void AUSDFCharacterPlayerWarrior::AttackRKey()
 					ResetCombatStateTime();
 				}
 			}
-				break;
-			case ELocomotionState::Run:
 				break;
 			default:
 				break;
@@ -486,11 +470,6 @@ void AUSDFCharacterPlayerWarrior::Dodge()
 			}
 		}
 	}
-}
-
-void AUSDFCharacterPlayerWarrior::StopDodge()
-{
-	Super::StopDodge();
 }
 
 bool AUSDFCharacterPlayerWarrior::PossessCombatStartMontage()
@@ -645,18 +624,6 @@ FName AUSDFCharacterPlayerWarrior::GetTrailEndSocketName()
 	return WeaponSword->GetWeaponItemData()->GetTrailEnd();
 }
 
-void AUSDFCharacterPlayerWarrior::OnWarriorLanded(const FHitResult& Hit)
-{
-	UE_LOG(LogTemp, Display, TEXT("Landed succeed"));
-	UUSDFPlayerWarriorAnimInstance* WarriorAnimInstance = Cast<UUSDFPlayerWarriorAnimInstance>(GetMesh()->GetAnimInstance());
-	if (WarriorAnimInstance)
-	{
-		//WarriorAnimInstance->SetRootMotionMode(ERootMotionMode::RootMotionFromEverything);
-	}
-
-	GetCharacterMovement()->StopMovementImmediately();
-}
-
 bool AUSDFCharacterPlayerWarrior::IsCombatState()
 {
 	return bCombatState;
@@ -786,7 +753,6 @@ void AUSDFCharacterPlayerWarrior::ApplyDamagePowerAttack()
 	
 	if (bOverlapped)
 	{
-		UE_LOG(LogTemp, Display, TEXT("Power Attack hit Count : %d"), OverlapResults.Num());
 		HitCharaters.Empty();
 		for (int32 i = 0; i < OverlapResults.Num(); ++i)
 		{
@@ -809,7 +775,6 @@ void AUSDFCharacterPlayerWarrior::ApplyDamagePowerAttack()
 			if (HitCharacter&& DamageableTarget && bIsExist == false)
 			{
 				float DamageAmount = 10;
-				UE_LOG(LogTemp, Display, TEXT("Power Attack hit"));
 
 				FDamageInfo DamageInfo = {};
 				DamageInfo.DamageAmount = DamageAmount;
@@ -999,7 +964,6 @@ void AUSDFCharacterPlayerWarrior::OnDamageResponse(FDamageInfo DamageInfo)
 void AUSDFCharacterPlayerWarrior::ComboActionEnded(UAnimMontage* TargetMontage, bool IsProperlyEnded)
 {
 	GetCapsuleComponent()->SetCollisionProfileName(CPROFILE_USDF_PlAYER_CAPSULE);
-	UE_LOG(LogTemp, Display, TEXT("Montage End"));
 	HasNextComboCommand = false;
 	IgnoreComboCommand = false;
 	CurrentComboCount = 0;
@@ -1012,8 +976,6 @@ void AUSDFCharacterPlayerWarrior::ComboActionEnded(UAnimMontage* TargetMontage, 
 void AUSDFCharacterPlayerWarrior::SetCombatState(bool NewCombatState)
 {
 	bCombatState = NewCombatState;
-	
-	UE_LOG(LogTemp, Display, TEXT("Combat State : %d"), bCombatState);
 
 	if(NewCombatState == true)
 		CombatStateTime = 10;

@@ -32,6 +32,9 @@ protected:
 
 	// AI Section
 protected:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly ,Category = AI, Meta = (AllowPrivateAccess= "true"))
+	TObjectPtr<class AUSDFPatrolRoute> PatrolRoute;
+
 	virtual float GetAIPatrolRadius() override;
 	virtual float GetAIDetectRadius() override;
 	virtual float GetAIAttackRange() override;
@@ -45,28 +48,25 @@ protected:
 	virtual void TakeDamage(FDamageInfo DamageInfo) override;
 	virtual bool IsDead() override;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly ,Category = AI, Meta = (AllowPrivateAccess= "true"))
-	TObjectPtr<class AUSDFPatrolRoute> PatrolRoute;
 
-	// Hit React Section
+	// HitReact Section
 protected:
 	UPROPERTY()
 	TMap<EHitReactDirection, TObjectPtr<class UAnimMontage>> HitReactAnimMontage;
 	
 	// Widget Section
 public:
-	virtual void SetupHpBarWidget(class UUSDFUserWidget* InUserWidget) override;
-protected:
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Widget, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UUSDFWidgetComponent> HpBarWidget;
+
+	virtual void SetupHpBarWidget(class UUSDFUserWidget* InUserWidget) override;
 
 	// Stat Section
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Stat, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UUSDFNormalMonsterStatComponent> Stat;
 
-	// Animation Section
+	// AnimInterface Section
 public:
 	virtual float GetMaxWalkSpeed() override;
 	virtual float GetMaxRunSpeed() override;

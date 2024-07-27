@@ -275,7 +275,7 @@ float AUSDFCharacterPlayer::GetMaxRunSpeed()
 
 bool AUSDFCharacterPlayer::IsDeadState()
 {
-	return Stat->GetCurrentHp() <= 0.0f;
+	return DamageSystem->GetIsDead();
 }
 
 void AUSDFCharacterPlayer::SetBoneLayeredBlendEnable(bool NewBoneLayeredBlendEnable)

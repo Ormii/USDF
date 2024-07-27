@@ -46,11 +46,15 @@ public:
 	AUSDFCharacterPlayerWarrior();
 
 protected:
-	virtual void BeginPlay() override;
 	virtual void PostInitializeComponents()override;
+
+protected:
+	virtual void BeginPlay() override;
 
 public:
 	virtual void Tick(float DeltaSeconds) override;
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)override;
+
 
 protected:
 	UPROPERTY(VisibleAnywhere, Category = Weapon, Meta = (AllowPrivateAccess = "true"))
@@ -61,18 +65,25 @@ protected:
 
 // Input Section
 public:
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)override;
 	virtual void Attack()override;
 	virtual void ReleaseAttack()override;
-
 	virtual void AttackQKey()override;
 	virtual void AttackEKey()override;
 	virtual void AttackRKey()override;
-
 	virtual void Dodge()override;
-	virtual void StopDodge()override;
 
-// Animation Section
+	// AnimInterface Section
+private:
+	virtual void EquipWeapon();
+	virtual void UnEquipWeapon();
+	virtual void CheckApplyDamagePoint()override;
+	virtual void AttackHitCheck() override;
+	virtual bool IsCombatState() override;
+	class UParticleSystem* GetTrailParticleSystem() override;
+	FName GetTrailStartSocketName() override;
+	FName GetTrailEndSocketName() override;
+	
+	// Animation Section
 private:
 	UPROPERTY(VisibleAnywhere, Category = Animation, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UAnimMontage> CombatStartMontage;
@@ -80,52 +91,33 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = Animation, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UAnimMontage> CombatEndMontage;
 
-	bool PossessCombatStartMontage();
-	void PossessCombatEndMontage();
-
-	void PossessAttackMontage();
-
 	UFUNCTION()
 	void CombatStartMontageEnded(UAnimMontage* TargetMontage, bool IsProperlyEnded);
 
-	virtual void EquipWeapon();
-	virtual void UnEquipWeapon();
-	virtual void CheckApplyDamagePoint()override;
+	bool PossessCombatStartMontage();
+	void PossessCombatEndMontage();
+	void PossessAttackMontage();
 
-	virtual void AttackHitCheck() override;
-
-	class UParticleSystem* GetTrailParticleSystem() override;
-	FName GetTrailStartSocketName() override;
-	FName GetTrailEndSocketName() override;
-
-	UFUNCTION()
-	void OnWarriorLanded(const FHitResult& Hit);
-
-// Combat Section
+	// Combat Section
 protected:
-
-	UPROPERTY(Transient, VisibleAnywhere, Category = Combat, Meta = (AllowPrivateAccess = "true"))
-	uint8 bCombatState : 1;
-
 	UPROPERTY()
 	TMap<EPlayerWarriorComboType, FComboAttackDelegateWrapper> ComboAttackDelegateManager;
 
 	UPROPERTY()
 	TMap<EPlayerWarriorComboType, TObjectPtr<UUSDFComboActionData>> ComboAttackDataManager;
 
+	UPROPERTY(Transient, VisibleAnywhere, Category = Combat, Meta = (AllowPrivateAccess = "true"))
+	uint8 bCombatState : 1;
+
+	
+	EPlayerWarriorComboType CurrentComboAttackType;
+	int32					CurrentComboCount;
 	bool IgnoreComboCommand;
 	bool HasNextComboCommand;
 	float CombatStateTime;
-	float UpperHitStateTime;
-	bool bUpperHit;
-
 	FVector PowerAttackAreaLocation;
 
 
-	EPlayerWarriorComboType CurrentComboAttackType;
-	int32					CurrentComboCount;
-
-	virtual bool IsCombatState() override;
 	virtual void CheckCombo()override;
 	void ComboActionEnded(UAnimMontage* TargetMontage, bool IsProperlyEnded);
 	void SetCombatState(bool NewCombatState);
@@ -145,12 +137,12 @@ protected:
 	void ExecuteDashHitCheck();
 	void ResetCombatStateTime();
 
-// Attack Hit Section
+	// Attack Section
 protected:
 	UPROPERTY(EditAnywhere, Category = AttackHit, Meta = (AllowPrivateAccess = "true"))
 	TArray<TObjectPtr<class UNiagaraSystem>> AttackHitEffects;
 
-// DamageSection
+	// Damage Section
 protected:
 	virtual void OnDamageResponse(FDamageInfo DamageInfo)override;
 };

@@ -24,7 +24,11 @@ AUSDFCharacterNonPlayer::AUSDFCharacterNonPlayer()
 
 	// Mesh
 	GetMesh()->SetCollisionProfileName("NoCollision");
+}
 
+void AUSDFCharacterNonPlayer::BeginPlay()
+{
+	Super::BeginPlay();
 	AIStateManager.Add(EAIState::Passive, FOnChangeAIState::CreateUObject(this, &AUSDFCharacterNonPlayer::SetAIStatePassive));
 	AIStateManager.Add(EAIState::Attacking, FOnChangeAIState::CreateUObject(this, &AUSDFCharacterNonPlayer::SetAIStateAttacking));
 	AIStateManager.Add(EAIState::Frozen, FOnChangeAIState::CreateUObject(this, &AUSDFCharacterNonPlayer::SetAIStateFrozen));

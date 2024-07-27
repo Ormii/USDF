@@ -36,14 +36,15 @@ protected:
 	virtual void ActionByAI(EAIActionType InAIActionType) override;
 	virtual void ActionFinished() override;
 
-	// Animation Section
+	// AnimInterface Section
 public:
+	virtual void AttackHitCheck() override;
+
+	// Animation Section
+private:
 	UPROPERTY(VisibleAnywhere, Category = Animation, Meta = (AllowPrivateAccess= "true"))
 	TMap<EMeleeMonsterActionType, TObjectPtr<class UAnimMontage>> ActionMontages;
 
-	virtual void AttackHitCheck() override;
-
-private:
 	UFUNCTION()
 	void AttackMontageEnded(UAnimMontage* TargetMontage, bool IsProperlyEnded);
 
@@ -55,7 +56,7 @@ protected:
 	void WeakAttackHitCheck();
 	void StrongAttackHitCheck();
 
-	// Attack Hit Section
+	// Attack Section
 protected:
 	UPROPERTY(EditAnywhere, Category = AttackHit, Meta = (AllowPrivateAccess = "true"))
 	TArray<TObjectPtr<class UNiagaraSystem>> AttackHitEffects;

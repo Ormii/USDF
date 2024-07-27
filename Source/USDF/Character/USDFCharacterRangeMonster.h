@@ -34,6 +34,10 @@ protected:
 	virtual void ActionByAI(EAIActionType InAIAttackType) override;
 	virtual void ActionFinished()override;
 
+	// AnimInterface
+protected:
+	virtual void AttackFire() override;
+
 	// Animation Section
 protected:
 	UPROPERTY(VisibleAnywhere, Category = Animation, Meta = (AllowPrivateAccess = "true"))
@@ -42,14 +46,12 @@ protected:
 	UFUNCTION()
 	void ActionMontageEnded(UAnimMontage* TargetMontage, bool IsProperlyEnded);
 
-	virtual void AttackFire() override;
-
 	// Combat Section
 protected:
 	UPROPERTY(VisibleAnywhere, Category = Combat, Meta = (AllowPrivateAccess = "true"))
 	ERangeMonsterActionType CurrentActionType;
 
-	// Attack Hit Section
+	// Attack Section
 protected:
 	UPROPERTY(EditAnywhere, Category = AttackHit, Meta = (AllowPrivateAccess = "true"))
 	TArray<TObjectPtr<class UNiagaraSystem>> AttackHitEffects;

@@ -7,14 +7,6 @@
 #include "Interface/USDFCharacterAIInterface.h"
 #include "USDFCharacterNonPlayer.generated.h"
 
-/*
-
-Passive UMETA(DisplayName = "Passive"),
-Attacking UMETA(DisplayName = "Attacking"),
-Frozen UMETA(DisplayName = "Frozen"),
-Investigating UMETA(DisplayName = "Investigating"),
-Dead UMETA(DisplayName = "Dead"),
-*/
 USTRUCT()
 struct FAIStateChangeWrapper
 {
@@ -36,11 +28,21 @@ class USDF_API AUSDFCharacterNonPlayer : public AUSDFCharacterBase, public IUSDF
 public:
 	AUSDFCharacterNonPlayer();
 
+
+protected:
+	void BeginPlay();
+
 	// AI Section
 protected:
-	virtual void SetAIActionDelegate(const FAICharacterActionFinished& InOnActionFinished)override;
+	UPROPERTY(VisibleAnywhere, Category = AIState, Meta = (AllowPrivateAccess = "true"))
+	EAIState CurrentAIState;
+
+	UPROPERTY(VisibleAnywhere, Category = AIState, Meta = (AllowPrivateAccess = "true"))
+	TMap<EAIState, FAIStateChangeWrapper> AIStateManager;
 
 	FAICharacterActionFinished OnActionFinished;
+
+	virtual void SetAIActionDelegate(const FAICharacterActionFinished& InOnActionFinished)override;
 	virtual void ActionFinished();
 	virtual void SetLocomotionState(ELocomotionState NewLocomotionState) override;
 	virtual void SetAIState(EAIState NewAIState, FAISensedParam InParam) override;
@@ -50,11 +52,4 @@ protected:
 	virtual void SetAIStateFrozen(FAISensedParam InParam);
 	virtual void SetAIStateInvestigating(FAISensedParam InParam);
 	virtual void SetAIStateDead(FAISensedParam InParam);
-
-protected:
-	UPROPERTY(VisibleAnywhere, Category = AIState, Meta =(AllowPrivateAccess= "true"))
-	EAIState CurrentAIState;
-
-	UPROPERTY(VisibleAnywhere, Category = AIState, Meta = (AllowPrivateAccess = "true"))
-	TMap<EAIState, FAIStateChangeWrapper> AIStateManager;
 };

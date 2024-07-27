@@ -118,7 +118,6 @@ void AUSDFCharacterRangeMonster::PostInitializeComponents()
 
 void AUSDFCharacterRangeMonster::ActionByAI(EAIActionType InAIAttackType)
 {
-	UE_LOG(LogTemp, Display, TEXT("AI AttackStart"));
 	switch (InAIAttackType)
 	{
 		case EAIActionType::Range:
@@ -129,9 +128,6 @@ void AUSDFCharacterRangeMonster::ActionByAI(EAIActionType InAIAttackType)
 			else
 				CurrentActionType = ERangeMonsterActionType::WeakAttack;
 		}
-			break;
-		case EAIActionType::Melee:
-		case EAIActionType::Dash:
 			break;
 		default:
 			break;

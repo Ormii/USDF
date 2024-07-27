@@ -25,7 +25,7 @@ protected:
 
 	// Damage Section
 protected:
-	UPROPERTY(VisibleAnywhere, Category = AttackHit, Meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, Category = Damage, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UUSDFDamageSystemComponent> DamageSystem;
 
 	virtual void OnDamageResponse(FDamageInfo DamageInfo) {};

@@ -51,7 +51,6 @@ protected:
 
 public:
 	virtual void Tick(float DeltaSeconds) override;
-
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)override;
 
 	// CDO
@@ -65,11 +64,11 @@ protected:
 
 	// CharacterControl Section
 protected:
-	void SetCharacterControl(ECharacterPlayerControlType NewCharacterControlType);
-	virtual void SetCharacterControlData(const class UUSDFCharacterControlData* NewCharacterControlData);
-
 	UPROPERTY(EditAnywhere, Category = CharacterControl, Meta = (AllowPrivateAccess = "true"))
 	TMap<ECharacterPlayerControlType, class UUSDFCharacterControlData*> CharacterControlManager;
+
+	void SetCharacterControl(ECharacterPlayerControlType NewCharacterControlType);
+	virtual void SetCharacterControlData(const class UUSDFCharacterControlData* NewCharacterControlData);
 
 	ECharacterPlayerControlType CurrentControlType;
 
