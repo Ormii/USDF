@@ -52,32 +52,31 @@ EBTNodeResult::Type UUSDFBTTask_Teleport::ExecuteTask(UBehaviorTreeComponent& Ow
 				AIController = OwnerComp.GetAIOwner();
 				if (AIController == nullptr)
 				{
-					FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+					FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
 					return;
 				}
 
 				Pawn = Cast<APawn>(AIController->GetPawn());
 				if (Pawn == nullptr)
 				{
-					FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+					FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
 					return;
 				}
 
 				CharacterPawn = Cast<IUSDFCharacterAttackAnimInterface>(Pawn);
 				if (CharacterPawn == nullptr)
 				{
-					FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+					FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
 					return;
 				}
 
 				CharacterPawn->TeleportEnd();
 				FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
 				AIController->ReceiveMoveCompleted.Clear();
+
 		};
+		AIController->ReceiveMoveCompleted.AddDynamic(LambdaWrapper, &ULambdaWrapper::OnMoveCompleteDispatch);
 	}
-
-	AIController->ReceiveMoveCompleted.AddDynamic(LambdaWrapper, &ULambdaWrapper::OnMoveCompleteDispatch);
-
 
 	return EBTNodeResult::InProgress;
 }

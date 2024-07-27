@@ -1,14 +1,14 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Projectiles/USDFDarkMageElectLaserProjectile.h"
+#include "Laser/USDFDarkMageElectLaser.h"
 #include "Components/BoxComponent.h"
 #include "Physics/USDFCollision.h"
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraComponent.h"
 #include "Interface/USDFDamageableInterface.h"
 
-AUSDFDarkMageElectLaserProjectile::AUSDFDarkMageElectLaserProjectile()
+AUSDFDarkMageElectLaser::AUSDFDarkMageElectLaser()
 {
 	static ConstructorHelpers::FObjectFinder<UNiagaraSystem> BaseEffectRef(TEXT("/Game/ReferenceAsset/DarkMagicFX/Niagara/Laser/NS_Laser_DarkMagic.NS_Laser_DarkMagic"));
 	if (BaseEffectRef.Object)
@@ -21,7 +21,7 @@ AUSDFDarkMageElectLaserProjectile::AUSDFDarkMageElectLaserProjectile()
 	AcculmulateAngle = 0.1f;
 }
 
-void AUSDFDarkMageElectLaserProjectile::BeginPlay()
+void AUSDFDarkMageElectLaser::BeginPlay()
 {
 	Super::BeginPlay();
 
@@ -33,7 +33,7 @@ void AUSDFDarkMageElectLaserProjectile::BeginPlay()
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, 1.0f, false);
 }
 
-void AUSDFDarkMageElectLaserProjectile::BeginDestroy()
+void AUSDFDarkMageElectLaser::BeginDestroy()
 {
 	UWorld* World = GetWorld();
 	if (World)
@@ -44,7 +44,7 @@ void AUSDFDarkMageElectLaserProjectile::BeginDestroy()
 	Super::BeginDestroy();
 }
 
-void AUSDFDarkMageElectLaserProjectile::Tick(float DeltaTime)
+void AUSDFDarkMageElectLaser::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 

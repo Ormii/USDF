@@ -203,6 +203,11 @@ void AUSDFAIController::SetCurrentPhase(EGameStagePhase NewGameStagePhase)
 	Blackboard->SetValueAsEnum(BBKEY_GAME_STAGE_PHASE, static_cast<uint8>(NewGameStagePhase));
 }
 
+void AUSDFAIController::SetTeleportState(bool NewTeleportState)
+{
+	Blackboard->SetValueAsBool(BBKEY_TELEPORT_STATE, NewTeleportState);
+}
+
 EAIState AUSDFAIController::GetCurrentAIState()
 {
 	EAIState CurrentAIState = static_cast<EAIState>(Blackboard->GetValueAsEnum(BBKEY_AISTATE));

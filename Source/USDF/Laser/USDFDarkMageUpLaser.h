@@ -3,36 +3,37 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Projectiles/USDFEnemyLaserProjectile.h"
-#include "USDFDarkMageElectLaserProjectile.generated.h"
+#include "Laser/USDFEnemyLaser.h"
+#include "USDFDarkMageUpLaser.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class USDF_API AUSDFDarkMageElectLaserProjectile : public AUSDFEnemyLaserProjectile
+class USDF_API AUSDFDarkMageUpLaser : public AUSDFEnemyLaser
 {
 	GENERATED_BODY()
 	
 public:
-	AUSDFDarkMageElectLaserProjectile();
+	AUSDFDarkMageUpLaser();
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 	virtual void BeginDestroy() override;
-public:
+protected:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+protected:
+	void CollisionActivate();
 
 protected:
 	UPROPERTY()
 	FTimerHandle TimerHandle;
 
-protected:
-	float Distance;
+	bool bCollisionActivate;
+	float ActivateTime;
 
-	bool bRotate;
-	float AcculmulateAngle;
+	float LaserLength;
 };

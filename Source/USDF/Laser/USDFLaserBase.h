@@ -4,16 +4,16 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "USDFLaserProjectileBase.generated.h"
+#include "USDFLaserBase.generated.h"
 
 UCLASS()
-class USDF_API AUSDFLaserProjectileBase : public AActor
+class USDF_API AUSDFLaserBase : public AActor
 {
 	GENERATED_BODY()
 	
 public:	
 	// Sets default values for this actor's properties
-	AUSDFLaserProjectileBase();
+	AUSDFLaserBase();
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

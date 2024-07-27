@@ -86,10 +86,10 @@ protected:
 	TSubclassOf<class AUSDFDarkMageMeteoSpawner> MeteoSpawnerClass;
 
 	UPROPERTY(VisibleAnywhere, Category = Attack, Meta = (AllowPrivateAccess = "true"))
-	TSubclassOf<class AUSDFDarkMageUpLaserProjectile> UpLaserClass;
+	TSubclassOf<class AUSDFDarkMageUpLaser> UpLaserClass;
 
 	UPROPERTY(VisibleAnywhere, Category = Attack, Meta = (AllowPrivateAccess = "true"))
-	TSubclassOf<class AUSDFDarkMageElectLaserProjectile> ElectLaserClass;
+	TSubclassOf<class AUSDFDarkMageElectLaser> ElectLaserClass;
 
 
 	// Teleport Section

@@ -5,6 +5,7 @@
 #include "USDFAICommon.generated.h"
 
 #define BBKEY_AISTATE TEXT("State")
+#define BBKEY_TELEPORT_STATE TEXT("TeleportState")
 #define BBKEY_POINT_OF_INTREST TEXT("PointOfInterest")
 #define BBKEY_ATTACK_TARGET TEXT("AttackTarget")
 #define BBKEY_EQS_TARGET_RADIUS TEXT("EQSTargetRadius")

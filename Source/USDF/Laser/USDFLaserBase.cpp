@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Projectiles/USDFLaserProjectileBase.h"
+#include "Laser/USDFLaserBase.h"
 #include "Components/StaticMeshComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraComponent.h"
@@ -10,7 +10,7 @@
 #include "DrawDebugHelpers.h"
 
 // Sets default values
-AUSDFLaserProjectileBase::AUSDFLaserProjectileBase()
+AUSDFLaserBase::AUSDFLaserBase()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -25,7 +25,7 @@ AUSDFLaserProjectileBase::AUSDFLaserProjectileBase()
 
 
 // Called when the game starts or when spawned
-void AUSDFLaserProjectileBase::BeginPlay()
+void AUSDFLaserBase::BeginPlay()
 {
 	Super::BeginPlay();
 
@@ -33,13 +33,13 @@ void AUSDFLaserProjectileBase::BeginPlay()
 	BaseEffect->SetAutoDestroy(true);
 }
 
-void AUSDFLaserProjectileBase::BeginDestroy()
+void AUSDFLaserBase::BeginDestroy()
 {
 	Super::BeginDestroy();
 }
 
 // Called every frame
-void AUSDFLaserProjectileBase::Tick(float DeltaTime)
+void AUSDFLaserBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 

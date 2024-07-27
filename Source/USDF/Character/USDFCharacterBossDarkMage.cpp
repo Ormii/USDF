@@ -9,8 +9,8 @@
 #include "CharacterStat/USDFBossMonsterStatComponent.h"
 #include "Projectiles/USDFEnemyProjectile.h"
 #include "Projectiles/USDFDarkMageMeteoSpawner.h"
-#include "Projectiles/USDFDarkMageUpLaserProjectile.h"
-#include "Projectiles/USDFDarkMageElectLaserProjectile.h"
+#include "Laser/USDFDarkMageUpLaser.h"
+#include "Laser/USDFDarkMageElectLaser.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Animation/USDFNonPlayerAnimInstance.h"
 #include "AI/USDFAIController.h"
@@ -78,13 +78,13 @@ AUSDFCharacterBossDarkMage::AUSDFCharacterBossDarkMage()
 		MeteoSpawnerClass = MeteoSpawnerClassRef.Class;
 	}
 
-	static ConstructorHelpers::FClassFinder<AUSDFDarkMageUpLaserProjectile> UpLaserClassRef(TEXT("/Game/Blueprint/Projectiles/BP_USDFDarkMageUpLaserProjectile.BP_USDFDarkMageUpLaserProjectile_C"));
+	static ConstructorHelpers::FClassFinder<AUSDFDarkMageUpLaser> UpLaserClassRef(TEXT("/Game/Blueprint/Laser/BP_USDFDarkMageUpLaser.BP_USDFDarkMageUpLaser_C"));
 	if (UpLaserClassRef.Class)
 	{
 		UpLaserClass = UpLaserClassRef.Class;
 	}
 
-	static ConstructorHelpers::FClassFinder<AUSDFDarkMageElectLaserProjectile> ElectLaserClassRef(TEXT("/Game/Blueprint/Projectiles/BP_USDFDarkMageElectLaser.BP_USDFDarkMageElectLaser_C"));
+	static ConstructorHelpers::FClassFinder<AUSDFDarkMageElectLaser> ElectLaserClassRef(TEXT("/Game/Blueprint/Laser/BP_USDFDarkMageElectLaser.BP_USDFDarkMageElectLaser_C"));
 	if (ElectLaserClassRef.Class)
 	{
 		ElectLaserClass = ElectLaserClassRef.Class;
@@ -365,11 +365,11 @@ void AUSDFCharacterBossDarkMage::SpawnLaser(int32 InParam)
 			{
 				case 0:
 				{
-					AUSDFDarkMageUpLaserProjectile* UpLaserProjectile = GetWorld()->SpawnActorDeferred<AUSDFDarkMageUpLaserProjectile>(UpLaserClass, FTransform::Identity);
-					if (UpLaserProjectile)
+					AUSDFDarkMageUpLaser* UpLaser = GetWorld()->SpawnActorDeferred<AUSDFDarkMageUpLaser>(UpLaserClass, FTransform::Identity);
+					if (UpLaser)
 					{
-						UpLaserProjectile->SetAttackDamage(Stat->GetBossMonsterStat().Skill2);
-						UpLaserProjectile->SetOwner(this);
+						UpLaser->SetAttackDamage(Stat->GetBossMonsterStat().Skill2);
+						UpLaser->SetOwner(this);
 
 						FVector TargetLocation = Target->GetActorLocation();
 						FNavLocation EndLocation = {};
@@ -382,7 +382,7 @@ void AUSDFCharacterBossDarkMage::SpawnLaser(int32 InParam)
 						Transform.SetLocation(TargetLocation);
 						Transform.SetRotation(FRotationMatrix::Identity.ToQuat());
 
-						UpLaserProjectile->FinishSpawning(Transform);
+						UpLaser->FinishSpawning(Transform);
 					}
 				}
 					break;
@@ -390,11 +390,11 @@ void AUSDFCharacterBossDarkMage::SpawnLaser(int32 InParam)
 				{
 					for (int32 i = 0; i < 2; ++i)
 					{
-						AUSDFDarkMageElectLaserProjectile* ElectLaserProjectile = GetWorld()->SpawnActorDeferred<AUSDFDarkMageElectLaserProjectile>(ElectLaserClass, FTransform::Identity);
-						if (ElectLaserProjectile)
+						AUSDFDarkMageElectLaser* ElectLaser = GetWorld()->SpawnActorDeferred<AUSDFDarkMageElectLaser>(ElectLaserClass, FTransform::Identity);
+						if (ElectLaser)
 						{
-							ElectLaserProjectile->SetAttackDamage(Stat->GetBossMonsterStat().Skill2);
-							ElectLaserProjectile->SetOwner(this);
+							ElectLaser->SetAttackDamage(Stat->GetBossMonsterStat().Skill2);
+							ElectLaser->SetOwner(this);
 
 							float angle = 180.0f * (2*i+1)/ 4.0f;
 							float radius = 800.0f;
@@ -416,7 +416,7 @@ void AUSDFCharacterBossDarkMage::SpawnLaser(int32 InParam)
 							Transform.SetLocation(SpawnLocation);
 							Transform.SetRotation(FRotationMatrix::MakeFromXY(ProjectileForwardVector,TempVector).ToQuat());
 
-							ElectLaserProjectile->FinishSpawning(Transform);
+							ElectLaser->FinishSpawning(Transform);
 						}
 					}
 				}
@@ -510,6 +510,12 @@ void AUSDFCharacterBossDarkMage::TeleportStart()
 		pNiagaraCompo->Activate();
 		pNiagaraCompo->SetAutoDestroy(true);
 	}
+
+	AUSDFAIController* AIController = Cast<AUSDFAIController>(GetController());
+	if (AIController)
+	{
+		AIController->SetTeleportState(true);
+	}
 }
 
 void AUSDFCharacterBossDarkMage::TeleportEnd()
@@ -528,6 +534,12 @@ void AUSDFCharacterBossDarkMage::TeleportEnd()
 	{
 		pNiagaraCompo->Activate();
 		pNiagaraCompo->SetAutoDestroy(true);
+	}
+
+	AUSDFAIController* AIController = Cast<AUSDFAIController>(GetController());
+	if (AIController)
+	{
+		AIController->SetTeleportState(false);
 	}
 }
 
