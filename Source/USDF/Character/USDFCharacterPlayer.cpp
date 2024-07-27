@@ -115,7 +115,6 @@ void AUSDFCharacterPlayer::BeginPlay()
 	DamageSystem->OnDeath.BindUObject(this, &AUSDFCharacterPlayer::OnDeath);
 	DamageSystem->OnDamageResponse.BindUObject(this, &AUSDFCharacterPlayer::OnDamageResponse);
 
-	bBoneLayeredBlendEnable = true;
 }
 
 void AUSDFCharacterPlayer::PostInitializeComponents()
@@ -154,7 +153,13 @@ void AUSDFCharacterPlayer::SetCharacterControl(ECharacterPlayerControlType NewCh
 
 void AUSDFCharacterPlayer::SetCharacterControlData(const UUSDFCharacterControlData* NewCharacterControlData)
 {
-	Super::SetCharacterControlData(NewCharacterControlData);
+	//Pawn
+	bUseControllerRotationYaw = NewCharacterControlData->bUseControllerRotationYaw;
+
+	// Movement
+	GetCharacterMovement()->bOrientRotationToMovement = NewCharacterControlData->bOrientRotationToMovement;
+	GetCharacterMovement()->RotationRate = NewCharacterControlData->RotationRate;
+	GetCharacterMovement()->bUseControllerDesiredRotation = NewCharacterControlData->bUseControllerDesiredRotation;
 
 	GetCharacterMovement()->bOrientRotationToMovement = NewCharacterControlData->bOrientRotationToMovement;
 
@@ -187,12 +192,12 @@ void AUSDFCharacterPlayer::Move(const FInputActionValue& Value)
 	AddMovementInput(ForwardVector, MovementVector.X);
 	AddMovementInput(RightVector, MovementVector.Y);
 
-	MovementInputValue = MovementVector;
+	SetMovementInputValue(MovementVector);
 }
 
 void AUSDFCharacterPlayer::ReleaseMove(const FInputActionValue& value)
 {
-	MovementInputValue = FVector2D::ZeroVector;
+	SetMovementInputValue(FVector2D::ZeroVector);
 }
 
 void AUSDFCharacterPlayer::Look(const FInputActionValue& Value)
@@ -268,16 +273,6 @@ float AUSDFCharacterPlayer::GetMaxRunSpeed()
 	return Stat->GetPlayerStat().MaxRunSpeed;
 }
 
-FVector2D AUSDFCharacterPlayer::GetMovementInputValue()
-{
-	return MovementInputValue;
-}
-
-bool AUSDFCharacterPlayer::IsAttackState()
-{
-	return bAttackState;
-}
-
 bool AUSDFCharacterPlayer::IsDeadState()
 {
 	return Stat->GetCurrentHp() <= 0.0f;
@@ -285,12 +280,20 @@ bool AUSDFCharacterPlayer::IsDeadState()
 
 void AUSDFCharacterPlayer::SetBoneLayeredBlendEnable(bool NewBoneLayeredBlendEnable)
 {
-	bBoneLayeredBlendEnable = NewBoneLayeredBlendEnable; 
-	
 	UUSDFPlayerAnimInstance* AnimInstance = Cast<UUSDFPlayerAnimInstance>(GetMesh()->GetAnimInstance());
 	if (AnimInstance)
 	{
-		AnimInstance->SetBondLayeredBlendEnable(bBoneLayeredBlendEnable);
+		AnimInstance->SetBondLayeredBlendEnable(NewBoneLayeredBlendEnable);
+	}
+}
+
+void AUSDFCharacterPlayer::SetMovementInputValue(FVector2D NewMovementInputValue)
+{
+	UUSDFPlayerAnimInstance* AnimInstance = Cast<UUSDFPlayerAnimInstance>(GetMesh()->GetAnimInstance());
+	if (AnimInstance)
+	{
+		MovementInputValue = NewMovementInputValue;
+		AnimInstance->SetMovementInputValue(NewMovementInputValue);
 	}
 }
 

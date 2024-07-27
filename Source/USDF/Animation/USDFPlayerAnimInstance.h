@@ -41,4 +41,8 @@ protected:
 
 public:
 	void SetBondLayeredBlendEnable(bool NewBondLayeredBlendEnable) { bBondLayeredBlendEnable = NewBondLayeredBlendEnable; }
+	void SetMovementInputValue(FVector2D NewMovementInputValue) { MovementInputValue = NewMovementInputValue; }
+	void SetAttackState(bool NewAttackState) { bAttackState = NewAttackState; }
+	bool GetAttackState() { return bAttackState; }
+
 };

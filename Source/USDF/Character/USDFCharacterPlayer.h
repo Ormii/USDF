@@ -44,16 +44,17 @@ public:
 	AUSDFCharacterPlayer();
 
 protected:
-	virtual void BeginPlay() override;
+	virtual void PostInitializeComponents() override;
 
 protected:
-	virtual void PostInitializeComponents() override;
+	virtual void BeginPlay() override;
 
 public:
 	virtual void Tick(float DeltaSeconds) override;
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)override;
 
+	// CDO
 protected:
 	UPROPERTY(VisibleAnywhere, Category = Camera, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class USpringArmComponent> SpringArm;
@@ -62,17 +63,17 @@ protected:
 	TObjectPtr<class UCameraComponent> Camera;
 
 
-// CharacterControl Section
+	// CharacterControl Section
 protected:
 	void SetCharacterControl(ECharacterPlayerControlType NewCharacterControlType);
-	virtual void SetCharacterControlData(const class UUSDFCharacterControlData* NewCharacterControlData) override;
+	virtual void SetCharacterControlData(const class UUSDFCharacterControlData* NewCharacterControlData);
 
 	UPROPERTY(EditAnywhere, Category = CharacterControl, Meta = (AllowPrivateAccess = "true"))
 	TMap<ECharacterPlayerControlType, class UUSDFCharacterControlData*> CharacterControlManager;
 
-	FRotator SpringArmRativeRotation;
+	ECharacterPlayerControlType CurrentControlType;
 
-// Input Section
+	// Input Section
 protected:
 	UPROPERTY(VisibleAnywhere, Category = Input, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UInputAction> MoveAction;
@@ -95,8 +96,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = Input, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UInputAction> AttackRKeyAction;
 
-	ECharacterPlayerControlType CurrentControlType;
-
 	void Move(const FInputActionValue& Value);
 	void ReleaseMove(const FInputActionValue& value);
 	void Look(const FInputActionValue& Value);
@@ -115,56 +114,40 @@ protected:
 	bool bAttackQKeyPress;
 	bool bAttackEKeyPress;
 	bool bAttackRKeyPress;
+	bool bDodgeKeyPress;
 
-	//Player Section
+	FVector2D MovementInputValue;
+
+	// PlayerInferface Section
 protected:
 	virtual APlayerController* GetPlayerController() override;
 	virtual float GetMaxWalkSpeed() override;
 	virtual float GetMaxRunSpeed() override;
 
-// Character Movement Section
-protected:
-	UPROPERTY(Transient, VisibleAnywhere, Category = Animation, Meta = (AllowPrivateAccess = "true"))
-	uint8 bDodgeKeyPress : 1;
-
-	FVector2D MovementInputValue;
-
-// Animation Section
-public:
-	virtual FVector2D GetMovementInputValue() override;
-
-	virtual bool IsAttackState() override;
+	// AnimInterface Section
+public:	
 	virtual bool IsDeadState() override;
-	virtual bool GetBondLayeredBlendEnable()override { return bBoneLayeredBlendEnable; };
 	void SetBoneLayeredBlendEnable(bool NewBoneLayeredBlendEnable);
+	void SetMovementInputValue(FVector2D NewMovementInputValue);
 
-	bool bBoneLayeredBlendEnable;
-
-
-	UPROPERTY()
-	TObjectPtr<class UAnimMontage> DodgeLeft;
-
-	UPROPERTY()
-	TObjectPtr<class UAnimMontage> DodgeRight;
-
+	// Animation Section
+protected:
 	UPROPERTY()
 	TMap<EPlayerDodgeDirection, TObjectPtr<class UAnimMontage>> DodgeAnimMontage;
 
-protected:
 	UPROPERTY(Transient, VisibleAnywhere, Category = Animation, Meta = (AllowPrivateAccess = "true"))
 	uint8 bAttackState : 1;
 
-// HUD Section
+	// HUD Section
 public:
 	virtual void SetupPlayerHpBarHUDWidget(class UUSDFPlayerHpBarWidget* HpBar) override;
 
-
-// Stat Section
+	// Stat Section
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Stat, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UUSDFPlayerStatComponent> Stat;
 
-	//Damage Section
+	//DamageInterface Section
 protected:
 	virtual float GetCurrentHealth() override;
 	virtual float GetMaxHealth() override;

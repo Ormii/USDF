@@ -4,7 +4,6 @@
 #include "Animation/USDFPlayerAnimInstance.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "USDFCharacterAnimData.h"
 #include "Interface/USDFCharacterPlayerAnimInterface.h"
 #include "Interface/USDFCharacterPlayerInterface.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -28,8 +27,6 @@ void UUSDFPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		IUSDFCharacterPlayerAnimInterface* PlayerAnimInterface = Cast<IUSDFCharacterPlayerAnimInterface>(Owner);
 		if (PlayerAnimInterface)
 		{
-			MovementInputValue = PlayerAnimInterface->GetMovementInputValue();
-			bAttackState = PlayerAnimInterface->IsAttackState();
 			bIsDead = PlayerAnimInterface->IsDeadState();
 			DesiredVelocity = CalculateDesiredVelocity();
 

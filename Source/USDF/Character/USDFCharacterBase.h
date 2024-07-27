@@ -17,22 +17,16 @@ public:
 	// Sets default values for this character's properties
 	AUSDFCharacterBase();
 
-	// CharacterControl Section
-protected:
-	virtual void SetCharacterControlData(const class UUSDFCharacterControlData* NewCharacterControlData);
-
-	// Attack Hit Section
+	// Attack Section
 protected:
 	UPROPERTY(VisibleAnywhere, Category = AttackHit, Meta = (AllowPrivateAccess = "true"))
 	TArray<TWeakObjectPtr<AUSDFCharacterBase>> HitCharaters;
 
-	virtual void AttackHitCheck() override {};
 
 	// Damage Section
 protected:
 	UPROPERTY(VisibleAnywhere, Category = AttackHit, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UUSDFDamageSystemComponent> DamageSystem;
-
 
 	virtual void OnDamageResponse(FDamageInfo DamageInfo) {};
 	virtual void OnDeath();

@@ -4,7 +4,6 @@
 #include "Animation/USDFAnimInstance.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "USDFCharacterAnimData.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Interface/USDFCharacterAnimInterface.h"
 

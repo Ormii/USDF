@@ -16,12 +16,6 @@ AUSDFCharacterBase::AUSDFCharacterBase()
 	// CDO
 	DamageSystem = CreateDefaultSubobject<UUSDFDamageSystemComponent>(TEXT("DamageSystem"));
 
-
-	// Pawn
-	bUseControllerRotationPitch = false;
-	bUseControllerRotationYaw = false;
-	bUseControllerRotationRoll = false;
-
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> CharacterMeshRef(TEXT("/Game/ReferenceAsset/Mannequins/Meshes/SKM_Manny.SKM_Manny"));
 	if (CharacterMeshRef.Succeeded())
 	{
@@ -33,17 +27,6 @@ AUSDFCharacterBase::AUSDFCharacterBase()
 	{
 		GetMesh()->SetAnimInstanceClass(AnimInstanceRef.Class);
 	}
-}
-
-void AUSDFCharacterBase::SetCharacterControlData(const UUSDFCharacterControlData* NewCharacterControlData)
-{
-	//Pawn
-	bUseControllerRotationYaw = NewCharacterControlData->bUseControllerRotationYaw;
-
-	// Movement
-	GetCharacterMovement()->bOrientRotationToMovement = NewCharacterControlData->bOrientRotationToMovement;
-	GetCharacterMovement()->RotationRate = NewCharacterControlData->RotationRate;
-	GetCharacterMovement()->bUseControllerDesiredRotation = NewCharacterControlData->bUseControllerDesiredRotation;
 }
 
 void AUSDFCharacterBase::OnDeath()
