@@ -22,22 +22,7 @@ protected:
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
-	uint8 bIsWalk : 1;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
-	uint8 bIsRun : 1;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
 	FVector DesiredVelocity;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
-	float SlideInput;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
-	float ForwardInput;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
-	float TurnDotProductValue;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
 	uint8 bAttackState : 1;
@@ -52,8 +37,6 @@ protected:
 
 protected:
 	FVector CalculateDesiredVelocity();
-	float CalculateTurnDotProductValue();
-
 	void FindLocomotionState();
 
 public:

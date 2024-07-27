@@ -35,28 +35,14 @@ protected:
 	float Angle;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
-	FVector Acceleration;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
 	float GroundSpeed;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
 	uint8	bIsIdle : 1;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
-	uint8 bIsFalling : 1;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
-	uint8 bIsJumping : 1;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
 	ELocomotionState LocomotionState;
 
 public:
 	ELocomotionState GetLocomotionState()const { return LocomotionState; }
-
-// Character Animation Data Section
-protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = AnimationData, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class UUSDFCharacterAnimData> CharacterAnimData;
 };

@@ -12,7 +12,7 @@
 #include "Projectiles/USDFDarkMageUpLaserProjectile.h"
 #include "Projectiles/USDFDarkMageElectLaserProjectile.h"
 #include "GameFramework/ProjectileMovementComponent.h"
-#include "Animation/USDFBossDarkMageAnimInstance.h"
+#include "Animation/USDFNonPlayerAnimInstance.h"
 #include "AI/USDFAIController.h"
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraComponent.h"
@@ -220,7 +220,7 @@ void AUSDFCharacterBossDarkMage::ActionByAI(EAIActionType InAIActionType)
 
 	if (CurrentActionType != EDarkMageActionType::None)
 	{
-		UUSDFBossDarkMageAnimInstance* AnimInstance = Cast<UUSDFBossDarkMageAnimInstance>(GetMesh()->GetAnimInstance());
+		UUSDFNonPlayerAnimInstance* AnimInstance = Cast<UUSDFNonPlayerAnimInstance>(GetMesh()->GetAnimInstance());
 		if (AnimInstance)
 		{
 			UAnimMontage* PlayAttackMontage = ActionMontages[CurrentActionType];

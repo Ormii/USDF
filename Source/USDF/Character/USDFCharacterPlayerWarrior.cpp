@@ -541,8 +541,6 @@ void AUSDFCharacterPlayerWarrior::PossessAttackMontage()
 			break;
 		case ELocomotionState::Run:
 			break;
-		case ELocomotionState::Jumping:
-			break;
 		}
 	}
 

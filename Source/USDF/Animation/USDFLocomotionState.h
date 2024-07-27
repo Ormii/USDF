@@ -8,6 +8,4 @@ enum class ELocomotionState : uint8
 	Idle UMETA(DisplayName = "Idle"),
 	Walk UMETA(DisplayName = "Walk"),
 	Run  UMETA(DisplayName = "Run"),
-	Jumping UMETA(DisplayName = "Jump"),
-	Falling UMETA(DisplayName = "Falling")
 };

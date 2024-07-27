@@ -6,6 +6,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "USDFCharacterAnimData.h"
 #include "Interface/USDFCharacterPlayerAnimInterface.h"
+#include "Interface/USDFCharacterPlayerInterface.h"
 #include "Kismet/KismetMathLibrary.h"
 
 UUSDFPlayerAnimInstance::UUSDFPlayerAnimInstance()
@@ -22,31 +23,17 @@ void UUSDFPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
 	Super::NativeUpdateAnimation(DeltaSeconds);
 
-	if (CharacterAnimData && Movement && Owner)
+	if (Movement && Owner)
 	{
-		/*
-			Velocity = Owner->GetVelocity();
-		*/
-		
 		IUSDFCharacterPlayerAnimInterface* PlayerAnimInterface = Cast<IUSDFCharacterPlayerAnimInterface>(Owner);
 		if (PlayerAnimInterface)
 		{
 			MovementInputValue = PlayerAnimInterface->GetMovementInputValue();
 			bAttackState = PlayerAnimInterface->IsAttackState();
 			bIsDead = PlayerAnimInterface->IsDeadState();
+			DesiredVelocity = CalculateDesiredVelocity();
 
 			FindLocomotionState();
-
-			
-			DesiredVelocity = CalculateDesiredVelocity();
-			TurnDotProductValue = CalculateTurnDotProductValue();
-
-			/*
-				ForwardInput = FMath::Lerp(ForwardInput, DesiredVelocity.Dot(Owner->GetActorForwardVector()) * (LocomotionState == ELocomotionState::Run ? 2 : 1), 0.1f);
-				SlideInput = FMath::Lerp(SlideInput, DesiredVelocity.Dot(Owner->GetActorRightVector()) * (LocomotionState == ELocomotionState::Run ? 2 : 1), 0.1f);
-			*/
-
-			
 
 			if (LocomotionState != ELocomotionState::Idle)
 			{
@@ -56,7 +43,6 @@ void UUSDFPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 				FRotator NewOwnerRotation = FMath::RInterpTo(OwnerRotation, OwnerControlRotation, GetWorld()->GetDeltaSeconds(), 1.0f);
 				Owner->SetActorRotation(FRotator(0.0f, NewOwnerRotation.Yaw, 0.0f));
 			}
-			
 			
 			ACharacter* Character = Cast<ACharacter>(GetOwningActor());
 			if (Character)
@@ -88,35 +74,15 @@ FVector UUSDFPlayerAnimInstance::CalculateDesiredVelocity()
 	return FVector::ZeroVector;
 }
 
-float UUSDFPlayerAnimInstance::CalculateTurnDotProductValue()
-{
-	if (Owner)
-	{
-		FRotator OwnerControlRotation = Owner->GetControlRotation();
-
-		IUSDFCharacterPlayerAnimInterface* PlayerAnimInterface = Cast<IUSDFCharacterPlayerAnimInterface>(Owner);
-		if (PlayerAnimInterface)
-		{
-			FRotator ControlYawRotation = FRotator(0.0f, OwnerControlRotation.Yaw, 0.0f);
-
-			FVector ControlForwardVector = FRotationMatrix(ControlYawRotation).GetUnitAxis(EAxis::X);
-			FVector ControlRightVector = FRotationMatrix(ControlYawRotation).GetUnitAxis(EAxis::Y);
-
-			return (ControlForwardVector + ControlRightVector).GetSafeNormal().Dot(Owner->GetActorForwardVector());
-		}
-	}
-	return 0.0f;
-}
-
 void UUSDFPlayerAnimInstance::FindLocomotionState()
 {
-	IUSDFCharacterPlayerAnimInterface* PlayerAnimInterface = Cast<IUSDFCharacterPlayerAnimInterface>(Owner);
-	if (PlayerAnimInterface)
+	IUSDFCharacterPlayerInterface* PlayerInterface = Cast<IUSDFCharacterPlayerInterface>(Owner);
+	if (PlayerInterface)
 	{
-		if (Movement->IsFalling() && (Velocity.Z > CharacterAnimData->JumpingThreshould))
-			LocomotionState = ELocomotionState::Jumping;
-		else if (Movement->IsFalling())
-			LocomotionState = ELocomotionState::Falling;
+		if (GroundSpeed > PlayerInterface->GetMaxWalkSpeed())
+		{
+			LocomotionState = ELocomotionState::Run;
+		}
 		else if (MovementInputValue.Length() > 0.1f)
 		{
 			LocomotionState = ELocomotionState::Walk;

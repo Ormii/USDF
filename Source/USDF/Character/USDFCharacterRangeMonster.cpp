@@ -10,7 +10,7 @@
 #include "CharacterStat/USDFNormalMonsterStatComponent.h"
 #include "UI/USDFEnemyHpBarWidget.h"
 #include "UI/USDFWidgetComponent.h"
-#include "Animation/USDFRangeMonsterAnimInstance.h"
+#include "Animation/USDFNonPlayerAnimInstance.h"
 #include "Physics/USDFCollision.h"
 #include "Engine/DamageEvents.h"
 #include "NiagaraFunctionLibrary.h"
@@ -139,7 +139,7 @@ void AUSDFCharacterRangeMonster::ActionByAI(EAIActionType InAIAttackType)
 
 	if (CurrentActionType != ERangeMonsterActionType::None)
 	{
-		UUSDFRangeMonsterAnimInstance* AnimInstance = Cast<UUSDFRangeMonsterAnimInstance>(GetMesh()->GetAnimInstance());
+		UUSDFNonPlayerAnimInstance* AnimInstance = Cast<UUSDFNonPlayerAnimInstance>(GetMesh()->GetAnimInstance());
 		if (AnimInstance)
 		{
 			UAnimMontage* PlayAttackMontage = ActionMontages[CurrentActionType];

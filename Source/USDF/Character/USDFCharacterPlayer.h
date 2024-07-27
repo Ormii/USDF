@@ -119,6 +119,8 @@ protected:
 	//Player Section
 protected:
 	virtual APlayerController* GetPlayerController() override;
+	virtual float GetMaxWalkSpeed() override;
+	virtual float GetMaxRunSpeed() override;
 
 // Character Movement Section
 protected:

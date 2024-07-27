@@ -4,7 +4,7 @@
 #include "Character/USDFCharacterMeleeMonster.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "Animation/USDFMeleeMonsterAnimInstance.h"
+#include "Animation/USDFNonPlayerAnimInstance.h"
 #include "Physics/USDFCollision.h"
 #include "AI/USDFMeleeMonsterAIController.h"
 #include "Engine/DamageEvents.h"
@@ -131,7 +131,7 @@ void AUSDFCharacterMeleeMonster::ActionByAI(EAIActionType InAIActionType)
 
 	if (CurrentActionType != EMeleeMonsterActionType::None)
 	{
-		UUSDFMeleeMonsterAnimInstance* AnimInstance = Cast<UUSDFMeleeMonsterAnimInstance>(GetMesh()->GetAnimInstance());
+		UUSDFNonPlayerAnimInstance* AnimInstance = Cast<UUSDFNonPlayerAnimInstance>(GetMesh()->GetAnimInstance());
 		if (AnimInstance)
 		{
 			UAnimMontage* PlayAttackMontage = ActionMontages[CurrentActionType];

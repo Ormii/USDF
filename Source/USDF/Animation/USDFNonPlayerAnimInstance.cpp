@@ -18,7 +18,6 @@ void UUSDFNonPlayerAnimInstance::NativeInitializeAnimation()
 void UUSDFNonPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
 	Super::NativeUpdateAnimation(DeltaSeconds);
-	GroundSpeed = Velocity.Size2D();
 
 	AUSDFCharacterNonPlayer* NonPlayer = Cast<AUSDFCharacterNonPlayer>(GetOwningActor());
 	if (NonPlayer)
@@ -29,5 +28,4 @@ void UUSDFNonPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 			bIsFocusingTarget = IsValid(AIController->GetFocusActor());
 		}
 	}
-
 }

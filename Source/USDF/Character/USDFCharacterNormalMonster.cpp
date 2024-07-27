@@ -4,7 +4,6 @@
 #include "Character/USDFCharacterNormalMonster.h"
 #include "UI/USDFWidgetComponent.h"
 #include "UI/USDFEnemyHpBarWidget.h"
-#include "Animation/USDFMeleeMonsterAnimInstance.h"
 #include "Animation/USDFNonPlayerAnimInstance.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "CharacterStat/USDFNormalMonsterStatComponent.h"

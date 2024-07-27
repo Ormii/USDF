@@ -258,6 +258,16 @@ APlayerController* AUSDFCharacterPlayer::GetPlayerController()
 	return Cast<APlayerController>(GetController());
 }
 
+float AUSDFCharacterPlayer::GetMaxWalkSpeed()
+{
+	return Stat->GetPlayerStat().MaxWalkSpeed;
+}
+
+float AUSDFCharacterPlayer::GetMaxRunSpeed()
+{
+	return Stat->GetPlayerStat().MaxRunSpeed;
+}
+
 FVector2D AUSDFCharacterPlayer::GetMovementInputValue()
 {
 	return MovementInputValue;

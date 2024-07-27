@@ -1,2 +1,2 @@
-﻿Name,MaxHP,DefaultAttack
-PlayerWarrior,3000,50
+﻿Name,MaxHP,DefaultAttack,MaxWalkSpeed,MaxRunSpeed
+PlayerWarrior,3000,50,120,380

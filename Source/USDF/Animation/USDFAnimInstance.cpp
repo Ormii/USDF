@@ -10,11 +10,7 @@
 
 UUSDFAnimInstance::UUSDFAnimInstance()
 {
-	static ConstructorHelpers::FObjectFinder<UUSDFCharacterAnimData> CharacterAnimDataRef(TEXT("/Game/Animation/DA_USDF_AnimData.DA_USDF_AnimData"));
-	if (CharacterAnimDataRef.Object)
-	{
-		CharacterAnimData = CharacterAnimDataRef.Object;
-	}
+
 }
 
 void UUSDFAnimInstance::NativeInitializeAnimation()
@@ -32,12 +28,10 @@ void UUSDFAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
 	Super::NativeUpdateAnimation(DeltaSeconds);
 
-	if (CharacterAnimData && Movement && Owner)
+	if (Movement && Owner)
 	{
 		Velocity = Movement->Velocity;
 		GroundSpeed = Velocity.Size2D();
-		Acceleration = Movement->GetCurrentAcceleration();
-		Acceleration = FVector(Acceleration.X, Acceleration.Y, 0.0f);
 
 		ACharacter* Character = Cast<ACharacter>(GetOwningActor());
 

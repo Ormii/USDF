@@ -17,10 +17,6 @@ class USDF_API UUSDFPlayerWarriorAnimInstance : public UUSDFPlayerAnimInstance
 public:
 	UUSDFPlayerWarriorAnimInstance();
 
-public:
-	UFUNCTION(BlueprintImplementableEvent, Category = Game, Meta = (DisplayName = "OnJump"))
-	void K2_OnJump();
-
 protected:
 	virtual void NativeInitializeAnimation() override;
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;

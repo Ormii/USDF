@@ -19,4 +19,10 @@ public:
 	UPROPERTY()
 	float DefaultAttack;
 
+	UPROPERTY()
+	float MaxWalkSpeed;
+
+	UPROPERTY()
+	float MaxRunSpeed;
+
 };
