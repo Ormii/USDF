@@ -72,9 +72,6 @@ public:
 	virtual void Dodge()override;
 	virtual void StopDodge()override;
 
-	void WarriorJump();
-	void WarriorStopJumping();
-
 // Animation Section
 private:
 	UPROPERTY(VisibleAnywhere, Category = Animation, Meta = (AllowPrivateAccess = "true"))

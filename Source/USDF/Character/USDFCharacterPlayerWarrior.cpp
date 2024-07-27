@@ -273,8 +273,6 @@ void AUSDFCharacterPlayerWarrior::SetupPlayerInputComponent(UInputComponent* Pla
 	EnhancedInputComponent->BindAction(AttackEKeyAction, ETriggerEvent::Completed, this, &AUSDFCharacterPlayerWarrior::ReleaseAttackEKey);
 	EnhancedInputComponent->BindAction(AttackRKeyAction, ETriggerEvent::Started, this, &AUSDFCharacterPlayerWarrior::AttackRKey);
 	EnhancedInputComponent->BindAction(AttackRKeyAction, ETriggerEvent::Completed, this, &AUSDFCharacterPlayerWarrior::ReleaseAttackRKey);
-	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AUSDFCharacterPlayerWarrior::WarriorJump);
-	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AUSDFCharacterPlayerWarrior::WarriorStopJumping);
 	EnhancedInputComponent->BindAction(DodgeAction, ETriggerEvent::Started, this, &AUSDFCharacterPlayerWarrior::Dodge);
 	EnhancedInputComponent->BindAction(DodgeAction, ETriggerEvent::Completed, this, &AUSDFCharacterPlayerWarrior::StopDodge);
 }
@@ -493,31 +491,6 @@ void AUSDFCharacterPlayerWarrior::Dodge()
 void AUSDFCharacterPlayerWarrior::StopDodge()
 {
 	Super::StopDodge();
-}
-
-void AUSDFCharacterPlayerWarrior::WarriorJump()
-{
-	if (bDamagedState)
-		return;
-
-	UUSDFPlayerWarriorAnimInstance* WarriorAnimInstance = Cast<UUSDFPlayerWarriorAnimInstance>(GetMesh()->GetAnimInstance());
-
-	if (WarriorAnimInstance)
-	{
-		if (bAttackState)
-			return;
-
-		Jump();
-
-		WarriorAnimInstance->K2_OnJump();
-
-		//WarriorAnimInstance->SetRootMotionMode(ERootMotionMode::IgnoreRootMotion);
-	}
-}
-
-void AUSDFCharacterPlayerWarrior::WarriorStopJumping()
-{
-	StopJumping();
 }
 
 bool AUSDFCharacterPlayerWarrior::PossessCombatStartMontage()

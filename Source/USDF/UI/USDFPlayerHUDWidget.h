@@ -28,12 +28,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Player, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UUSDFPlayerHpBarWidget> PlayerHpBar;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = GameStage, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class UUSDFPrepareStageWidget> PrepareStageWidget;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = GameStage, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class UUSDFEndStageWidget> EndStageWidget;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Boss, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UUSDFEnemyHpBarWidget> BossHpBar;
 };

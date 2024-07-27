@@ -81,9 +81,6 @@ protected:
 	TObjectPtr<class UInputAction> LookAction;
 
 	UPROPERTY(VisibleAnywhere, Category = Input, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class UInputAction> JumpAction;
-
-	UPROPERTY(VisibleAnywhere, Category = Input, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UInputAction> DodgeAction;
 
 	UPROPERTY(VisibleAnywhere, Category = Input, Meta = (AllowPrivateAccess = "true"))

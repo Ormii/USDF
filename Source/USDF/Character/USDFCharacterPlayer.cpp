@@ -73,12 +73,6 @@ AUSDFCharacterPlayer::AUSDFCharacterPlayer()
 		LookAction = LookActionRef.Object;
 	}
 
-	static ConstructorHelpers::FObjectFinder<UInputAction> JumpActionRef(TEXT("/Game/Input/Actions/IA_Jump.IA_Jump"));
-	if (JumpActionRef.Object)
-	{
-		JumpAction = JumpActionRef.Object;
-	}
-
 	static ConstructorHelpers::FObjectFinder<UInputAction> DodgeActionRef(TEXT("/Game/Input/Actions/IA_Dodge.IA_Dodge"));
 	if (DodgeActionRef.Object)
 	{

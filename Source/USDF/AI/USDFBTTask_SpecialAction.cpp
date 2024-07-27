@@ -1,11 +1,11 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "AI/USDFBTTask_RangeAttack.h"
+#include "AI/USDFBTTask_SpecialAction.h"
 #include "Interface/USDFCharacterAIInterface.h"
 #include "AIController.h"
 
-EBTNodeResult::Type UUSDFBTTask_RangeAttack::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
+EBTNodeResult::Type UUSDFBTTask_SpecialAction::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
 	EBTNodeResult::Type Result = Super::ExecuteTask(OwnerComp, NodeMemory);
 	UBlackboardComponent* Blackboard = OwnerComp.GetBlackboardComponent();
@@ -24,14 +24,14 @@ EBTNodeResult::Type UUSDFBTTask_RangeAttack::ExecuteTask(UBehaviorTreeComponent&
 	if (AIPawn == nullptr)
 		return EBTNodeResult::Failed;
 
-	FAICharacterActionFinished OnActionFinished;
-	OnActionFinished.BindLambda([&]() {
+	FAICharacterActionFinished OnAttackFinished;
+	OnAttackFinished.BindLambda([&]() {
 
 		FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
 		});
 
-	AIPawn->SetAIActionDelegate(OnActionFinished);
-	AIPawn->ActionByAI(EAIActionType::Range);
+	AIPawn->SetAIActionDelegate(OnAttackFinished);
+	AIPawn->ActionByAI(ActionType);
 
 	return EBTNodeResult::InProgress;
 }

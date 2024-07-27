@@ -5,13 +5,13 @@
 #include "CoreMinimal.h"
 #include "BehaviorTree/BTTaskNode.h"
 #include "Interface/USDFCharacterAIInterface.h"
-#include "USDFBTTask_SpecialAttack.generated.h"
+#include "USDFBTTask_SpecialAction.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class USDF_API UUSDFBTTask_SpecialAttack : public UBTTaskNode
+class USDF_API UUSDFBTTask_SpecialAction : public UBTTaskNode
 {
 	GENERATED_BODY()
 	
