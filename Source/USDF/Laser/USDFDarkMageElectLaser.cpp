@@ -52,6 +52,8 @@ void AUSDFDarkMageElectLaser::Tick(float DeltaTime)
 	{
 		FVector UpVector = GetActorUpVector();
 		AcculmulateAngle += AcculmulateAngle * DeltaTime;
+		if (AcculmulateAngle >= 100.0f)
+			Destroy();
 		Mesh->AddLocalRotation(FRotator(0.0f, AcculmulateAngle, 0.0f));
 	}
 
