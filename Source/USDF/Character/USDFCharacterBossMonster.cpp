@@ -25,7 +25,6 @@ AUSDFCharacterBossMonster::AUSDFCharacterBossMonster()
 void AUSDFCharacterBossMonster::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
-	DamageSystem->OnDeath.BindUObject(this, &AUSDFCharacterBossMonster::OnDeath);
 	DamageSystem->OnDamageResponse.BindUObject(this, &AUSDFCharacterBossMonster::OnDamageResponse);
 }
 

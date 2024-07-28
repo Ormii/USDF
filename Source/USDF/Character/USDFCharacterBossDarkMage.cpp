@@ -22,6 +22,7 @@
 #include "Enemy/USDFDarkMageEyeCube.h"
 #include "Physics/USDFCollision.h"
 #include "Interface/USDFDamageableInterface.h"
+#include "Damage/USDFDamageSystemComponent.h"
 
 AUSDFCharacterBossDarkMage::AUSDFCharacterBossDarkMage()
 {
@@ -159,6 +160,8 @@ void AUSDFCharacterBossDarkMage::PostInitializeComponents()
 
 	Stat->InitBossMonsterStat(GameSingleton->GetBossMonsterStat("DarkMage"));
 	GetCharacterMovement()->MaxWalkSpeed = Stat->GetBossMonsterStat().RunSpeed;
+
+	DamageSystem->OnDeath.BindUObject(this, &AUSDFCharacterBossDarkMage::OnDeath);
 
 }
 
@@ -546,16 +549,6 @@ void AUSDFCharacterBossDarkMage::TeleportEnd()
 
 void AUSDFCharacterBossDarkMage::OnDeath()
 {
-	Super::OnDeath();
-
-	UUSDFNonPlayerAnimInstance* NonPlayerAnimInstance = Cast<UUSDFNonPlayerAnimInstance>(GetMesh()->GetAnimInstance());
-
-	if (NonPlayerAnimInstance && DeadAnimMontage)
-	{
-		NonPlayerAnimInstance->StopAllMontages(0.0f);
-		NonPlayerAnimInstance->Montage_Play(DeadAnimMontage);
-	}
-
 	AUSDFAIController* AIController = Cast<AUSDFAIController>(GetController());
 	if (AIController)
 	{
@@ -564,4 +557,8 @@ void AUSDFCharacterBossDarkMage::OnDeath()
 		AIController->UnPossess();
 	}
 
+	if (DarkMageEyeCube)
+	{
+		DarkMageEyeCube->Destroy();
+	}
 }

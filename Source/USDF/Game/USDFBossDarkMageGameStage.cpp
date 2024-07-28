@@ -17,6 +17,7 @@
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Decal/USDFDarkMageDecal.h"
 #include "LegacyCameraShake.h"
+#include "Enemy/USDFDarkMageDotDamageZone.h"
 #include "Sound/SoundCue.h"
 #include "Components/AudioComponent.h"
 
@@ -459,6 +460,48 @@ void AUSDFBossDarkMageGameStage::OnPhaseEndingSeqFinished()
 	if (GameModeInterface)
 	{
 		GameModeInterface->OnBossDead(BossDarkMage);
+	}
+
+	TArray<AActor*> NormalMonsters;
+	UGameplayStatics::GetAllActorsOfClass(this, AUSDFCharacterNormalMonster::StaticClass(), NormalMonsters);
+	for (int32 i = 0; i < NormalMonsters.Num(); ++i)
+	{
+		AUSDFCharacterNormalMonster* NormalMonster = Cast<AUSDFCharacterNormalMonster>(NormalMonsters[i]);
+		if (NormalMonster)
+		{
+			NormalMonster->Destroy();
+		}
+	}
+
+	TArray<AActor*> DamageZones;
+	UGameplayStatics::GetAllActorsOfClass(this, AUSDFDarkMageDotDamageZone::StaticClass(), DamageZones);
+	for (int32 i = 0; i < DamageZones.Num(); ++i)
+	{
+		AUSDFDarkMageDotDamageZone* DamageZone = Cast<AUSDFDarkMageDotDamageZone>(DamageZones[i]);
+		if (DamageZone)
+		{
+			DamageZone->Destroy();
+		}
+	}
+}
+
+void AUSDFBossDarkMageGameStage::StopAIAll()
+{
+	Super::StopAIAll();
+	AUSDFAIController* AIController = Cast<AUSDFAIController>(BossDarkMage->GetController());
+	if (AIController)
+	{
+		AIController->StopAI();
+	}
+}
+
+void AUSDFBossDarkMageGameStage::RunAIAll()
+{
+	Super::RunAIAll();
+	AUSDFAIController* AIController = Cast<AUSDFAIController>(BossDarkMage->GetController());
+	if (AIController)
+	{
+		AIController->RunAI();
 	}
 }
 

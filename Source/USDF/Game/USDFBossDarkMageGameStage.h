@@ -120,6 +120,9 @@ protected:
 	UFUNCTION()
 	void OnPhaseEndingSeqFinished();
 
+	virtual void StopAIAll() override;
+	virtual void RunAIAll() override;
+
 protected:
 	UPROPERTY(VisibleAnywhere, Category = Sound, Meta = (AllowPrivateAccess = "true"))
 	TMap<EDarkMageStagePhase, TObjectPtr<class USoundCue>> DarkMageBGMManager;
