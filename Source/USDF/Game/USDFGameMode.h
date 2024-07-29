@@ -23,7 +23,8 @@ public:
 	virtual void OnPlayerDead() override;
 	virtual void OnBossEntry(class AUSDFCharacterBossMonster* BossMonster) override;
 	virtual void OnBossDead(class AUSDFCharacterBossMonster* BossMonster) override;
-
+	virtual void OnGameStageIntro() override;
+	virtual void OnGameStageEnding() override;
 
 	virtual void OnGameRetry() override;
 };

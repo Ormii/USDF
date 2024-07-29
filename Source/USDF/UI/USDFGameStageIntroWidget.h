@@ -14,4 +14,7 @@ class USDF_API UUSDFGameStageIntroWidget : public UUserWidget
 {
 	GENERATED_BODY()
 	
+public:
+	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category = Game, Meta = (DisplayName = "OnIntroStartCpp"))
+	void K2_OnIntroStart();
 };

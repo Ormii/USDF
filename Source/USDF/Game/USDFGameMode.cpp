@@ -49,6 +49,24 @@ void AUSDFGameMode::OnBossDead(AUSDFCharacterBossMonster* BossMonster)
 	}
 }
 
+void AUSDFGameMode::OnGameStageIntro()
+{
+	AUSDFPlayerController* PlayerController = Cast<AUSDFPlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
+	if (PlayerController)
+	{
+		PlayerController->K2_OnGameStageIntro();
+	}
+}
+
+void AUSDFGameMode::OnGameStageEnding()
+{
+	AUSDFPlayerController* PlayerController = Cast<AUSDFPlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
+	if (PlayerController)
+	{
+		PlayerController->K2_OnGameStageEnding();
+	}
+}
+
 
 void AUSDFGameMode::OnGameRetry()
 {

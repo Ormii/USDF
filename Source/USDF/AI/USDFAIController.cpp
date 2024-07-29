@@ -9,6 +9,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Interface/USDFCharacterAIInterface.h"
 #include "Interface/USDFCharacterPlayerInterface.h"
+#include "Interface/USDFDamageableInterface.h"
 #include "Perception/AIPerceptionComponent.h"
 #include "Perception/AISenseConfig_Sight.h"
 #include "Perception/AISenseConfig_Hearing.h"
@@ -54,6 +55,26 @@ AUSDFAIController::AUSDFAIController()
 void AUSDFAIController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	EAIState AIState = static_cast<EAIState>(Blackboard->GetValueAsEnum(BBKEY_AISTATE));
+	switch (AIState)
+	{
+		case EAIState::Attacking:
+		{
+			if (AttackTarget != nullptr)
+			{
+				IUSDFDamageableInterface* Damageable = Cast<IUSDFDamageableInterface>(AttackTarget);
+				if (Damageable && Damageable->IsDead())
+				{
+					AttackTarget = nullptr;
+					SetCurrentAIState(EAIState::Passive, FAISensedParam{});
+				}
+			}
+		}
+			break;
+		default:
+			break;
+	}
 }
 
 void AUSDFAIController::OnPossess(APawn* InPawn)
@@ -168,13 +189,13 @@ void AUSDFAIController::HandleSensedDamage(AActor* InActor)
 	EAIState AIState = GetCurrentAIState();
 	switch (AIState)
 	{
-	case EAIState::Passive:
-	case EAIState::Investigating:
-		SetCurrentAIState(EAIState::Attacking,Param);
-		AIPawn->SetAIState(EAIState::Attacking, Param);
-		break;
-	default:
-		break;
+		case EAIState::Passive:
+		case EAIState::Investigating:
+			SetCurrentAIState(EAIState::Attacking,Param);
+			AIPawn->SetAIState(EAIState::Attacking, Param);
+			break;
+		default:
+			break;
 	}
 }
 

@@ -4,6 +4,7 @@
 #include "UI/USDFPlayerHUDWidget.h"
 #include "UI/USDFPlayerHpBarWidget.h"
 #include "UI/USDFEnemyHpBarWidget.h"
+#include "UI/USDFGameStageIntroWidget.h"
 #include "Interface/USDFCharacterPlayerHUDInterface.h"
 
 UUSDFPlayerHUDWidget::UUSDFPlayerHUDWidget(const FObjectInitializer& ObjectInitializer)

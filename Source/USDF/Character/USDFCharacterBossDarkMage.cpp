@@ -275,6 +275,7 @@ void AUSDFCharacterBossDarkMage::AttackFire()
 	FVector ForwardVector = (TargetLocation - StartLocation).GetSafeNormal();
 	DefaultAtkProjectile->SetActorRotation(FRotationMatrix::MakeFromX(ForwardVector).ToQuat());
 	DefaultAtkProjectile->GetProjectileMovementComp()->Velocity = ForwardVector * 3000.0f;
+	DefaultAtkProjectile = nullptr;
 }
 
 void AUSDFCharacterBossDarkMage::SpawnProjectile()
@@ -560,5 +561,14 @@ void AUSDFCharacterBossDarkMage::OnDeath()
 	if (DarkMageEyeCube)
 	{
 		DarkMageEyeCube->Destroy();
+	}
+}
+
+void AUSDFCharacterBossDarkMage::OnDamageResponse(FDamageInfo DamageInfo)
+{
+	Super::OnDamageResponse(DamageInfo);
+	if (DefaultAtkProjectile)
+	{
+		DefaultAtkProjectile->Destroy();
 	}
 }

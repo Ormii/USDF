@@ -23,3 +23,9 @@ AUSDFMeleeMonsterAIController::AUSDFMeleeMonsterAIController()
 	}
 	
 }
+
+void AUSDFMeleeMonsterAIController::OnPossess(APawn* InPawn)
+{
+	Super::OnPossess(InPawn);
+	SetCurrentAIState(EAIState::Investigating, FAISensedParam{});
+}

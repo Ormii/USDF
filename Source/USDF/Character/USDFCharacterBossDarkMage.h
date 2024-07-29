@@ -74,6 +74,7 @@ protected:
 	// Damage Section
 protected:
 	virtual void OnDeath() override;
+	virtual void OnDamageResponse(FDamageInfo DamageInfo) override;
 
 protected:
 	UPROPERTY(VisibleAnywhere, Category = Attack, Meta = (AllowPrivateAccess = "true"))

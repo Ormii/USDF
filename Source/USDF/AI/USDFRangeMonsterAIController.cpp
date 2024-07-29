@@ -21,3 +21,9 @@ AUSDFRangeMonsterAIController::AUSDFRangeMonsterAIController()
 		BTAsset = BTAssetRef.Object;
 	}
 }
+
+void AUSDFRangeMonsterAIController::OnPossess(APawn* InPawn)
+{
+	Super::OnPossess(InPawn);
+	SetCurrentAIState(EAIState::Investigating, FAISensedParam{});
+}

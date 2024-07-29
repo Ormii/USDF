@@ -26,4 +26,6 @@ public:
 	virtual void OnBossEntry(class AUSDFCharacterBossMonster* BossMonster) = 0;
 	virtual void OnBossDead(class AUSDFCharacterBossMonster* BossMonster) = 0;
 	virtual void OnGameRetry() = 0;
+	virtual void OnGameStageIntro() = 0;
+	virtual void OnGameStageEnding() = 0;
 };

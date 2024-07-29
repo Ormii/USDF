@@ -16,4 +16,7 @@ class USDF_API AUSDFMeleeMonsterAIController : public AUSDFAIController
 	
 public:
 	AUSDFMeleeMonsterAIController();
+
+protected:
+	void OnPossess(APawn* InPawn) override;
 };

@@ -184,6 +184,12 @@ void AUSDFBossDarkMageGameStage::DarkMageStagePhase_ChangeIntro()
 		Audio->Stop();
 
 	Audio = UGameplayStatics::SpawnSound2D(this, DarkMageBGMManager[EDarkMageStagePhase::EDarkMageStagePhase_Intro]);
+
+	IUSDFGameModeInterface* GameModeInterface = Cast<IUSDFGameModeInterface>(GetWorld()->GetAuthGameMode());
+	if (GameModeInterface)
+	{
+		GameModeInterface->OnGameStageIntro();
+	}
 }
 
 void AUSDFBossDarkMageGameStage::DarkMageStagePhase_ChangePhase1()
@@ -456,11 +462,6 @@ void AUSDFBossDarkMageGameStage::OnPhaseEndingSeqFinished()
 
 	bSceneChanging = false;
 
-	IUSDFGameModeInterface* GameModeInterface = Cast<IUSDFGameModeInterface>(GetWorld()->GetAuthGameMode());
-	if (GameModeInterface)
-	{
-		GameModeInterface->OnBossDead(BossDarkMage);
-	}
 
 	TArray<AActor*> NormalMonsters;
 	UGameplayStatics::GetAllActorsOfClass(this, AUSDFCharacterNormalMonster::StaticClass(), NormalMonsters);
@@ -482,6 +483,13 @@ void AUSDFBossDarkMageGameStage::OnPhaseEndingSeqFinished()
 		{
 			DamageZone->Destroy();
 		}
+	}
+
+	IUSDFGameModeInterface* GameModeInterface = Cast<IUSDFGameModeInterface>(GetWorld()->GetAuthGameMode());
+	if (GameModeInterface)
+	{
+		GameModeInterface->OnBossDead(BossDarkMage);
+		GameModeInterface->OnGameStageEnding();
 	}
 }
 

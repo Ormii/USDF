@@ -25,9 +25,9 @@ public:
 	class UUSDFEnemyHpBarWidget* GetBossHpBar() { return BossHpBar; }
 
 protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Player, Meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = UI, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UUSDFPlayerHpBarWidget> PlayerHpBar;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Boss, Meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = UI, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UUSDFEnemyHpBarWidget> BossHpBar;
 };

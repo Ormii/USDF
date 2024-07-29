@@ -24,6 +24,12 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, Category = Game, Meta = (DisplayName = "OnGameOverCpp"))
 	void K2_OnGameOver();
 
+	UFUNCTION(BlueprintImplementableEvent, Category = Game, Meta = (DisplayName = "OnGameStageEndingCpp"))
+	void K2_OnGameStageEnding();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = Game, Meta = (DisplayName = "OnGameStageIntroCpp"))
+	void K2_OnGameStageIntro();
+
 	void SetTargetBoss(class AUSDFCharacterBossMonster* BossMonster);
 	void OnBossDead(class AUSDFCharacterBossMonster* BossMonster);
 
