@@ -507,6 +507,8 @@ void AUSDFCharacterBossDarkMage::TeleportStart()
 
 	GetMesh()->SetVisibility(false, true);
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
+	GetCapsuleComponent()->SetCollisionResponseToChannel(CCHANNEL_USDF_PLAYER_CHARACTER, ECollisionResponse::ECR_Ignore);
+	GetCapsuleComponent()->SetCollisionResponseToChannel(CCHANNEL_USDF_PLAYERACTION, ECollisionResponse::ECR_Ignore);
 
 	UNiagaraComponent* pNiagaraCompo = UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), TeleportEffect, GetActorLocation(), FRotationMatrix::Identity.Rotator());;
 	if (pNiagaraCompo != nullptr)
@@ -532,6 +534,8 @@ void AUSDFCharacterBossDarkMage::TeleportEnd()
 
 	GetMesh()->SetVisibility(true, true);
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Block);
+	GetCapsuleComponent()->SetCollisionResponseToChannel(CCHANNEL_USDF_PLAYER_CHARACTER, ECollisionResponse::ECR_Block);
+	GetCapsuleComponent()->SetCollisionResponseToChannel(CCHANNEL_USDF_PLAYERACTION, ECollisionResponse::ECR_Block);
 
 	UNiagaraComponent* pNiagaraCompo = UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), TeleportEffect, GetActorLocation(), FRotationMatrix::Identity.Rotator());
 	if (pNiagaraCompo != nullptr)

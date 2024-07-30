@@ -19,13 +19,6 @@ protected:
 
 protected:
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
-	virtual EBTNodeResult::Type AbortTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
-
-protected:
-	UPROPERTY()
-	mutable TObjectPtr<class ULambdaWrapper> LambdaWrapper;
-
-
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Default, Meta = (AllowPrivateAccess = "true"))
 	FBlackboardKeySelector TeleportLocationKey;

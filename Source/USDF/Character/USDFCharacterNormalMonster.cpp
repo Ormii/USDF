@@ -39,6 +39,8 @@ AUSDFCharacterNormalMonster::AUSDFCharacterNormalMonster()
 		HpBarWidget->SetDrawSize(FVector2D(80.0f, 15.0f));
 		HpBarWidget->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
+
+	HpBarVisibleRange = 500.0f;
 }
 
 void AUSDFCharacterNormalMonster::PostInitializeComponents()
@@ -59,11 +61,31 @@ void AUSDFCharacterNormalMonster::BeginPlay()
 	
 	DamageSystem->OnDeath.BindUObject(this, &AUSDFCharacterNormalMonster::OnDeath);
 	DamageSystem->OnDamageResponse.BindUObject(this, &AUSDFCharacterNormalMonster::OnDamageResponse);
+
+	HpBarWidget->SetHiddenInGame(true);
 }
 
 void AUSDFCharacterNormalMonster::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
+
+	AUSDFAIController* AIController = Cast<AUSDFAIController>(GetController());
+	if (AIController && !IsDead())
+	{
+		bool PreState = bVisibleHpBar;
+		if ((AIController->GetAttackTarget() != nullptr
+			&& (GetActorLocation() - AIController->GetAttackTarget()->GetActorLocation()).Length() <= HpBarVisibleRange) || 
+			AIController->GetCurrentAIState() == EAIState::Frozen)
+		{
+			bVisibleHpBar = true;
+		}
+		else
+			bVisibleHpBar = false;
+
+
+		if(PreState != bVisibleHpBar)
+			HpBarWidget->SetHiddenInGame(!bVisibleHpBar);
+	}
 }
 
 float AUSDFCharacterNormalMonster::GetAIPatrolRadius()

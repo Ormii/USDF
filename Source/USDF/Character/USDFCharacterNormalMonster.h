@@ -76,10 +76,16 @@ public:
 protected:
 	UPROPERTY()
 	TObjectPtr<class UAnimMontage> DeadAnimMontage;
+	
+	UPROPERTY(EditAnywhere)
+	float HpBarVisibleRange;
+
+	bool  bVisibleHpBar;
 
 	UFUNCTION()
 	void OnHitReactMontageBlendOut(UAnimMontage* TargetMontage, bool bInterrupted);
 
 	virtual void OnDeath() override;
 	virtual void OnDamageResponse(FDamageInfo DamageInfo) override;
+
 };

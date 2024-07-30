@@ -13,4 +13,9 @@ UCLASS()
 class USDF_API UUSDFGameStageEndingWidget : public UUserWidget
 {
 	GENERATED_BODY()
+
+	//Retry Section
+protected:
+	UFUNCTION(BlueprintCallable, Category = Retry, Meta = (DisplayName = "OnStageEndingRetryButtonEventCpp"))
+	void K2_OnStageEndingRetryButtonEvent();
 };

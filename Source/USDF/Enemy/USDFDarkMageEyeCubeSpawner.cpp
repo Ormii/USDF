@@ -121,7 +121,8 @@ void AUSDFDarkMageEyeCubeSpawner::Spawn(const FDarkMageEyeCubeSpawnOrder& SpawnO
 	NonPlayer->UnPossessed();
 	PreController->Destroy();
 	AIController->Possess(Cast<APawn>(NonPlayer));
+		
+	AIController->SetCurrentAIState(EAIState::Investigating, FAISensedParam{});
 
-
-	NonPlayer->GetCharacterMovement()->AddForce(NonPlayer->GetActorForwardVector() * 300.0f);
+	NonPlayer->GetCharacterMovement()->AddForce(GetActorForwardVector() * 600.0f);
 }
