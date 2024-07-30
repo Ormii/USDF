@@ -34,7 +34,7 @@ void AUSDFGameStage::Tick(float DeltaTime)
 
 }
 
-void AUSDFGameStage::StopAIAll()
+void AUSDFGameStage::BeginSequence()
 {
 	TArray<AActor*> TargetAIs;
 	UGameplayStatics::GetAllActorsOfClass(this, AUSDFCharacterNonPlayer::StaticClass(), TargetAIs);
@@ -53,7 +53,7 @@ void AUSDFGameStage::StopAIAll()
 	}
 }
 
-void AUSDFGameStage::RunAIAll()
+void AUSDFGameStage::FinishSequence()
 {
 	TArray<AActor*> TargetAIs;
 	UGameplayStatics::GetAllActorsOfClass(this, AUSDFCharacterNonPlayer::StaticClass(), TargetAIs);

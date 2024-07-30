@@ -120,8 +120,8 @@ protected:
 	UFUNCTION()
 	void OnPhaseEndingSeqFinished();
 
-	virtual void StopAIAll() override;
-	virtual void RunAIAll() override;
+	virtual void BeginSequence() override;
+	virtual void FinishSequence() override;
 
 protected:
 	UPROPERTY(VisibleAnywhere, Category = Sound, Meta = (AllowPrivateAccess = "true"))

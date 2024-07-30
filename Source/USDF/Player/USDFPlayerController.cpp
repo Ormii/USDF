@@ -23,9 +23,25 @@ void AUSDFPlayerController::BeginPlay()
 	SetInputMode(InputModeGameOnly);
 }
 
+void AUSDFPlayerController::BeginSequence()
+{
+	if (HUDWidget)
+	{
+		HUDWidget->BeginSequence();
+	}
+}
+
+void AUSDFPlayerController::FinishSequence()
+{
+	if (HUDWidget)
+	{
+		HUDWidget->FinishSequence();
+	}
+}
+
 void AUSDFPlayerController::SetTargetBoss(AUSDFCharacterBossMonster* BossMonster)
 {
-	if (TargetBoss == BossMonster)
+	if (BossMonster == nullptr)
 		return;
 
 	TargetBoss = BossMonster;
@@ -33,15 +49,8 @@ void AUSDFPlayerController::SetTargetBoss(AUSDFCharacterBossMonster* BossMonster
 	if (HUDWidget)
 	{
 		UUSDFEnemyHpBarWidget* EnemyHpBar = HUDWidget->GetBossHpBar();
-		if (TargetBoss == nullptr)
-		{
-			EnemyHpBar->SetVisibility(ESlateVisibility::Hidden);
-		}
-		else
-		{
-			TargetBoss->SetupHpBarWidget(EnemyHpBar);
-			EnemyHpBar->SetVisibility(ESlateVisibility::Visible);
-		}
+		TargetBoss->SetupHpBarWidget(EnemyHpBar);
+		K2_OnBossEntry();
 	}
 }
 
@@ -49,6 +58,7 @@ void AUSDFPlayerController::OnBossDead(AUSDFCharacterBossMonster* BossMonster)
 {
 	if (TargetBoss != nullptr && TargetBoss == BossMonster)
 	{
-		SetTargetBoss(nullptr);
+		TargetBoss = nullptr;
+		K2_OnBossExit();
 	}
 }

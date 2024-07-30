@@ -211,9 +211,7 @@ void AUSDFBossDarkMageGameStage::DarkMageStagePhase_ChangePhase1()
 	ScriptDelegate.BindUFunction(this, "OnPhase1SeqFinished");
 	SequencePlayer->OnFinished.AddUnique(ScriptDelegate);
 
-	AUSDFPlayerController* PlayerController = Cast<AUSDFPlayerController>(PlayerCharacter->GetController());
-	PlayerCharacter->DisableInput(PlayerController);
-	StopAIAll();
+	BeginSequence();
 
 	
 	if (Audio)
@@ -242,10 +240,7 @@ void AUSDFBossDarkMageGameStage::DarkMageStagePhase_ChangePhase2()
 	ScriptDelegate.BindUFunction(this, "OnPhase2SeqFinished");
 	SequencePlayer->OnFinished.AddUnique(ScriptDelegate);
 
-	AUSDFPlayerController* PlayerController = Cast<AUSDFPlayerController>(PlayerCharacter->GetController());
-	PlayerCharacter->DisableInput(PlayerController);
-	StopAIAll();
-
+	BeginSequence();
 
 	if (Audio)
 		Audio->Stop();
@@ -273,9 +268,7 @@ void AUSDFBossDarkMageGameStage::DarkMageStagePhase_ChangePhase3()
 	ScriptDelegate.BindUFunction(this, "OnPhase3SeqFinished");
 	SequencePlayer->OnFinished.AddUnique(ScriptDelegate);
 
-	AUSDFPlayerController* PlayerController = Cast<AUSDFPlayerController>(PlayerCharacter->GetController());
-	PlayerCharacter->DisableInput(PlayerController);
-	StopAIAll();
+	BeginSequence();
 
 	if (Audio)
 		Audio->Stop();
@@ -303,12 +296,10 @@ void AUSDFBossDarkMageGameStage::DarkMageStagePhase_ChangeEnding()
 	ScriptDelegate.BindUFunction(this, "OnPhaseEndingSeqFinished");
 	SequencePlayer->OnFinished.AddUnique(ScriptDelegate);
 
-	AUSDFPlayerController* PlayerController = Cast<AUSDFPlayerController>(PlayerCharacter->GetController());
-	PlayerCharacter->DisableInput(PlayerController);
 	PlayerCharacter->SetBoneLayeredBlendEnable(false);
 	BossDarkMage->DeActivateFuryEffect();
 	
-	StopAIAll();
+	BeginSequence();
 
 	TArray<AActor*> NormalMonsters;
 	UGameplayStatics::GetAllActorsOfClass(this, AUSDFCharacterNormalMonster::StaticClass(), NormalMonsters);
@@ -409,9 +400,7 @@ void AUSDFBossDarkMageGameStage::SetDarkMageStagePhase(EDarkMageStagePhase NewSt
 
 void AUSDFBossDarkMageGameStage::OnPhase1SeqFinished()
 {
-	AUSDFPlayerController* PlayerController = Cast<AUSDFPlayerController>(PlayerCharacter->GetController());
-	PlayerCharacter->EnableInput(PlayerController);
-	RunAIAll();
+	FinishSequence();
 	bSceneChanging = false;
 
 	IUSDFGameModeInterface* GameModeInterface = Cast<IUSDFGameModeInterface>(GetWorld()->GetAuthGameMode());
@@ -423,9 +412,8 @@ void AUSDFBossDarkMageGameStage::OnPhase1SeqFinished()
 
 void AUSDFBossDarkMageGameStage::OnPhase2SeqFinished()
 {
-	AUSDFPlayerController* PlayerController = Cast<AUSDFPlayerController>(PlayerCharacter->GetController());
-	PlayerCharacter->EnableInput(PlayerController);
-	RunAIAll();
+
+	FinishSequence();
 	bSceneChanging = false;
 
 	AUSDFAIController* AIController = Cast<AUSDFAIController>(BossDarkMage->GetController());
@@ -438,9 +426,7 @@ void AUSDFBossDarkMageGameStage::OnPhase2SeqFinished()
 
 void AUSDFBossDarkMageGameStage::OnPhase3SeqFinished()
 {
-	AUSDFPlayerController* PlayerController = Cast<AUSDFPlayerController>(PlayerCharacter->GetController());
-	PlayerCharacter->EnableInput(PlayerController);
-	RunAIAll();
+	FinishSequence();
 	bSceneChanging = false;
 
 	AUSDFAIController* AIController = Cast<AUSDFAIController>(BossDarkMage->GetController());
@@ -456,12 +442,10 @@ void AUSDFBossDarkMageGameStage::OnPhase3SeqFinished()
 
 void AUSDFBossDarkMageGameStage::OnPhaseEndingSeqFinished()
 {
-	AUSDFPlayerController* PlayerController = Cast<AUSDFPlayerController>(PlayerCharacter->GetController());
-	PlayerCharacter->EnableInput(PlayerController);
+	FinishSequence();
 	PlayerCharacter->SetBoneLayeredBlendEnable(true);
 
 	bSceneChanging = false;
-
 
 	TArray<AActor*> NormalMonsters;
 	UGameplayStatics::GetAllActorsOfClass(this, AUSDFCharacterNormalMonster::StaticClass(), NormalMonsters);
@@ -493,24 +477,36 @@ void AUSDFBossDarkMageGameStage::OnPhaseEndingSeqFinished()
 	}
 }
 
-void AUSDFBossDarkMageGameStage::StopAIAll()
+void AUSDFBossDarkMageGameStage::BeginSequence()
 {
-	Super::StopAIAll();
-	AUSDFAIController* AIController = Cast<AUSDFAIController>(BossDarkMage->GetController());
-	if (AIController)
-	{
-		AIController->StopAI();
-	}
+	Super::BeginSequence();
+
+	AUSDFPlayerController* PlayerController = CastChecked<AUSDFPlayerController>(PlayerCharacter->GetController());
+	PlayerController->BeginSequence();
+	PlayerCharacter->DisableInput(PlayerController);
+	/*
+		AUSDFAIController* AIController = Cast<AUSDFAIController>(BossDarkMage->GetController());
+		if (AIController)
+		{
+			AIController->StopAI();
+		}
+	*/
 }
 
-void AUSDFBossDarkMageGameStage::RunAIAll()
+void AUSDFBossDarkMageGameStage::FinishSequence()
 {
-	Super::RunAIAll();
-	AUSDFAIController* AIController = Cast<AUSDFAIController>(BossDarkMage->GetController());
-	if (AIController)
-	{
-		AIController->RunAI();
-	}
+	Super::FinishSequence();
+
+	AUSDFPlayerController* PlayerController = Cast<AUSDFPlayerController>(PlayerCharacter->GetController());
+	PlayerController->FinishSequence();
+	PlayerCharacter->EnableInput(PlayerController);
+	/*
+		AUSDFAIController* AIController = Cast<AUSDFAIController>(BossDarkMage->GetController());
+		if (AIController)
+		{
+			AIController->RunAI();
+		}
+	*/
 }
 
 void AUSDFBossDarkMageGameStage::HitCameraShake()

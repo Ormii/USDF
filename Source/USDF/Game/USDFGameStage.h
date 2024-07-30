@@ -52,8 +52,8 @@ public:
 	virtual void SetGameStage(EGameStagePhase NewGameStagePhase) {};
 
 protected:
-	virtual void StopAIAll();
-	virtual void RunAIAll();
+	virtual void BeginSequence();
+	virtual void FinishSequence();
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Sequence, Meta = (AllowPrivateAccess = "true"))

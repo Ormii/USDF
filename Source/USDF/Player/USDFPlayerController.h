@@ -30,15 +30,29 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, Category = Game, Meta = (DisplayName = "OnGameStageIntroCpp"))
 	void K2_OnGameStageIntro();
 
+	UFUNCTION(BlueprintImplementableEvent, Category = Game, Meta = (DisplayName = "OnBossEntry"))
+	void K2_OnBossEntry();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = Game, Meta = (DisplayName = "OnBossExit"))
+	void K2_OnBossExit();
+
+	void BeginSequence();
+	void FinishSequence();
+
 	void SetTargetBoss(class AUSDFCharacterBossMonster* BossMonster);
 	void OnBossDead(class AUSDFCharacterBossMonster* BossMonster);
 
+
+	FORCEINLINE class AUSDFCharacterBossMonster* GetTargetBoss() { return TargetBoss; }
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = HUD, Meta = (AllowPrivateAccess= "true"))
 	TSubclassOf<class UUSDFPlayerHUDWidget> HUDWidgetClass;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = HUD, Meta= (AllowPrivateAccess = "true"))
 	TObjectPtr<class UUSDFPlayerHUDWidget> HUDWidget;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = HUD, Meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<class UUSDFEnemyHpBarWidget> BossHpBarWidgetClass;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Boss, Meta = (AllowPrivateAccess= "true"))
 	TObjectPtr<class AUSDFCharacterBossMonster> TargetBoss;

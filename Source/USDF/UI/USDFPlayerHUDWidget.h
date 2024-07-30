@@ -24,6 +24,10 @@ protected:
 public:
 	class UUSDFEnemyHpBarWidget* GetBossHpBar() { return BossHpBar; }
 
+	void BeginSequence();
+
+	void FinishSequence();
+
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = UI, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UUSDFPlayerHpBarWidget> PlayerHpBar;

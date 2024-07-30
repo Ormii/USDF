@@ -6,6 +6,7 @@
 #include "UI/USDFEnemyHpBarWidget.h"
 #include "UI/USDFGameStageIntroWidget.h"
 #include "Interface/USDFCharacterPlayerHUDInterface.h"
+#include "Player/USDFPlayerController.h"
 
 UUSDFPlayerHUDWidget::UUSDFPlayerHUDWidget(const FObjectInitializer& ObjectInitializer)
 	:Super(ObjectInitializer)
@@ -31,5 +32,23 @@ void UUSDFPlayerHUDWidget::NativeConstruct()
 	if (HUDWidgetInterface)
 	{
 		HUDWidgetInterface->SetupPlayerHpBarHUDWidget(PlayerHpBar);
+	}
+}
+
+void UUSDFPlayerHUDWidget::BeginSequence()
+{
+	PlayerHpBar->SetVisibility(ESlateVisibility::Hidden);
+	BossHpBar->SetVisibility(ESlateVisibility::Hidden);
+}
+
+void UUSDFPlayerHUDWidget::FinishSequence()
+{
+	PlayerHpBar->SetVisibility(ESlateVisibility::Visible);
+	
+	AUSDFPlayerController* PlayerController = Cast<AUSDFPlayerController>(GetOwningPlayer());
+	if (PlayerController)
+	{
+		if (PlayerController->GetTargetBoss() != nullptr)
+			BossHpBar->SetVisibility(ESlateVisibility::Visible);
 	}
 }
