@@ -52,4 +52,7 @@ protected:
 	virtual void SetAIStateFrozen(FAISensedParam InParam);
 	virtual void SetAIStateInvestigating(FAISensedParam InParam);
 	virtual void SetAIStateDead(FAISensedParam InParam);
+
+	virtual void SafeDestroy();
+	FTimerHandle TimerHandle;
 };

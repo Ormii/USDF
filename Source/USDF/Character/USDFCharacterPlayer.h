@@ -62,6 +62,9 @@ protected:
 	TObjectPtr<class UCameraComponent> Camera;
 
 
+public:
+	class UCameraComponent* GetCameraComponent() { return Camera; }
+
 	// CharacterControl Section
 protected:
 	UPROPERTY(EditAnywhere, Category = CharacterControl, Meta = (AllowPrivateAccess = "true"))

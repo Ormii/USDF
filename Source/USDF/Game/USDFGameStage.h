@@ -17,6 +17,13 @@ enum class EGameStageState : uint8
 	End
 };
 
+enum class EGameStagePlayerFOV : uint8
+{
+	EGameStagePlayerFOV_Default,
+	EGameStagePlayerFOV_Wide,
+};
+
+
 USTRUCT()
 struct FGameStageChangeWrapper
 {
@@ -50,6 +57,9 @@ public:
 
 public:
 	virtual void SetGameStage(EGameStagePhase NewGameStagePhase) {};
+	virtual void SetPlayerFOV(EGameStagePlayerFOV NewGameStagePlayerFOV) {}
+
+	EGameStagePlayerFOV GameStagePlayerFOV;
 
 protected:
 	virtual void BeginSequence();

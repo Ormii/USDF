@@ -11,7 +11,7 @@
 #define BBKEY_EQS_TARGET_RADIUS TEXT("EQSTargetRadius")
 #define BBKEY_EQS_DEFEND_RADIUS TEXT("EQSDefendRadius")
 #define BBKEY_GAME_STAGE_PHASE TEXT("GameStagePhase")
-
+#define BBKEY_NORMAL_MONSTER_COUNT TEXT("NormalMonsterCount")
 struct FAISensedParam;
 
 DECLARE_DELEGATE_OneParam(FOnChangeAIState, FAISensedParam /*Target*/)

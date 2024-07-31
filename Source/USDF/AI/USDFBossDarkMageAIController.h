@@ -16,4 +16,7 @@ class USDF_API AUSDFBossDarkMageAIController : public AUSDFAIController
 	
 public:
 	AUSDFBossDarkMageAIController();
+
+public:
+	void SetNormalMonsterCount(int32 NewCount);
 };

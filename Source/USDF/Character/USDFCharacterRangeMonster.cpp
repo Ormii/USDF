@@ -17,6 +17,7 @@
 #include "NiagaraComponent.h"
 #include "GameFramework/GameModeBase.h"
 #include "Interface/USDFGameModeInterface.h"
+#include "Character/USDFCharacterPlayer.h"
 
 
 AUSDFCharacterRangeMonster::AUSDFCharacterRangeMonster()
@@ -174,10 +175,13 @@ void AUSDFCharacterRangeMonster::AttackFire()
 	bool bCharacterHit = false;
 	if (bHitted)
 	{
-		AUSDFCharacterBase* HitCharacter = Cast<AUSDFCharacterBase>(HitResult.GetActor());
+		AUSDFCharacterPlayer* HitCharacter = Cast<AUSDFCharacterPlayer>(HitResult.GetActor());
+		if (HitCharacter == nullptr)
+			return;
+
 		IUSDFDamageableInterface* DamageableTarget = Cast<IUSDFDamageableInterface>(HitCharacter);
 
-		if (HitCharacter && DamageableTarget)
+		if (DamageableTarget)
 		{
 			float DamageAmount = Stat->GetNormalMonsterStat().DefaultAttack;
 
@@ -220,5 +224,12 @@ void AUSDFCharacterRangeMonster::AttackFire()
 void AUSDFCharacterRangeMonster::OnDeath()
 {
 	Super::OnDeath();
+
+	FTimerDelegate TimerDelegate;
+	TimerDelegate.BindLambda([&]() {
+		Destroy();
+	});
+
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, 5.0f, false);
 }
 

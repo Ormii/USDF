@@ -9,6 +9,9 @@
 #include "Interface/USDFCharacterWidgetInterface.h"
 #include "USDFCharacterBossMonster.generated.h"
 
+
+DECLARE_DELEGATE_OneParam(FOnBossMonsterActionStart, EAIActionType);
+DECLARE_DELEGATE_OneParam(FOnBossMonsterActionEnd, EAIActionType);
 /**
  * 
  */
@@ -54,6 +57,8 @@ public:
 	virtual float GetAITurnRateSpeed() override;
 	virtual float GetAIEQSDefendRadius() override;
 
+	FOnBossMonsterActionStart OnBossMonsterActionStart;
+	FOnBossMonsterActionEnd OnBossMonsterActionEnd;
 
 	// Damage Section
 protected:

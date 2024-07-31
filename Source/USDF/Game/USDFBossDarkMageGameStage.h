@@ -55,6 +55,8 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	virtual void BeginDestroy() override;
+
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -146,4 +148,29 @@ protected:
 
 	UFUNCTION()
 	void HitCameraShake();
+
+protected:
+
+	UPROPERTY(EditAnywhere, Category = GameStagePlayerFOV, Meta = (AllowPrivateAccess = "true"))
+	float DefaultPlayerFOV;
+	
+	UPROPERTY(EditAnywhere, Category = GameStagePlayerFOV, Meta = (AllowPrivateAccess = "true"))
+	float WidePlayerFOV;
+
+	UFUNCTION()
+	void SetGameStageBossActionStart(EAIActionType AIActionType);
+
+	UFUNCTION()
+	void SetGameStageBossActionEnd(EAIActionType AIActionType);
+
+	UFUNCTION()
+	void SetDarkMageAINormalMonsterCount();
+
+
+	virtual void SetPlayerFOV(EGameStagePlayerFOV NewGameStagePlayerFOV);
+
+protected:
+	UPROPERTY()
+	FTimerHandle TimerHandle;
+
 };

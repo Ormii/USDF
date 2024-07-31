@@ -64,5 +64,4 @@ protected:
 	// Damage Section
 protected:
 	virtual void OnDeath() override;
-
 };

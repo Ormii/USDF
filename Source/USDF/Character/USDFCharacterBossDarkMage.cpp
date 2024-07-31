@@ -24,6 +24,7 @@
 #include "Interface/USDFDamageableInterface.h"
 #include "Damage/USDFDamageSystemComponent.h"
 
+
 AUSDFCharacterBossDarkMage::AUSDFCharacterBossDarkMage()
 {
 	//CDO
@@ -190,36 +191,7 @@ void AUSDFCharacterBossDarkMage::DeActivateFuryEffect()
 
 void AUSDFCharacterBossDarkMage::ActionByAI(EAIActionType InAIActionType)
 {
-	switch (InAIActionType)
-	{
-		case EAIActionType::Range:
-		{
-			CurrentActionType = EDarkMageActionType::DefaultAttack;
-		}
-			break;
-		case EAIActionType::Attack1:
-		{
-			CurrentActionType = EDarkMageActionType::Meteo;
-		}
-			break;
-		case EAIActionType::Attack2:
-		{
-			CurrentActionType = EDarkMageActionType::UpLaser;
-		}
-			break;
-		case EAIActionType::Attack3:
-		{
-			CurrentActionType = EDarkMageActionType::PushBack;
-		}
-			break;
-		case EAIActionType::Buff1:
-		{
-			CurrentActionType = EDarkMageActionType::OrderSpawn;
-		}
-			break;
-		default:
-			break;
-	}
+	CurrentActionType = ConvertAIActionType2DarkMageType(InAIActionType);
 
 	if (CurrentActionType != EDarkMageActionType::None)
 	{
@@ -230,6 +202,8 @@ void AUSDFCharacterBossDarkMage::ActionByAI(EAIActionType InAIActionType)
 
 			AnimInstance->StopAllMontages(0.0f);
 			AnimInstance->Montage_Play(PlayAttackMontage);
+
+			OnBossMonsterActionStart.ExecuteIfBound(InAIActionType);
 
 			FOnMontageEnded OnMontageEnded;
 			OnMontageEnded.BindUObject(this, &AUSDFCharacterBossDarkMage::ActionMontageEnded);
@@ -246,6 +220,7 @@ void AUSDFCharacterBossDarkMage::ActionFinished()
 void AUSDFCharacterBossDarkMage::ActionMontageEnded(UAnimMontage* TargetMontage, bool IsProperlyEnded)
 {
 	ActionFinished();
+	OnBossMonsterActionEnd.ExecuteIfBound(ConvertDarkMageType2AIActionType(CurrentActionType));
 	CurrentActionType = EDarkMageActionType::None;
 }
 
@@ -575,4 +550,79 @@ void AUSDFCharacterBossDarkMage::OnDamageResponse(FDamageInfo DamageInfo)
 	{
 		DefaultAtkProjectile->Destroy();
 	}
+}
+
+EDarkMageActionType ConvertAIActionType2DarkMageType(EAIActionType AIActionType)
+{
+	EDarkMageActionType Result = EDarkMageActionType::None;
+	switch (AIActionType)
+	{
+		case EAIActionType::Range:
+		{
+			Result = EDarkMageActionType::DefaultAttack;
+		}
+			break;
+		case EAIActionType::Attack1:
+		{
+			Result = EDarkMageActionType::Meteo;
+
+		}
+			break;
+		case EAIActionType::Attack2:
+		{
+			Result = EDarkMageActionType::UpLaser;
+		}
+			break;
+		case EAIActionType::Attack3:
+		{
+			Result = EDarkMageActionType::PushBack;
+		}
+			break;
+		case EAIActionType::Buff1:
+		{
+			Result = EDarkMageActionType::OrderSpawn;
+		}
+			break;
+		default:
+			break;
+	}
+
+	return Result;
+}
+
+EAIActionType ConvertDarkMageType2AIActionType(EDarkMageActionType DarkMageActionType)
+{
+	EAIActionType Result = EAIActionType::None;
+	switch (DarkMageActionType)
+	{
+		case EDarkMageActionType::DefaultAttack:
+		{
+			Result = EAIActionType::Attack1;
+		}
+			break;
+		case EDarkMageActionType::Meteo:
+		{
+			Result = EAIActionType::Attack1;
+		}
+			break;
+		case EDarkMageActionType::UpLaser:
+		{
+			Result = EAIActionType::Attack2;
+		}
+			break;
+		case EDarkMageActionType::PushBack:
+		{
+			Result = EAIActionType::Attack3;
+		}
+			break;
+		case EDarkMageActionType::OrderSpawn:
+		{
+			Result = EAIActionType::Buff1;
+		}
+			break;
+		default:
+			break;
+	}
+
+	return Result;
 }

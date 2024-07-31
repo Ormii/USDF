@@ -8,7 +8,7 @@
 #include "GameFramework/GameModeBase.h"
 #include "Game/USDFGameMode.h"
 #include "Player/USDFPlayerController.h"
-#include "AI/USDFAIController.h"
+#include "AI/USDFBossDarkMageAIController.h"
 #include "Kismet/GameplayStatics.h"
 #include "Character/USDFCharacterPlayer.h"
 #include "Character/USDFCharacterBossDarkMage.h"
@@ -20,6 +20,7 @@
 #include "Enemy/USDFDarkMageDotDamageZone.h"
 #include "Sound/SoundCue.h"
 #include "Components/AudioComponent.h"
+#include "Camera/CameraComponent.h"
 
 AUSDFBossDarkMageGameStage::AUSDFBossDarkMageGameStage()
 {
@@ -95,6 +96,9 @@ AUSDFBossDarkMageGameStage::AUSDFBossDarkMageGameStage()
 	CurrentDarkMageStagePhase = EDarkMageStagePhase::EDarkMageStagePhase_Intro;
 	DotDamageZoneCurrentTag = 0;
 	bSceneChanging = false;
+
+	DefaultPlayerFOV = 90.0f;
+	WidePlayerFOV = 120.0f;
 }
 
 void AUSDFBossDarkMageGameStage::PostInitializeComponents()
@@ -138,14 +142,45 @@ void AUSDFBossDarkMageGameStage::BeginPlay()
 	FDarkMageStagePhaseWrapper(FOnDarkMageStagePhaseChange::CreateUObject(this, &AUSDFBossDarkMageGameStage::DarkMageStagePhase_ChangeEnding),
 		FOnDarkMageStagePhaseUpdate::CreateUObject(this, &AUSDFBossDarkMageGameStage::DarkMageStagePhase_UpdateEnding)) });
 
+	BossDarkMage->OnBossMonsterActionStart.BindUObject(this, &AUSDFBossDarkMageGameStage::SetGameStageBossActionStart);
+	BossDarkMage->OnBossMonsterActionEnd.BindUObject(this, &AUSDFBossDarkMageGameStage::SetGameStageBossActionEnd);
+
 	SetDarkMageStagePhase(EDarkMageStagePhase::EDarkMageStagePhase_Intro);
 
 	DarkMageDecal->SetActorHiddenInGame(true);
 }
 
+void AUSDFBossDarkMageGameStage::BeginDestroy()
+{
+	UWorld* World = GetWorld();
+	if (TimerHandle.IsValid() && World)
+	{
+		World->GetTimerManager().ClearTimer(TimerHandle);
+	}
+
+
+	Super::BeginDestroy();
+}
+
 void AUSDFBossDarkMageGameStage::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	UCameraComponent* Camera = PlayerCharacter->GetCameraComponent();
+	if (Camera)
+	{
+		switch (GameStagePlayerFOV)
+		{
+			case EGameStagePlayerFOV::EGameStagePlayerFOV_Default:
+				Camera->FieldOfView = FMath::FInterpTo(Camera->FieldOfView, DefaultPlayerFOV, DeltaTime, 0.7f);
+				break;
+			case EGameStagePlayerFOV::EGameStagePlayerFOV_Wide:
+				Camera->FieldOfView = FMath::FInterpTo(Camera->FieldOfView, WidePlayerFOV, DeltaTime, 0.7f);
+				break;
+			default:
+				break;
+		}
+	}
 
 	DarkMageStagePhaseManager[CurrentDarkMageStagePhase].OnDarkMageStagePhaseUpdate.ExecuteIfBound(DeltaTime);
 }
@@ -416,6 +451,12 @@ void AUSDFBossDarkMageGameStage::OnPhase2SeqFinished()
 	FinishSequence();
 	bSceneChanging = false;
 
+	FTimerDelegate TimerDelegate;
+	TimerDelegate.BindUObject(this, &AUSDFBossDarkMageGameStage::SetDarkMageAINormalMonsterCount);
+
+	if(GetWorld())
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, 10.0f, true);
+
 	AUSDFAIController* AIController = Cast<AUSDFAIController>(BossDarkMage->GetController());
 	if (AIController)
 	{
@@ -513,4 +554,41 @@ void AUSDFBossDarkMageGameStage::HitCameraShake()
 {
 	AUSDFPlayerController* PlayerController = Cast<AUSDFPlayerController>(PlayerCharacter->GetController());
 	PlayerController->ClientStartCameraShake(DotDamageZoneCameraShakeClass);
+}
+
+void AUSDFBossDarkMageGameStage::SetPlayerFOV(EGameStagePlayerFOV NewGameStagePlayerFOV)
+{
+	GameStagePlayerFOV = NewGameStagePlayerFOV;
+}
+
+void AUSDFBossDarkMageGameStage::SetGameStageBossActionStart(EAIActionType AIActionType)
+{
+	EDarkMageActionType DarkMageActionType = ConvertAIActionType2DarkMageType(AIActionType);
+	switch (DarkMageActionType)
+	{
+		case EDarkMageActionType::Meteo:
+			SetPlayerFOV(EGameStagePlayerFOV::EGameStagePlayerFOV_Wide);
+			break;
+		default:
+			break;
+	}
+}
+
+void AUSDFBossDarkMageGameStage::SetGameStageBossActionEnd(EAIActionType AIActionType)
+{
+	SetPlayerFOV(EGameStagePlayerFOV::EGameStagePlayerFOV_Default);
+}
+
+void AUSDFBossDarkMageGameStage::SetDarkMageAINormalMonsterCount()
+{
+	UWorld* World = GetWorld();
+	if (World == nullptr)
+		return;
+	AUSDFBossDarkMageAIController* DarkMageAIController = Cast<AUSDFBossDarkMageAIController>(BossDarkMage->GetController());
+	if (DarkMageAIController == nullptr)
+		return;
+
+	TArray<AActor*> NormalMonsters;
+	UGameplayStatics::GetAllActorsOfClass(World, AUSDFCharacterNormalMonster::StaticClass(), NormalMonsters);
+	DarkMageAIController->SetNormalMonsterCount(NormalMonsters.Num());
 }

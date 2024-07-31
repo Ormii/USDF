@@ -34,3 +34,13 @@ void AUSDFDotDamageZone::Tick(float DeltaTime)
 
 }
 
+void AUSDFDotDamageZone::SafeDestroy()
+{
+	if (TimerHandle.IsValid())
+	{
+		GetWorld()->GetTimerManager().ClearTimer(TimerHandle);
+	}
+
+	Destroy();
+}
+

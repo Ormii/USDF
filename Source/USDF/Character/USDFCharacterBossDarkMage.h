@@ -6,6 +6,7 @@
 #include "Character/USDFCharacterBossMonster.h"
 #include "USDFCharacterBossDarkMage.generated.h"
 
+
 UENUM()
 enum class EDarkMageActionType : uint8
 {
@@ -106,3 +107,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = Additional, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class AUSDFDarkMageEyeCube> DarkMageEyeCube;
 };
+
+
+EDarkMageActionType ConvertAIActionType2DarkMageType(EAIActionType AIActionType);
+EAIActionType ConvertDarkMageType2AIActionType(EDarkMageActionType DarkMageActionType);

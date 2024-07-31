@@ -13,6 +13,7 @@ DECLARE_DELEGATE(FAICharacterActionFinished);
 UENUM(BlueprintType)
 enum class EAIActionType : uint8
 {
+	None,
 	Melee,
 	Range,
 	Dash,

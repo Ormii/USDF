@@ -65,7 +65,7 @@ void AUSDFDarkMageElectLaser::Tick(float DeltaTime)
 	FVector StartLocation = GetActorLocation();
 	FVector EndLocation = StartLocation + GetActorForwardVector() * Distance;
 
-	bool bHitted = GetWorld()->SweepSingleByChannel(HitResult, StartLocation, EndLocation, FQuat::Identity,CCHANNEL_USDF_NON_PLAYER_CHARACTER, FCollisionShape::MakeSphere(Radius),Params);
+	bool bHitted = GetWorld()->SweepSingleByChannel(HitResult, StartLocation, EndLocation, FQuat::Identity,CCHANNEL_USDF_ENEMY_PROJECTILE, FCollisionShape::MakeSphere(Radius),Params);
 	if (bHitted)
 	{
 		EndLocation = HitResult.Location;

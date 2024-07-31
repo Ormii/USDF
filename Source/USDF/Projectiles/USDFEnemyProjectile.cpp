@@ -9,5 +9,5 @@ AUSDFEnemyProjectile::AUSDFEnemyProjectile()
 {
 	// Mesh
 	Mesh->SetCollisionProfileName(CPROFILE_USDF_NONPLAYER_CAPSULE);
-	Mesh->SetCollisionObjectType(CCHANNEL_USDF_NON_PLAYER_CHARACTER);
+	Mesh->SetCollisionObjectType(CCHANNEL_USDF_ENEMY_PROJECTILE);
 }

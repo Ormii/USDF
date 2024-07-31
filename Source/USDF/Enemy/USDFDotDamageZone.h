@@ -33,6 +33,8 @@ public:
 	FORCEINLINE void SetDotInterval(float NewDotInterval) { DotInterval = NewDotInterval; }
 	FORCEINLINE void SetDotRange(float NewDotRange) { DotRange = NewDotRange; }
 
+	virtual void SafeDestroy();
+
 protected:
 	UPROPERTY(VisibleAnywhere, Category = Mesh, Meta= (AllowPrivateAccess = "true"))
 	TObjectPtr<class UStaticMeshComponent> Mesh;
@@ -48,4 +50,7 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = DotInfo, Meta = (AllowPrivateAccess = "true"))
 	float DotRange;
+
+protected:
+	FTimerHandle TimerHandle;
 };

@@ -7,6 +7,7 @@
 #include "AI/USDFAIController.h"
 #include "Character/USDFCharacterNonPlayer.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Game/USDFBossDarkMageGameStage.h"
 
 AUSDFDarkMageEyeCubeSpawner::AUSDFDarkMageEyeCubeSpawner() : SpawnFlag(0), bIsSpawnning(false), SpawnningTime(0.0f)
 {

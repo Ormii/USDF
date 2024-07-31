@@ -14,6 +14,7 @@
 #include "GameData/USDFGameSingleton.h"
 #include "GameFramework/GameModeBase.h"
 #include "Interface/USDFGameModeInterface.h"
+#include "Character/USDFCharacterPlayer.h"
 
 AUSDFCharacterMeleeMonster::AUSDFCharacterMeleeMonster()
 {
@@ -197,10 +198,13 @@ void AUSDFCharacterMeleeMonster::WeakAttackHitCheck()
 				}
 			}
 
-			AUSDFCharacterBase* HitCharacter = Cast<AUSDFCharacterBase>(HitResult.GetActor());
+			AUSDFCharacterPlayer* HitCharacter = Cast<AUSDFCharacterPlayer>(HitResult.GetActor());
+			if (HitCharacter == nullptr)
+				continue;
+
 			IUSDFDamageableInterface* DamageableTarget = Cast<IUSDFDamageableInterface>(HitCharacter);
 
-			if (HitCharacter && DamageableTarget && bIsExist == false)
+			if (DamageableTarget && bIsExist == false)
 			{
 				float DamageAmount = Stat->GetNormalMonsterStat().DefaultAttack;
 
@@ -267,10 +271,12 @@ void AUSDFCharacterMeleeMonster::StrongAttackHitCheck()
 				}
 			}
 
-			AUSDFCharacterBase* HitCharacter = Cast<AUSDFCharacterBase>(HitResult.GetActor());
+			AUSDFCharacterPlayer* HitCharacter = Cast<AUSDFCharacterPlayer>(HitResult.GetActor());
+			if (HitCharacter == nullptr)
+				continue;
 			IUSDFDamageableInterface* DamageableTarget = Cast<IUSDFDamageableInterface>(HitCharacter);
 
-			if (HitCharacter && DamageableTarget && bIsExist == false)
+			if (DamageableTarget && bIsExist == false)
 			{
 				float DamageAmount = Stat->GetNormalMonsterStat().StrongAttack;
 
@@ -314,4 +320,11 @@ void AUSDFCharacterMeleeMonster::StrongAttackHitCheck()
 void AUSDFCharacterMeleeMonster::OnDeath()
 {
 	Super::OnDeath();
+
+	FTimerDelegate TimerDelegate;
+	TimerDelegate.BindLambda([&]() {
+		Destroy();
+		});
+
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, 5.0f, false);
 }

@@ -96,6 +96,13 @@ void AUSDFDarkMageDotDamageZone::OnComponentHitFunc(UPrimitiveComponent* HitComp
 	BeginActivate();
 
 	OnHitEventAccur.ExecuteIfBound();
+
+	FTimerDelegate TimerDelegate;
+	TimerDelegate.BindLambda([&]() {
+		Destroy();
+	});
+
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, 20.0f, false);
 }
 
 void AUSDFDarkMageDotDamageZone::OnComponentOverlapBeginFunc(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)

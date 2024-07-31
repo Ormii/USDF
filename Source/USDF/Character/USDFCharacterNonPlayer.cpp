@@ -86,3 +86,11 @@ void AUSDFCharacterNonPlayer::SetAIStateDead(FAISensedParam InParam)
 {
 	
 }
+
+void AUSDFCharacterNonPlayer::SafeDestroy()
+{
+	if (TimerHandle.IsValid())
+		GetWorld()->GetTimerManager().ClearTimer(TimerHandle);
+
+	Destroy();
+}

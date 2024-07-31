@@ -35,7 +35,7 @@ bool UUSDFBTDecorator_CanSeeTarget::CalculateRawConditionValue(UBehaviorTreeComp
 	FVector EndLocation = Target->GetActorLocation();
 	float Radius = 40.0f;
 
-	bool bHitted = GetWorld()->SweepSingleByChannel(HitResult, StartLocation, EndLocation, FQuat::Identity, ECC_Visibility, FCollisionShape::MakeSphere(Radius), Params);
+	bool bHitted = GetWorld()->SweepSingleByChannel(HitResult, StartLocation, EndLocation, FQuat::Identity, CCHANNEL_USDF_ENEMY_PROJECTILE, FCollisionShape::MakeSphere(Radius), Params);
 	bool bTargetHit = true;
 	if (bHitted)
 	{

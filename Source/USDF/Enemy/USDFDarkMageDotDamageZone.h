@@ -29,8 +29,6 @@ public:
 public:
 	void BeginActivate();
 
-	FORCEINLINE int32 GetTagID() { return TagID; }
-
 public:
 	FORCEINLINE class UProjectileMovementComponent* GetProjectileMovementComponent()const { return ProjectileMovement; }
 

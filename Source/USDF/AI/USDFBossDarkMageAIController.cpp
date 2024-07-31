@@ -22,3 +22,9 @@ AUSDFBossDarkMageAIController::AUSDFBossDarkMageAIController()
 		BTAsset = BTAssetRef.Object;
 	}
 }
+
+void AUSDFBossDarkMageAIController::SetNormalMonsterCount(int32 NewCount)
+{
+	int32 ActualCount = FMath::Max(NewCount, 0);
+	Blackboard->SetValueAsInt(BBKEY_NORMAL_MONSTER_COUNT, ActualCount);
+}
