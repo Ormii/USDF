@@ -36,9 +36,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = Movement, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UProjectileMovementComponent> ProjectileMovement;
 
-	UPROPERTY(VisibleAnywhere, Category = Effect, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class UHeterogeneousVolumeComponent > HeterogeneousVolume;
-
 	UPROPERTY(EditAnywhere, Category = Tag, Meta = (AllowPrivateAccess = "true"))
 	int32 TagID;
 

@@ -649,7 +649,7 @@ void AUSDFCharacterPlayerWarrior::CheckCombo()
 
 		FName NextSection = *FString::Printf(TEXT("%s%d"), *ComboActionData->MontageSectionNamePrefix, CurrentComboCount);
 		AnimInstance->Montage_JumpToSection(NextSection, ComboActionData->ComboAttackMontage);
-		//MakeNoise(1.0f, this, GetActorLocation());
+		MakeNoise(1.0f, this, GetActorLocation());
 		HasNextComboCommand = false;
 	}
 	else
@@ -774,7 +774,7 @@ void AUSDFCharacterPlayerWarrior::ApplyDamagePowerAttack()
 
 			if (HitCharacter&& DamageableTarget && bIsExist == false)
 			{
-				float DamageAmount = 10;
+				float DamageAmount = Stat->GetPlayerStat().DefaultAttack;
 
 				FDamageInfo DamageInfo = {};
 				DamageInfo.DamageAmount = DamageAmount;

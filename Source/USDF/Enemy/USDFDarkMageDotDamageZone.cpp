@@ -15,15 +15,6 @@ AUSDFDarkMageDotDamageZone::AUSDFDarkMageDotDamageZone()
 {
 	//CDO
 	ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement"));
-	HeterogeneousVolume = CreateDefaultSubobject<UHeterogeneousVolumeComponent>(TEXT("HeterogenousVolume"));
-	
-	HeterogeneousVolume->SetupAttachment(RootComponent);
-
-	static ConstructorHelpers::FObjectFinder<UMaterialInstance> MatRef(TEXT("/Game/ReferenceAsset/WeirdFlameVDB/Materials/MI_WeirdFlame_01.MI_WeirdFlame_01"));
-	if (MatRef.Object)
-	{
-		HeterogeneousVolume->SetMaterial(0,MatRef.Object);
-	}
 
 	TagID = 0;
 	ActivateBeginTime = 0;

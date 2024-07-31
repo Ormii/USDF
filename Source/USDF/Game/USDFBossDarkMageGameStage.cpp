@@ -27,29 +27,34 @@ AUSDFBossDarkMageGameStage::AUSDFBossDarkMageGameStage()
 	// CDO
 	Audio = CreateDefaultSubobject<UAudioComponent>(TEXT("Audio"));
 
-	static ConstructorHelpers::FObjectFinder<ULevelSequence> Phase1SeqAssetRef(TEXT("/Game/Cinematics/BossIntro/BossIntro.BossIntro"));
-	if (Phase1SeqAssetRef.Object)
-	{
-		Phase1SeqAsset = Phase1SeqAssetRef.Object;
-	}
+	
+	/*
+		static ConstructorHelpers::FObjectFinder<ULevelSequence> Phase1SeqAssetRef(TEXT("/Game/Cinematics/BossIntro/BossIntro.BossIntro"));
+		if (Phase1SeqAssetRef.Object)
+		{
+			Phase1SeqAsset = Phase1SeqAssetRef.Object;
+		}
+	
+		static ConstructorHelpers::FObjectFinder<ULevelSequence> Phase2SeqAssetRef(TEXT("/Game/Cinematics/BossMiddlePhase/BossMiddlePhase.BossMiddlePhase"));
+		if (Phase2SeqAssetRef.Object)
+		{
+			Phase2SeqAsset = Phase2SeqAssetRef.Object;
+		}
 
-	static ConstructorHelpers::FObjectFinder<ULevelSequence> Phase2SeqAssetRef(TEXT("/Game/Cinematics/BossMiddlePhase/BossMiddlePhase.BossMiddlePhase"));
-	if (Phase2SeqAssetRef.Object)
-	{
-		Phase2SeqAsset = Phase2SeqAssetRef.Object;
-	}
+		static ConstructorHelpers::FObjectFinder<ULevelSequence> Phase3SeqAssetRef(TEXT("/Game/Cinematics/BossFinalPhase/BossFinalPhase.BossFinalPhase"));
+		if (Phase3SeqAssetRef.Object)
+		{
+			Phase3SeqAsset = Phase3SeqAssetRef.Object;
+		}
 
-	static ConstructorHelpers::FObjectFinder<ULevelSequence> Phase3SeqAssetRef(TEXT("/Game/Cinematics/BossFinalPhase/BossFinalPhase.BossFinalPhase"));
-	if (Phase3SeqAssetRef.Object)
-	{
-		Phase3SeqAsset = Phase3SeqAssetRef.Object;
-	}
-
-	static ConstructorHelpers::FObjectFinder<ULevelSequence> PhaseEndingSeqAssetRef(TEXT("/Game/Cinematics/EndingPhase/EndingPhase.EndingPhase"));
-	if (PhaseEndingSeqAssetRef.Object)
-	{
-		PhaseEndingSeqAsset = PhaseEndingSeqAssetRef.Object;
-	}
+		static ConstructorHelpers::FObjectFinder<ULevelSequence> PhaseEndingSeqAssetRef(TEXT("/Game/Cinematics/EndingPhase/EndingPhase.EndingPhase"));
+		if (PhaseEndingSeqAssetRef.Object)
+		{
+			PhaseEndingSeqAsset = PhaseEndingSeqAssetRef.Object;
+		}
+	
+	
+	*/
 
 	static ConstructorHelpers::FObjectFinder<USoundCue> IntroSoundCueRef(TEXT("/Game/ReferenceAsset/cplomedia_CinematicVol5/Cues/Cue_Lost_Cue.Cue_Lost_Cue"));
 	if(IntroSoundCueRef.Object)
@@ -415,7 +420,7 @@ void AUSDFBossDarkMageGameStage::DarkMageStagePhase_UpdatePhase3(float DeltaTime
 				DarkMageDotDamageZone->FinishSpawning(Transform);
 			}
 			DarkMageDecal->SetActorHiddenInGame(true);
-			DropDotDamageZoneTime = FMath::RandRange(1000.0f, 2000.0f);
+			DropDotDamageZoneTime = FMath::RandRange(2000.0f, 3000.0f);
 		}
 	}
 
@@ -516,6 +521,8 @@ void AUSDFBossDarkMageGameStage::OnPhaseEndingSeqFinished()
 		GameModeInterface->OnBossDead(BossDarkMage);
 		GameModeInterface->OnGameStageEnding();
 	}
+
+	DarkMageDecal->SetActorHiddenInGame(true);
 }
 
 void AUSDFBossDarkMageGameStage::BeginSequence()

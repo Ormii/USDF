@@ -39,13 +39,13 @@ AUSDFAIController::AUSDFAIController()
 	AIPerception->ConfigureSense(*DamageConfig);
 	
 	
-	static ConstructorHelpers::FObjectFinder<UBlackboardData> BBAssetRef(TEXT("/Game/AI/BB_USDF_MeleeMonster.BB_USDF_MeleeMonster"));
+	static ConstructorHelpers::FObjectFinder<UBlackboardData> BBAssetRef(TEXT("/Game/AI/MeleeMonster/Default/BB_USDFMeleeDefault.BB_USDFMeleeDefault"));
 	if (BBAssetRef.Object)
 	{
 		BBAsset = BBAssetRef.Object;
 	}
 
-	static ConstructorHelpers::FObjectFinder<UBehaviorTree> BTAssetRef(TEXT("/Game/AI/BT_USDF_MeleeMonster.BT_USDF_MeleeMonster"));
+	static ConstructorHelpers::FObjectFinder<UBehaviorTree> BTAssetRef(TEXT("/Game/AI/MeleeMonster/Default/BT_USDFMeleeDefault.BT_USDFMeleeDefault"));
 	if (BTAssetRef.Object)
 	{
 		BTAsset = BTAssetRef.Object;
