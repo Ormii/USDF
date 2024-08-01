@@ -31,6 +31,15 @@ void UUSDFPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
 			FindLocomotionState();
 
+			if (LocomotionState != ELocomotionState::Idle)
+			{
+				FRotator OwnerRotation = Owner->GetActorRotation();
+				FRotator OwnerControlRotation = Owner->GetControlRotation();
+
+				FRotator NewOwnerRotation = FMath::RInterpTo(OwnerRotation, OwnerControlRotation, GetWorld()->GetDeltaSeconds(), 1.0f);
+				Owner->SetActorRotation(FRotator(0.0f, NewOwnerRotation.Yaw, 0.0f));
+			}
+			
 			ACharacter* Character = Cast<ACharacter>(GetOwningActor());
 			if (Character)
 			{
