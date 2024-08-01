@@ -25,6 +25,7 @@
 #include "Item/USDFWeaponItemData.h"
 #include "Perception/AISense_Damage.h"
 #include "Damage/USDFDamageSystemComponent.h"
+#include "Perception/AISense_Damage.h"
 
 AUSDFCharacterPlayerWarrior::AUSDFCharacterPlayerWarrior()
 {
@@ -535,7 +536,6 @@ void AUSDFCharacterPlayerWarrior::PossessAttackMontage()
 	if (!bAttackState)
 	{
 		bAttackState = true;
-		MakeNoise(1.0f, this, GetActorLocation());
 		Wrapper.OnComboAttackDelegate.ExecuteIfBound();
 	}
 	else
@@ -649,7 +649,6 @@ void AUSDFCharacterPlayerWarrior::CheckCombo()
 
 		FName NextSection = *FString::Printf(TEXT("%s%d"), *ComboActionData->MontageSectionNamePrefix, CurrentComboCount);
 		AnimInstance->Montage_JumpToSection(NextSection, ComboActionData->ComboAttackMontage);
-		MakeNoise(1.0f, this, GetActorLocation());
 		HasNextComboCommand = false;
 	}
 	else
@@ -862,6 +861,7 @@ void AUSDFCharacterPlayerWarrior::ExecuteDefaultHitCheck()
 				DamageInfo.DamageType = EDamageType::HitDefault;
 
 				DamageableTarget->TakeDamage(DamageInfo);
+				UAISense_Damage::ReportDamageEvent(this,HitCharacter,this,DamageAmount, HitResult.GetActor()->GetActorLocation(), HitResult.GetActor()->GetActorLocation());
 
 				FVector BoneLocation = FVector::ZeroVector;
 				HitCharacter->GetMesh()->FindClosestBone(HitResult.Location, &BoneLocation);
@@ -970,6 +970,8 @@ void AUSDFCharacterPlayerWarrior::ComboActionEnded(UAnimMontage* TargetMontage, 
 	CurrentComboAttackType = EPlayerWarriorComboType::None;
 	bAttackState = false;
 	HitCharaters.Empty();
+
+	MakeNoise(1.0f, this, GetActorLocation());
 }
 
 

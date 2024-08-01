@@ -189,13 +189,14 @@ void AUSDFAIController::HandleSensedDamage(AActor* InActor)
 	FAISensedParam Param = {};
 	Param.Actor = InActor;
 	EAIState AIState = GetCurrentAIState();
+
 	switch (AIState)
 	{
 		case EAIState::Passive:
 		case EAIState::Investigating:
 		case EAIState::Intresting:
-			SetCurrentAIState(EAIState::Attacking,Param);
-			AIPawn->SetAIState(EAIState::Attacking, Param);
+			SetCurrentAIState(EAIState::Frozen,Param);
+			AIPawn->SetAIState(EAIState::Frozen, Param);
 			break;
 		default:
 			break;
@@ -209,10 +210,11 @@ void AUSDFAIController::SetCurrentAIState(EAIState NewState, FAISensedParam Para
 	switch (NewState)
 	{
 		case EAIState::Attacking:
-		{
 			if(Param.bUseLastAttackTarget == false)
 				Blackboard->SetValueAsObject(BBKEY_ATTACK_TARGET, Param.Actor);
-		}
+			break;
+		case EAIState::Frozen:
+			Blackboard->SetValueAsObject(BBKEY_ATTACK_TARGET, Param.DamageInfo.DamageCauser);
 			break;
 		default:
 			break;
