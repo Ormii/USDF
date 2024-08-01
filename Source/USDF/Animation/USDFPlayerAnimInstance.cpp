@@ -28,19 +28,9 @@ void UUSDFPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		if (PlayerAnimInterface)
 		{
 			bIsDead = PlayerAnimInterface->IsDeadState();
-			DesiredVelocity = CalculateDesiredVelocity();
 
 			FindLocomotionState();
 
-			if (LocomotionState != ELocomotionState::Idle)
-			{
-				FRotator OwnerRotation = Owner->GetActorRotation();
-				FRotator OwnerControlRotation = Owner->GetControlRotation();
-
-				FRotator NewOwnerRotation = FMath::RInterpTo(OwnerRotation, OwnerControlRotation, GetWorld()->GetDeltaSeconds(), 1.0f);
-				Owner->SetActorRotation(FRotator(0.0f, NewOwnerRotation.Yaw, 0.0f));
-			}
-			
 			ACharacter* Character = Cast<ACharacter>(GetOwningActor());
 			if (Character)
 			{
@@ -49,26 +39,6 @@ void UUSDFPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 			}
 		}
 	}
-}
-
-FVector UUSDFPlayerAnimInstance::CalculateDesiredVelocity()
-{
-	if (Owner)
-	{
-		FRotator OwnerControlRotation = Owner->GetControlRotation();
-
-		IUSDFCharacterPlayerAnimInterface* PlayerAnimInterface = Cast<IUSDFCharacterPlayerAnimInterface>(Owner);
-		if (PlayerAnimInterface)
-		{
-			FRotator ControlYawRotation = FRotator(0.0f, OwnerControlRotation.Yaw, 0.0f);
-
-			FVector ControlForwardVector = FRotationMatrix(ControlYawRotation).GetUnitAxis(EAxis::X) * MovementInputValue.X;
-			FVector ControlRightVector = FRotationMatrix(ControlYawRotation).GetUnitAxis(EAxis::Y) * MovementInputValue.Y;
-
-			return (ControlForwardVector + ControlRightVector).GetSafeNormal();
-		}
-	}
-	return FVector::ZeroVector;
 }
 
 void UUSDFPlayerAnimInstance::FindLocomotionState()
