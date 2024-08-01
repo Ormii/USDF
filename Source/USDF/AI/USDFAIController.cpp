@@ -143,6 +143,7 @@ void AUSDFAIController::HandleSensedSight(AActor* InActor)
 	{
 		case EAIState::Passive:
 		case EAIState::Investigating:
+		case EAIState::Intresting:
 			SetCurrentAIState(EAIState::Attacking, Param);
 			AIPawn->SetAIState(EAIState::Attacking, Param);
 			break;
@@ -165,9 +166,10 @@ void AUSDFAIController::HandleSensedSound(FVector Location)
 	{
 		case EAIState::Passive:
 		case EAIState::Investigating:
-			SetCurrentAIState(EAIState::Investigating, Param);
+		case EAIState::Intresting:
+			SetCurrentAIState(EAIState::Intresting, Param);
 			Blackboard->SetValueAsVector(BBKEY_POINT_OF_INTREST, Location);
-			AIPawn->SetAIState(EAIState::Investigating, Param);
+			AIPawn->SetAIState(EAIState::Intresting, Param);
 			break;
 		default:
 			break;
@@ -191,6 +193,7 @@ void AUSDFAIController::HandleSensedDamage(AActor* InActor)
 	{
 		case EAIState::Passive:
 		case EAIState::Investigating:
+		case EAIState::Intresting:
 			SetCurrentAIState(EAIState::Attacking,Param);
 			AIPawn->SetAIState(EAIState::Attacking, Param);
 			break;

@@ -23,6 +23,7 @@ enum class EAIState : uint8
 	Attacking UMETA(DisplayName = "Attacking"),
 	Frozen UMETA(DisplayName = "Frozen"),
 	Investigating UMETA(DisplayName = "Investigating"),
+	Intresting UMETA(DisplayName = "Intresting"),
 	Dead UMETA(DisplayName = "Dead"),
 };
 
