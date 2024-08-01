@@ -22,6 +22,9 @@ protected:
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
+	FVector DesiredVelocity;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
 	uint8 bAttackState : 1;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
