@@ -63,6 +63,7 @@ protected:
 
 
 public:
+	UFUNCTION(BlueprintCallable, Category = Camera)
 	class UCameraComponent* GetCameraComponent() { return Camera; }
 
 	// CharacterControl Section

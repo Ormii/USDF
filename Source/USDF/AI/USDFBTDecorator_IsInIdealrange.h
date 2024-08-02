@@ -16,4 +16,8 @@ class USDF_API UUSDFBTDecorator_IsInIdealrange : public UBTDecorator
 	
 protected:
 	virtual bool CalculateRawConditionValue(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) const override;
+
+protected:
+	UPROPERTY(EditAnywhere, Category = IdealRange)
+	float IdealRange;
 };

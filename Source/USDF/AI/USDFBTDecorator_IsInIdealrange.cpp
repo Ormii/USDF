@@ -31,9 +31,8 @@ bool UUSDFBTDecorator_IsInIdealrange::CalculateRawConditionValue(UBehaviorTreeCo
 	if (AttackTarget)
 	{
 		float Distance = AttackTarget->GetDistanceTo(AIController->GetPawn());
-		float EQSDefendRange = AIPawn->GetAIEQSDefendRadius();
 
-		return (Distance - 50) <= EQSDefendRange;
+		return (Distance - 50) <= IdealRange;
 	}
 
 	return false;
