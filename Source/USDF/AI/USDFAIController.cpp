@@ -237,6 +237,12 @@ EAIState AUSDFAIController::GetCurrentAIState()
 	return CurrentAIState;
 }
 
+EGameStagePhase AUSDFAIController::GetCurrentPhase()
+{
+	EGameStagePhase CurrentGameStagePhase = static_cast<EGameStagePhase>(Blackboard->GetValueAsEnum(BBKEY_GAME_STAGE_PHASE));
+	return CurrentGameStagePhase;
+}
+
 const AActor* AUSDFAIController::GetAttackTarget() const
 {
 	return dynamic_cast<AActor*>(Blackboard->GetValueAsObject(BBKEY_ATTACK_TARGET));

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Interface/USDFGameStageInterface.h"
 #include "USDFDarkMageEyeCubeSpawner.generated.h"
 
 USTRUCT(BlueprintType)
@@ -11,7 +12,7 @@ struct FDarkMageEyeCubeSpawnOrder
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, Category = StageSpawnOrder, Meta = (AllowPrivateAccess = "true"))
-	int SpawnFlag;
+	EGameStagePhase SpawnFlag;
 
 	UPROPERTY(EditAnywhere, Category = StageSpawnOrder, Meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<class AUSDFAIController> AIControllerClass;
@@ -47,7 +48,7 @@ protected:
 	TObjectPtr<class UNiagaraComponent> SpawnEffect;
 
 public:
-	void PrepareSpawn(int32 InSpawnFlag);
+	void PrepareSpawn(EGameStagePhase GameStagePhase);
 	void BeginSpawn();
 
 protected:
@@ -61,7 +62,7 @@ protected:
 
 	virtual void Spawn(const FDarkMageEyeCubeSpawnOrder& SpawnOrder);
 
-	int32 SpawnFlag;
+	EGameStagePhase SpawnFlag;
 	bool bIsSpawnning;
 	float SpawnningTime;
 };

@@ -74,13 +74,13 @@ void AUSDFDarkMageEyeCube::Tick(float DeltaTime)
 	Mesh->AddWorldRotation(FRotator(1.0f, 0.4f, 0.1f));
 }
 
-void AUSDFDarkMageEyeCube::PrepareSpawn(int32 SpawnFlag)
+void AUSDFDarkMageEyeCube::PrepareSpawn(EGameStagePhase GameStagePhase)
 {
 	if (GetWorld() == nullptr)
 		return;
 
 	for (int32 i = 0; i < Spawners.Num(); ++i)
-		Spawners[i]->PrepareSpawn(SpawnFlag);
+		Spawners[i]->PrepareSpawn(GameStagePhase);
 
 	FTimerDelegate TimerDelegate;
 	TimerDelegate.BindLambda([&]() {

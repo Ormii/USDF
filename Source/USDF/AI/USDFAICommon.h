@@ -13,6 +13,7 @@
 #define BBKEY_GAME_STAGE_PHASE TEXT("GameStagePhase")
 #define BBKEY_NORMAL_MONSTER_COUNT TEXT("NormalMonsterCount")
 #define BBKEY_FORWARD_VECTOR TEXT("ForwardVector")
+#define BBKEY_SEARCH_COUNT TEXT("SearchCount")
 
 struct FAISensedParam;
 

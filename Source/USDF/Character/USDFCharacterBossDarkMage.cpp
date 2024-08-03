@@ -387,13 +387,13 @@ void AUSDFCharacterBossDarkMage::SpawnLaser(int32 InParam)
 							FVector NewLookLocation = FVector(SpawnLocation.X, SpawnLocation.Y, Target->GetActorLocation().Z);
 							TargetForwardVector = FVector::UpVector.Cross(NewRightVector);
 
-							FVector ProjectileLookPosition = NewLookLocation + NewRightVector * TargetDistance * ((i == 0) ? 1 : -1) * (1.0f/FMath::Tan(PI / 3.0f));
-							FVector ProjectileForwardVector = (ProjectileLookPosition - SpawnLocation).GetSafeNormal();
-							FVector TempVector = (Target->GetActorLocation() - ProjectileLookPosition).GetSafeNormal();
+							FVector LaserPosition = NewLookLocation + NewRightVector * TargetDistance * ((i == 0) ? 1 : -1) * (1.0f/FMath::Tan(PI / 3.0f));
+							FVector LaserForwardVector = (LaserPosition - SpawnLocation).GetSafeNormal();
+							FVector TempVector = (Target->GetActorLocation() - LaserPosition).GetSafeNormal();
 
 							FTransform Transform = FTransform::Identity;
 							Transform.SetLocation(SpawnLocation);
-							Transform.SetRotation(FRotationMatrix::MakeFromXY(ProjectileForwardVector,TempVector).ToQuat());
+							Transform.SetRotation(FRotationMatrix::MakeFromXY(LaserForwardVector,TempVector).ToQuat());
 
 							ElectLaser->FinishSpawning(Transform);
 						}
@@ -463,7 +463,11 @@ void AUSDFCharacterBossDarkMage::BuffAction()
 			if (DarkMageEyeCube == nullptr)
 				break;
 			
-			DarkMageEyeCube->PrepareSpawn(1);
+			AUSDFAIController* AIController = Cast<AUSDFAIController>(GetController());
+			if (AIController)
+			{
+				DarkMageEyeCube->PrepareSpawn(AIController->GetCurrentPhase());
+			}
 		}
 			break;
 	}

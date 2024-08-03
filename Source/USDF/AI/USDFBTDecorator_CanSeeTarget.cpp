@@ -53,9 +53,11 @@ bool UUSDFBTDecorator_CanSeeTarget::CalculateRawConditionValue(UBehaviorTreeComp
 	}
 
 #if ENABLE_DRAW_DEBUG
+	/*
 	FColor Color = (bTargetHit == true) ? FColor::Green : FColor::Red;
 	FVector TargetFowardVector = EndLocation - StartLocation;
 	DrawDebugCapsule(GetWorld(), (StartLocation + EndLocation) / 2, TargetFowardVector.Length() * 0.5f, Radius, FRotationMatrix::MakeFromZ(TargetFowardVector).ToQuat(), Color, false, 0.1f);
+	*/
 #endif
 
 	return bTargetHit;

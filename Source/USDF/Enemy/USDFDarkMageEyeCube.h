@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Interface/USDFGameStageInterface.h"
 #include "USDFDarkMageEyeCube.generated.h"
 
 UCLASS()
@@ -43,7 +44,7 @@ protected:
 	FTimerHandle TimerHandle;
 
 public:
-	void PrepareSpawn(int32 SpawnFlag);
+	void PrepareSpawn(EGameStagePhase GameStagePhase);
 
 protected:
 	void Spawn();

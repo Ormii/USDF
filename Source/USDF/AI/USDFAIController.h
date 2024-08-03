@@ -36,6 +36,7 @@ public:
 	void SetCurrentPhase(EGameStagePhase NewGameStagePhase);
 	void SetTeleportState(bool NewTeleportState);
 	EAIState GetCurrentAIState();
+	EGameStagePhase GetCurrentPhase();
 	const AActor* GetAttackTarget() const;
 
 public:

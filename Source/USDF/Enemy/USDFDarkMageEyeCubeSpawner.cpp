@@ -8,8 +8,9 @@
 #include "Character/USDFCharacterNonPlayer.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Game/USDFBossDarkMageGameStage.h"
+#include "Interface/USDFGameStageInterface.h"
 
-AUSDFDarkMageEyeCubeSpawner::AUSDFDarkMageEyeCubeSpawner() : SpawnFlag(0), bIsSpawnning(false), SpawnningTime(0.0f)
+AUSDFDarkMageEyeCubeSpawner::AUSDFDarkMageEyeCubeSpawner() : SpawnFlag(EGameStagePhase::EGameStagePhase_Phase1), bIsSpawnning(false), SpawnningTime(0.0f)
 {
 	PrimaryActorTick.bCanEverTick = true;
 	// CDO
@@ -77,14 +78,14 @@ void AUSDFDarkMageEyeCubeSpawner::Tick(float DeltaTime)
 	}
 }
 
-void AUSDFDarkMageEyeCubeSpawner::PrepareSpawn(int32 InSpawnFlag)
+void AUSDFDarkMageEyeCubeSpawner::PrepareSpawn(EGameStagePhase GameStagePhase)
 {
-	SpawnFlag = InSpawnFlag;
+	SpawnFlag = GameStagePhase;
 	CurrentSpawnOrder.Empty();
 
 	for (int32 i = 0; i < TotalSpawnOrder.Num(); ++i)
 	{
-		if (TotalSpawnOrder[i].SpawnFlag != InSpawnFlag)
+		if (TotalSpawnOrder[i].SpawnFlag != GameStagePhase)
 			continue;
 
 		CurrentSpawnOrder.Enqueue(TotalSpawnOrder[i]);

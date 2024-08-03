@@ -66,6 +66,7 @@ void AUSDFDarkMageElectLaser::Tick(float DeltaTime)
 	FVector EndLocation = StartLocation + GetActorForwardVector() * Distance;
 
 	bool bHitted = GetWorld()->SweepSingleByChannel(HitResult, StartLocation, EndLocation, FQuat::Identity,CCHANNEL_USDF_ENEMY_PROJECTILE, FCollisionShape::MakeSphere(Radius),Params);
+	bool TargetHit = false;
 	if (bHitted)
 	{
 		EndLocation = HitResult.Location;
@@ -74,6 +75,7 @@ void AUSDFDarkMageElectLaser::Tick(float DeltaTime)
 		{
 			if (HitCharacters.Find(HitResult.GetActor()) == nullptr)
 			{
+				TargetHit = true;
 				FDamageInfo DamageInfo{};
 				DamageInfo.DamageAmount = AttackDamage;
 				DamageInfo.DamageCauser = GetOwner();
@@ -92,14 +94,13 @@ void AUSDFDarkMageElectLaser::Tick(float DeltaTime)
 	BaseEffect->SetNiagaraVariableVec3("Beam End", EndLocation);
 
 #if ENABLE_DRAW_DEBUG
-
-	/*
+/*
 	FVector Position = (StartLocation + EndLocation) * 0.5f;
 	float Length = (EndLocation - StartLocation).Length() * 0.5f;
 
-	FColor Color = (bHitted == true) ? FColor::Green : FColor::Red;
-	DrawDebugCapsule(GetWorld(), Position, Length, Radius, FRotationMatrix::MakeFromZ(GetActorForwardVector()).ToQuat(), Color, false, 0.1f);
-	*/
+	FColor Color = (TargetHit == true) ? FColor::Green : FColor::Red;
+	DrawDebugCapsule(GetWorld(), Position, Length, Radius, FRotationMatrix::MakeFromZ(GetActorForwardVector()).ToQuat(), Color, false, 6.0f);
+*/
 #endif
 
 }
