@@ -150,7 +150,7 @@ void AUSDFBossDarkMageGameStage::BeginPlay()
 	BossDarkMage->OnBossMonsterActionStart.BindUObject(this, &AUSDFBossDarkMageGameStage::SetGameStageBossActionStart);
 	BossDarkMage->OnBossMonsterActionEnd.BindUObject(this, &AUSDFBossDarkMageGameStage::SetGameStageBossActionEnd);
 
-	SetDarkMageStagePhase(EDarkMageStagePhase::EDarkMageStagePhase_Intro);
+	SetDarkMageStagePhase(CurrentDarkMageStagePhase);
 
 	DarkMageDecal->SetActorHiddenInGame(true);
 }
@@ -165,6 +165,13 @@ void AUSDFBossDarkMageGameStage::BeginDestroy()
 
 
 	Super::BeginDestroy();
+}
+
+void AUSDFBossDarkMageGameStage::OnConstruction(const FTransform& Transform)
+{
+	Super::OnConstruction(Transform);
+
+	SetDarkMageStagePhase(CurrentDarkMageStagePhase);
 }
 
 void AUSDFBossDarkMageGameStage::Tick(float DeltaTime)
@@ -405,7 +412,7 @@ void AUSDFBossDarkMageGameStage::DarkMageStagePhase_UpdatePhase3(float DeltaTime
 
 	DropDotDamageZoneTime -= DeltaTime;
 
-	if (DropDotDamageZoneTime <= 1000.0f)
+	if (DropDotDamageZoneTime <= DamageZoneNotifyTime)
 	{
 		DarkMageDecal->SetActorHiddenInGame(false);
 		DarkMageDecal->SetActorLocation(PlayerCharacter->GetActorLocation());
@@ -415,15 +422,14 @@ void AUSDFBossDarkMageGameStage::DarkMageStagePhase_UpdatePhase3(float DeltaTime
 			if (DarkMageDotDamageZone != nullptr)
 			{
 				FTransform Transform = FTransform::Identity;
-				Transform.SetLocation(PlayerCharacter->GetActorLocation() + FVector::UpVector * 3000.0f);
+				Transform.SetLocation(PlayerCharacter->GetActorLocation() + FVector::UpVector * SpawnDamageZoneHeight);
 				DarkMageDotDamageZone->OnHitEventAccur.BindUFunction(this, "HitCameraShake");
 				DarkMageDotDamageZone->FinishSpawning(Transform);
 			}
 			DarkMageDecal->SetActorHiddenInGame(true);
-			DropDotDamageZoneTime = FMath::RandRange(2000.0f, 3000.0f);
+			DropDotDamageZoneTime = FMath::RandRange(MinDamageZoneSpawnPeriod, MaxDamageZoneSpawnPeriod);
 		}
 	}
-
 }
 
 void AUSDFBossDarkMageGameStage::DarkMageStagePhase_UpdateEnding(float DeltaTime)
@@ -435,7 +441,8 @@ void AUSDFBossDarkMageGameStage::DarkMageStagePhase_UpdateEnding(float DeltaTime
 void AUSDFBossDarkMageGameStage::SetDarkMageStagePhase(EDarkMageStagePhase NewStagePhase)
 {
 	CurrentDarkMageStagePhase = NewStagePhase;
-	DarkMageStagePhaseManager[CurrentDarkMageStagePhase].OnDarkMageStagePhaseChange.ExecuteIfBound();
+	if(DarkMageStagePhaseManager.Find(NewStagePhase))
+		DarkMageStagePhaseManager[CurrentDarkMageStagePhase].OnDarkMageStagePhaseChange.ExecuteIfBound();
 }
 
 void AUSDFBossDarkMageGameStage::OnPhase1SeqFinished()
@@ -483,7 +490,7 @@ void AUSDFBossDarkMageGameStage::OnPhase3SeqFinished()
 
 	BossDarkMage->ActivateFuryEffect();
 
-	DropDotDamageZoneTime = FMath::RandRange(1000.0f, 2000.0f);
+	DropDotDamageZoneTime = FMath::RandRange(MinDamageZoneSpawnPeriod, MaxDamageZoneSpawnPeriod);
 }
 
 void AUSDFBossDarkMageGameStage::OnPhaseEndingSeqFinished()
@@ -532,13 +539,6 @@ void AUSDFBossDarkMageGameStage::BeginSequence()
 	AUSDFPlayerController* PlayerController = CastChecked<AUSDFPlayerController>(PlayerCharacter->GetController());
 	PlayerController->BeginSequence();
 	PlayerCharacter->DisableInput(PlayerController);
-	/*
-		AUSDFAIController* AIController = Cast<AUSDFAIController>(BossDarkMage->GetController());
-		if (AIController)
-		{
-			AIController->StopAI();
-		}
-	*/
 }
 
 void AUSDFBossDarkMageGameStage::FinishSequence()
@@ -548,13 +548,6 @@ void AUSDFBossDarkMageGameStage::FinishSequence()
 	AUSDFPlayerController* PlayerController = Cast<AUSDFPlayerController>(PlayerCharacter->GetController());
 	PlayerController->FinishSequence();
 	PlayerCharacter->EnableInput(PlayerController);
-	/*
-		AUSDFAIController* AIController = Cast<AUSDFAIController>(BossDarkMage->GetController());
-		if (AIController)
-		{
-			AIController->RunAI();
-		}
-	*/
 }
 
 void AUSDFBossDarkMageGameStage::HitCameraShake()

@@ -32,7 +32,6 @@ struct FDarkMageStagePhaseWrapper
 		OnDarkMageStagePhaseUpdate = NewOnDarkMageStagePhaseUpdate;
 	}
 
-
 	FOnDarkMageStagePhaseChange OnDarkMageStagePhaseChange;
 	FOnDarkMageStagePhaseUpdate OnDarkMageStagePhaseUpdate;
 };
@@ -57,6 +56,9 @@ protected:
 
 	virtual void BeginDestroy() override;
 
+protected:
+	void OnConstruction(const FTransform& Transform) override;
+
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -73,7 +75,7 @@ protected:
 
 
 protected:
-	UPROPERTY(VisibleAnywhere, Category = StagePhase, Meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, Category = StagePhase, Meta = (AllowPrivateAccess = "true"))
 	EDarkMageStagePhase CurrentDarkMageStagePhase;
 
 
@@ -173,4 +175,27 @@ protected:
 	UPROPERTY()
 	FTimerHandle TimerHandle;
 
+protected:
+	UPROPERTY(EditAnywhere, Category = "Phase|Phase1", Meta = (AllowPrivateAccess = "true"));
+	float BossPhase1To2ChangeRatio;
+
+protected:
+	UPROPERTY(EditAnywhere, Category = "Phase|Phase2", Meta = (AllowPrivateAccess = "true"));
+	float BossPhase2To3ChangeRatio;
+
+protected:
+	UPROPERTY(EditAnywhere, Category = "Phase|Phase3", Meta = (AllowPrivateAccess = "true"));
+	float BossPhase3ToEndingChangeRatio;
+
+	UPROPERTY(EditAnywhere, Category = "Phase|Phase3", Meta = (AllowPrivateAccess = "true"));
+	float SpawnDamageZoneHeight;
+
+	UPROPERTY(EditAnywhere, Category = "Phase|Phase3", Meta = (AllowPrivateAccess = "true"));
+	float MinDamageZoneSpawnPeriod;
+
+	UPROPERTY(EditAnywhere, Category = "Phase|Phase3", Meta = (AllowPrivateAccess = "true"));
+	float MaxDamageZoneSpawnPeriod;
+
+	UPROPERTY(EditAnywhere, Category = "Phase|Phase3", Meta = (AllowPrivateAccess = "true"));
+	float DamageZoneNotifyTime;
 };

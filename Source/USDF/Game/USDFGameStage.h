@@ -9,14 +9,6 @@
 
 DECLARE_DELEGATE(FOnGameStageChange)
 
-UENUM(BlueprintType)
-enum class EGameStageState : uint8
-{
-	Prepare,
-	Battle,
-	End
-};
-
 enum class EGameStagePlayerFOV : uint8
 {
 	EGameStagePlayerFOV_Default,
